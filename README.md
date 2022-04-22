@@ -306,30 +306,12 @@ $ tappr utils [OPTIONS] COMMAND [ARGS]...
 
 **Commands**:
 
-* `git`: Git tooling to generate release notes and...
+* `changelog`: Generate changelog from git log.
 * `local`: Helpers to setup your local environment.
 * `registry`: Manage local docker registry.
-
-### `tappr utils git`
-
-Git tooling to generate release notes and changelog.
-
-**Usage**:
-
-```console
-$ tappr utils git [OPTIONS] COMMAND [ARGS]...
-```
-
-**Options**:
-
-* `--help`: Show this message and exit.
-
-**Commands**:
-
-* `changelog`: Generate changelog from git log.
 * `release`: Generate GitHub/Gitlab release notes from git...
 
-#### `tappr utils git changelog`
+### `tappr utils changelog`
 
 Generate changelog from git log. You will have an easier time creating changelog if you use conventional commits.
 
@@ -337,20 +319,20 @@ Examples:
 
 Generate a changelog for all commits starting from first commit to the tag v0.4.0.
 
-$ tappr utils git changelog --log-range v0.4.0
+$ tappr utils changelog --log-range v0.4.0
 
 Generate a changelog for commits between tag v0.4.1 to the last commit
 
-$ tappr utils git changelog --log-range v0.4.1..HEAD
+$ tappr utils changelog --log-range v0.4.1..HEAD
 
 Generate a changelog for all commits between tag v0.4.1 and v0.5.0
 
-$ tappr utils git changelog --log-range v0.4.1..v0.5.0
+$ tappr utils changelog --log-range v0.4.1..v0.5.0
 
 **Usage**:
 
 ```console
-$ tappr utils git changelog [OPTIONS]
+$ tappr utils changelog [OPTIONS]
 ```
 
 **Options**:
@@ -359,41 +341,6 @@ $ tappr utils git changelog [OPTIONS]
 * `--ignore-dependabot-commits / --no-ignore-dependabot-commits`: Dependabot commits will be ignored from the changelog  [default: True]
 * `--ignore-docs-commits / --no-ignore-docs-commits`: Docs commits will be ignored from the changelog  [default: True]
 * `--output TEXT`: Filename where the changelog output will be stored  [default: stdout]
-* `--help`: Show this message and exit.
-
-#### `tappr utils git release`
-
-Generate GitHub/Gitlab release notes from git log. You will have an easier time creating release notes if you use conventional commits.
-
-since_ver: is the previous version. This should be in a valid semver format.
-
-release_ver: is the version you are trying to release. This should be in a valid semver format.
-
-template_file: markdown template file to be used for creating releases
-
-pr_path: is the path to PRs. For e.g. for this repo, its https://github.com/atmandhol/tappr/pull/. This is needed to generate PR links automatically in the release notes
-
-output: Defaults to stdout. Change to something else for a file output
-
-**Usage**:
-
-```console
-$ tappr utils git release [OPTIONS] PROJECT:[apps-plugin|source-controller|service-bindings|sprint-boot-convention] SINCE_VER RELEASE_VER TEMPLATE_FILE PR_PATH
-```
-
-**Arguments**:
-
-* `PROJECT:[apps-plugin|source-controller|service-bindings|sprint-boot-convention]`: [required]
-* `SINCE_VER`: [required]
-* `RELEASE_VER`: [required]
-* `TEMPLATE_FILE`: [required]
-* `PR_PATH`: [required]
-
-**Options**:
-
-* `--ignore-dependabot-commits / --no-ignore-dependabot-commits`: Dependabot commits will be ignored from the release notes  [default: True]
-* `--ignore-docs-commits / --no-ignore-docs-commits`: Docs commits will be ignored from the release notes  [default: True]
-* `--output TEXT`: Filename where the release notes output will be stored  [default: stdout]
 * `--help`: Show this message and exit.
 
 ### `tappr utils local`
@@ -500,5 +447,39 @@ $ tappr utils registry stop [OPTIONS]
 
 **Options**:
 
+* `--help`: Show this message and exit.
+
+### `tappr utils release`
+
+Generate GitHub/Gitlab release notes from git log. You will have an easier time creating release notes if you use conventional commits.
+
+since_ver: is the previous version. This should be in a valid semver format.
+
+release_ver: is the version you are trying to release. This should be in a valid semver format.
+
+template_file: markdown template file to be used for creating releases
+
+pr_path: is the path to PRs. For e.g. for this repo, its https://github.com/atmandhol/tappr/pull/. This is needed to generate PR links automatically in the release notes
+
+output: Defaults to stdout. Change to something else for a file output
+
+**Usage**:
+
+```console
+$ tappr utils release [OPTIONS] SINCE_VER RELEASE_VER TEMPLATE_FILE PR_PATH
+```
+
+**Arguments**:
+
+* `SINCE_VER`: [required]
+* `RELEASE_VER`: [required]
+* `TEMPLATE_FILE`: [required]
+* `PR_PATH`: [required]
+
+**Options**:
+
+* `--ignore-dependabot-commits / --no-ignore-dependabot-commits`: Dependabot commits will be ignored from the release notes  [default: True]
+* `--ignore-docs-commits / --no-ignore-docs-commits`: Docs commits will be ignored from the release notes  [default: True]
+* `--output TEXT`: Filename where the release notes output will be stored  [default: stdout]
 * `--help`: Show this message and exit.
 
