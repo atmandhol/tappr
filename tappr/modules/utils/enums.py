@@ -1,13 +1,6 @@
 from enum import Enum
 
 
-class PRPATH(str, Enum):
-    APPS_PLUGIN = "https://github.com/vmware-tanzu/apps-cli-plugin/pull/"
-    SOURCE_CONTROLLER = "https://github.com/vmware-tanzu/source-controller/pull/"
-    SERVICE_BINDINGS = "https://github.com/vmware-tanzu/servicebinding/pull/"
-    SPRINT_BOOT_CONVENTION = "https://gitlab.eng.vmware.com/tap-conventions/spring-boot/spring-boot-conventions/-/merge_requests/"
-
-
 class REGISTRY(str, Enum):
     GCR = "gcr"
     DOCKERHUB = "dockerhub"
@@ -37,4 +30,5 @@ class OS(str, Enum):
 
 class PROFILE(str, Enum):
     ITERATE_LOCAL = "iterate-local"
+    ITERATE_SLIM = "iterate-slim"
     ITERATE = "iterate"

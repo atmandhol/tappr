@@ -11,7 +11,7 @@ from tappr.modules.test.test_framework import TestFramework
 from tappr.modules.tanzu.tap import TanzuApplicationPlatform
 from tappr.modules.utils.helpers import PivnetHelpers, SubProcessHelpers
 from tappr.modules.utils.logger import TyperLogger
-from tappr.modules.utils.enums import PROFILE, OS, PROJECT
+from tappr.modules.utils.enums import PROFILE, OS
 from tappr.modules.utils.creds import CredsHelper
 from tappr.modules.utils.ui import UI
 
@@ -439,7 +439,6 @@ def stop():
 # =============================================================================================
 @tap_app.command()
 def install(
-    k8s_context,
     profile: PROFILE,
     version,
     host_os: OS = OS.MAC,
@@ -450,7 +449,6 @@ def install(
 
     """
     tap_helpers.tap_install(
-        k8s_context=k8s_context,
         profile=profile,
         version=version,
         host_os=host_os,

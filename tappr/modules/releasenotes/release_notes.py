@@ -2,10 +2,9 @@ import subprocess
 import sys
 import os
 
-from tappr.modules.utils import commit_parser, enums
+from tappr.modules.utils import commit_parser
 
 dir_name = os.path.dirname(__file__)
-PRPath = enums.PRPATH
 
 
 class ReleaseNotes:

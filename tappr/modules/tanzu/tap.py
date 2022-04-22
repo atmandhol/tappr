@@ -30,8 +30,33 @@ class TanzuApplicationPlatform:
     def sh_call(self, cmd, msg, spinner_msg, error_msg):
         return self.ui_helper.sh_call(cmd=cmd, msg=msg, spinner_msg=spinner_msg, error_msg=error_msg, state=self.state)
 
-    def tap_install(self, k8s_context, profile, version, host_os, tap_values_file):
-        hash_str = str(k8s_context + profile + version)
+    def tap_install(self, profile, version, host_os, tap_values_file):
+        exit_code = self.sh_call(
+            cmd=f"kubectl cluster-info",
+            msg=":man_police_officer: Checking k8s cluster and kubectl",
+            spinner_msg="Checking",
+            error_msg=":broken_heart: Unable to connect to k8s cluster. Use [bold]--verbose[/bold] flag for error details.",
+        )
+        if exit_code != 0:
+            raise typer.Exit(-1)
+
+        exit_code = self.sh_call(
+            cmd=f"tanzu package version",
+            msg=":man_police_officer: Checking tanzu CLI",
+            spinner_msg="Checking",
+            error_msg=":broken_heart: tanzu cli checks failed. Use [bold]--verbose[/bold] flag for error details.",
+        )
+        if exit_code != 0:
+            raise typer.Exit(-1)
+
+        _, kube_context, _ = self.ui_helper.progress(
+            cmd=f"kubectl config current-context",
+            message=":man_police_officer: Getting current context",
+            state=self.state
+        )
+        kube_context = kube_context.decode().strip()
+        self.logger.msg(f":file_folder: Using k8s context [yellow]{kube_context}[/yellow] for installation", bold=True)
+        hash_str = str(profile + version)
         tmp_dir = f"/tmp/{hashlib.md5(hash_str.encode()).hexdigest()}"
         self.logger.msg(f":file_folder: Staging Installation Dir is at [yellow]{tmp_dir}[/yellow]", bold=True)
 
