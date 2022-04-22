@@ -100,16 +100,13 @@ Create a GKE cluster. Assumes gcloud is set to create clusters.
 **Usage**:
 
 ```console
-$ tappr create gke [OPTIONS] GCP_PROJECT
+$ tappr create gke [OPTIONS]
 ```
-
-**Arguments**:
-
-* `GCP_PROJECT`: [required]
 
 **Options**:
 
 * `--cluster-name TEXT`
+* `--project TEXT`
 * `--gcp-json TEXT`: A json file to override values in artifacts/gke_defaults.json
 * `--help`: Show this message and exit.
 
@@ -237,13 +234,12 @@ Install TAP. Make sure to run tappr init before installing TAP.
 **Usage**:
 
 ```console
-$ tappr tap install [OPTIONS] K8S_CONTEXT PROFILE:[iterate-local|iterate] VERSION
+$ tappr tap install [OPTIONS] PROFILE:[iterate-local|iterate-slim|iterate] VERSION
 ```
 
 **Arguments**:
 
-* `K8S_CONTEXT`: [required]
-* `PROFILE:[iterate-local|iterate]`: [required]
+* `PROFILE:[iterate-local|iterate-slim|iterate]`: [required]
 * `VERSION`: [required]
 
 **Options**:
