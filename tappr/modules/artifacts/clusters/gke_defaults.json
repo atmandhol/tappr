@@ -1,0 +1,13 @@
+{
+  "region": "us-east4",
+  "cluster_version": "1.21.6-gke.1503",
+  "release_channel": "None",
+  "machine_type": "e2-standard-4",
+  "image_type": "COS_CONTAINERD",
+  "disk_type": "pd-standard",
+  "disk_size": "100",
+  "max_pods_per_node": "110",
+  "num_nodes": "1",
+  "network": "projects/{project}/global/networks/default",
+  "sub_network": "projects/{project}/regions/{region}/subnetworks/default"
+}

@@ -1,0 +1,228 @@
+{
+  "context": {
+    "version": "{$$SERVICE_BINDINGS_VERSION}",
+    "project": "service-bindings",
+    "repo": "vmware-tanzu/servicebinding",
+    "local_registry": "service-bindings-for-kubernetes"
+  },
+  "tests": [
+    {
+      "name": "test_pre_check",
+      "run": [
+        "kapp version",
+        "kubectl version --client",
+        "imgpkg version",
+        "kbld version",
+        "kind version"
+      ],
+      "acceptable_exit_code": [
+        0
+      ]
+    },
+    {
+      "name": "create_cluster_and_registry",
+      "run": [
+        "tappr create kind test",
+        "tappr utils registry start"
+      ],
+      "acceptable_exit_code": [
+        0
+      ]
+    },
+    {
+      "name": "kapp_deploy_yaml",
+      "run": [
+        "kapp deploy -a {$$project} -f https://github.com/{$$repo}/releases/download/v{$$version}/{$$project}-{$$version}.yaml -y"
+      ],
+      "assert_in_output": [
+        "Succeeded"
+      ],
+      "acceptable_exit_code": [
+        0
+      ]
+    },
+    {
+      "name": "wait_for_pods_ready",
+      "run": [
+        "kubectl wait --for=condition=ready pod -l app=manager -n {$$project} --timeout=30s"
+      ],
+      "assert_in_output": [
+        "condition met"
+      ],
+      "acceptable_exit_code": [
+        0
+      ]
+    },
+    {
+      "name": "kapp_delete_yaml",
+      "run": [
+        "kapp delete -a {$$project} -y"
+      ],
+      "acceptable_exit_code": [
+        0
+      ]
+    },
+    {
+      "name": "download_tar_in_temp_dir",
+      "run": [
+        "SET context {$$tmp_dir} {$$python.random}",
+        "SET context {$$tmp_folder} /tmp/{$$tmp_dir}",
+        "mkdir -p {$$tmp_folder}",
+        "SET context {$$tar_file} {$$tmp_folder}/{$$project}-bundle-{$$version}.tar",
+        "echo {$$tar_file}",
+        "curl -L https://github.com/{$$repo}/releases/download/v{$$version}/{$$project}-bundle-{$$version}.tar -o {$$tar_file}"
+      ],
+      "fail_on_stderr": false
+    },
+    {
+      "name": "imgpkg_copy",
+      "run": [
+        "SET context {$$image_repo} localhost:5001/{$$local_registry}/{$$project}-bundle",
+        "imgpkg copy --tar {$$tar_file} --to-repo {$$image_repo}"
+      ],
+      "acceptable_exit_code": [
+        0
+      ]
+    },
+    {
+      "name": "pull_imgpkg_bundle",
+      "run": [
+        "SET context {$$bundle_path} {$$tmp_folder}/bundle",
+        "mkdir -p {$$bundle_path}",
+        "imgpkg pull --bundle {$$image_repo} --output {$$bundle_path}"
+      ],
+      "acceptable_exit_code": [
+        0
+      ]
+    },
+    {
+      "name": "kapp_deploy_bundle",
+      "run": [
+        "kbld -f {$$bundle_path}/config/{$$project}.yaml -f {$$bundle_path}/.imgpkg/images.yml > {$$bundle_path}/gen_kbld.yml",
+        "kapp deploy -a {$$project} -f {$$bundle_path}/gen_kbld.yml -y"
+      ],
+      "acceptable_exit_code": [
+        0
+      ],
+      "fail_on_stderr": false
+    },
+    {
+      "name": "wait_for_pods_ready",
+      "run": [
+        "kubectl wait --for=condition=ready pod -l app=manager -n {$$project} --timeout=30s"
+      ],
+      "assert_in_output": [
+        "condition met"
+      ],
+      "acceptable_exit_code": [
+        0
+      ]
+    },
+    {
+      "name": "install_spring_pet_clinic",
+      "run": [
+        "kubectl apply -f {$$bundle_path}/samples/samples/spring-petclinic",
+        "kubectl wait deployment spring-petclinic --for condition=available --timeout=2m"
+      ],
+      "acceptable_exit_code": [
+        0
+      ]
+    },
+    {
+      "name": "inspect_logs",
+      "run": [
+        "kubectl logs -l app=spring-petclinic -c workload --tail 1000"
+      ],
+      "assert_in_output": [
+        "The following profiles are active: mysql",
+        "Creating binding-specific PropertySource from Kubernetes Service Bindings"
+      ],
+      "acceptable_exit_code": [
+        0
+      ]
+    },
+    {
+      "name": "cleanup_spring_pet_clinic",
+      "run": [
+        "kubectl delete -f {$$bundle_path}/samples/samples/spring-petclinic"
+      ],
+      "acceptable_exit_code": [
+        0
+      ]
+    },
+    {
+      "name": "test_multi_bindings",
+      "run": [
+        "kubectl apply -f {$$bundle_path}/samples/samples/multi-binding/service.yaml -f {$$bundle_path}/samples/samples/multi-binding/service-binding.yaml",
+        "kubectl apply -f {$$bundle_path}/samples/samples/multi-binding/workload.yaml",
+        "kubectl wait --for=jsonpath='{.status.phase}'=Succeeded pod -l job-name=multi-binding --timeout=30s",
+        "kubectl logs -l job-name=multi-binding --tail 100"
+      ],
+      "acceptable_exit_code": [
+        0
+      ],
+      "assert_in_output": [
+        "SERVICE_BINDING_ROOT=/bindings",
+        "MULTI_BINDING_1=1",
+        "MULTI_BINDING_2=2"
+      ]
+    },
+    {
+      "name": "cleanup_multi_bindings",
+      "run": [
+        "kubectl delete -f {$$bundle_path}/samples/samples/multi-binding/service.yaml -f {$$bundle_path}/samples/samples/multi-binding/service-binding.yaml",
+        "kubectl delete -f {$$bundle_path}/samples/samples/multi-binding/workload.yaml"
+      ],
+      "acceptable_exit_code": [
+        0
+      ]
+    },
+    {
+      "name": "test_overridden_type_provider",
+      "run": [
+        "kubectl apply -f {$$bundle_path}/samples/samples/overridden-type-provider/service.yaml -f {$$bundle_path}/samples/samples/overridden-type-provider/service-binding.yaml",
+        "kubectl apply -f {$$bundle_path}/samples/samples/overridden-type-provider/workload.yaml",
+        "kubectl wait --for=jsonpath='{.status.phase}'=Succeeded pod -l job-name=overridden-type-provider --timeout=30s",
+        "kubectl logs -l job-name=overridden-type-provider --tail 100"
+      ],
+      "acceptable_exit_code": [
+        0
+      ],
+      "assert_in_output": [
+        "SERVICE_BINDING_ROOT=/bindings",
+        "BOUND_PROVIDER=overridden-provider",
+        "BOUND_TYPE=overridden-type"
+      ]
+    },
+    {
+      "name": "cleanup_overridden_type_provider",
+      "run": [
+        "kubectl delete -f {$$bundle_path}/samples/samples/overridden-type-provider/service.yaml -f {$$bundle_path}/samples/samples/overridden-type-provider/service-binding.yaml",
+        "kubectl delete -f {$$bundle_path}/samples/samples/overridden-type-provider/workload.yaml"
+      ],
+      "acceptable_exit_code": [
+        0
+      ]
+    },
+    {
+      "name": "kapp_delete_yaml",
+      "run": [
+        "kapp delete -a {$$project} -y"
+      ],
+      "acceptable_exit_code": [
+        0
+      ]
+    },
+    {
+      "name": "cleanup_cluster_and_registry",
+      "run": [
+        "tappr delete kind test",
+        "tappr utils registry stop"
+      ],
+      "acceptable_exit_code": [
+        0
+      ]
+    }
+  ]
+}
+

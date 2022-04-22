@@ -1,0 +1,25 @@
+{
+  "context": {
+    "version": "{$$TANZU_VERSION}"
+  },
+  "tests": [
+    {
+      "name": "install_tanzu_cli",
+      "run": [
+        "SET context {$$tmp_dir} {$$python.random}",
+        "SET context {$$tmp_folder} /tmp/{$$tmp_dir}",
+        "mkdir -p {$$tmp_folder}",
+        "curl -Lo {$$tmp_folder}/tanzu-framework.tar.gz https://github.com/vmware-tanzu/tanzu-framework/releases/download/{$$version}/tanzu-framework-darwin-amd64.tar.gz",
+        "tar -xzf {$$tmp_folder}/tanzu-framework.tar.gz -C {$$tmp_folder}",
+        "install {$$tmp_folder}/cli/core/{$$version}/tanzu-core-darwin_amd64 /usr/local/bin/tanzu",
+        "tanzu init",
+        "curl -Lo {$$tmp_folder}/admin-plugins.tar.gz https://github.com/vmware-tanzu/tanzu-framework/releases/download/{$$version}/tanzu-framework-plugins-admin-darwin-amd64.tar.gz",
+        "tar -xzf {$$tmp_folder}/admin-plugins.tar.gz -C {$$tmp_folder}",
+        "tanzu config set features.global.context-aware-cli-for-plugins true",
+        "tanzu plugin install builder --local {$$tmp_folder}/admin-plugins",
+        "tanzu plugin install all --local {$$tmp_folder}/admin-plugins"
+      ],
+      "fail_on_stderr": false
+    }
+  ]
+}

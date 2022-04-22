@@ -1,0 +1,29 @@
+profile: iterate
+
+buildservice:
+  kp_default_repository: $REGISTRY_SERVER/$REGISTRY_REPO
+  kp_default_repository_username: '$REGISTRY_USERNAME'
+  kp_default_repository_password: '$REGISTRY_PASSWORD'
+  tanzunet_username: '$INSTALL_REGISTRY_USERNAME'
+  tanzunet_password: '$INSTALL_REGISTRY_PASSWORD'
+  descriptor_name: full
+  enable_automatic_dependency_updates: false
+
+supply_chain: basic
+
+ootb_supply_chain_basic:
+  registry:
+    server: $REGISTRY_SERVER
+    repository: $REGISTRY_REPO
+  gitops:
+    ssh_secret: git-ssh
+
+contour:
+  envoy:
+    service:
+      type: LoadBalancer
+
+ceip_policy_disclosed: true
+
+metadata_store:
+  app_service_type: 'NodePort'

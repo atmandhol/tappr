@@ -1,0 +1,33 @@
+[tool.black]
+line-length = 148
+
+[tool.poetry]
+name = "tappr"
+version = "0.1.0"
+description = "CLI for Tanzu Application Platform related stuff"
+authors = ["Atman Dhol <github.com/atmandhol>"]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+typer = "^0.3.2"
+click = "7.1.2"
+python-jose = "^3.3.0"
+requests = "^2.26.0"
+netaddr = "^0.8.0"
+urllib3 = "^1.26.6"
+pyfiglet = "^0.8.post1"
+xmltodict = "^0.12.0"
+rich = "^12.2.0"
+colorama = "^0.4.4"
+typing-extensions = "^4.2.0"
+typer-cli="^0.0.12"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+
+[tool.poetry.scripts]
+tappr = "tappr.main:app"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
