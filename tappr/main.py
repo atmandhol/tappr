@@ -291,6 +291,16 @@ def kind(cluster_name):
     """
     Create a multi-node kind cluster.
     """
+    exit_code = ui_helpers.sh_call(
+        cmd=f"kind --version",
+        msg=":man_police_officer: Checking Kind Installation",
+        spinner_msg="Checking",
+        error_msg=":broken_heart: is Kind installed?. Use [bold]--verbose[/bold] flag for error details.",
+        state=state
+    )
+    if exit_code != 0:
+        raise typer.Exit(-1)
+
     check_if_cluster_name_valid(cluster_name)
     file_path = os.path.dirname(os.path.abspath(__file__)) + "/modules/artifacts/clusters/kind.yaml"
     cmd = f"kind create cluster --name {cluster_name} --config {file_path}"
@@ -303,10 +313,24 @@ def kind(cluster_name):
 
 
 @create_cluster_app.command()
-def gke(gcp_project, cluster_name=None, gcp_json: str = typer.Option(None, help="A json file to override values in artifacts/gke_defaults.json")):
+def gke(cluster_name=None, project=None, gcp_json: str = typer.Option(None, help="A json file to override values in artifacts/gke_defaults.json")):
     """
     Create a GKE cluster. Assumes gcloud is set to create clusters.
     """
+    proc, out, _ = ui_helpers.progress(
+        cmd=f"gcloud info --format json",
+        message=":man_police_officer: Checking gcloud installation",
+        state=state
+    )
+    if proc.returncode != 0:
+        raise typer.Exit(-1)
+
+    gcloud_op = json.loads(out.decode())
+    gcp_project = gcloud_op["config"]["project"] if not project else project
+
+    if "beta" not in gcloud_op["installation"]["components"]:
+        typer_logger.msg(":broken_heart: 'beta' component for gcloud is not installed which is required. Run gcloud components install beta to fix this.")
+        raise typer.Exit(-1)
 
     if not cluster_name:
         letters = string.ascii_lowercase

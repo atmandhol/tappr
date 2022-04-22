@@ -43,3 +43,5 @@ excluded_packages:
   - scanning.apps.tanzu.vmware.com
   - workshops.learningcenter.tanzu.vmware.com
   - tap-auth.tanzu.vmware.com
+  - conventions.appliveview.tanzu.vmware.com
+  - developer-conventions.tanzu.vmware.com
