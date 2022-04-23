@@ -14,6 +14,7 @@ from tappr.modules.utils.logger import TyperLogger
 from tappr.modules.utils.enums import PROFILE, OS
 from tappr.modules.utils.creds import CredsHelper
 from tappr.modules.utils.ui import UI
+from tappr.modules.utils.k8s import K8s
 
 state = {"verbose": False}
 
@@ -32,6 +33,7 @@ tap_helpers = TanzuApplicationPlatform(
     state=state,
     ui_helper=ui_helpers,
 )
+k8s_helper = K8s()
 
 # noinspection PyTypeChecker
 app = typer.Typer()
@@ -296,7 +298,7 @@ def kind(cluster_name):
         msg=":man_police_officer: Checking Kind Installation",
         spinner_msg="Checking",
         error_msg=":broken_heart: is Kind installed?. Use [bold]--verbose[/bold] flag for error details.",
-        state=state
+        state=state,
     )
     if exit_code != 0:
         raise typer.Exit(-1)
@@ -317,11 +319,7 @@ def gke(cluster_name=None, project=None, gcp_json: str = typer.Option(None, help
     """
     Create a GKE cluster. Assumes gcloud is set to create clusters.
     """
-    proc, out, _ = ui_helpers.progress(
-        cmd=f"gcloud info --format json",
-        message=":man_police_officer: Checking gcloud installation",
-        state=state
-    )
+    proc, out, _ = ui_helpers.progress(cmd=f"gcloud info --format json", message=":man_police_officer: Checking gcloud installation", state=state)
     if proc.returncode != 0:
         raise typer.Exit(-1)
 
@@ -329,13 +327,15 @@ def gke(cluster_name=None, project=None, gcp_json: str = typer.Option(None, help
     gcp_project = gcloud_op["config"]["project"] if not project else project
 
     if "beta" not in gcloud_op["installation"]["components"]:
-        typer_logger.msg(":broken_heart: 'beta' component for gcloud is not installed which is required. Run gcloud components install beta to fix this.")
+        typer_logger.msg(
+            ":broken_heart: 'beta' component for gcloud is not installed which is required. Run gcloud components install beta to fix this."
+        )
         raise typer.Exit(-1)
 
     if not cluster_name:
         letters = string.ascii_lowercase
         # This generates a random 10 letter string
-        cluster_name = "".join(random.choice(letters) for i in range(10))
+        cluster_name = "".join(random.choice(letters) for _ in range(10))
 
     check_if_cluster_name_valid(cluster_name)
     # Get cluster config defaults. referred to as ccd variable. which is then overridden by cco variable.
@@ -487,6 +487,26 @@ def setup(namespace: str = "default"):
 
     """
     tap_helpers.developer_ns_setup(namespace=namespace)
+
+
+@tap_app.command()
+def edit():
+    """
+    Edit tap-values yaml file.
+
+    """
+    # TODO: Pick a context
+    # k8s_helper.pick_context()
+    # TODO: Get the values yaml secret
+    # k8s_helper.get_namespaced_secret(secret="tap-tap-install-values", namespace="tap-install")
+    # TODO: Open a window,
+    #  put the value there,
+    #  let the user edit,
+    #  check for valid yaml,
+    #  confirm prompt to update,
+    #  save in tmp,
+    #  run tanzu package install
+    pass
 
 
 if __name__ == "__main__":

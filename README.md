@@ -224,8 +224,23 @@ $ tappr tap [OPTIONS] COMMAND [ARGS]...
 
 **Commands**:
 
+* `edit`: Edit tap-values yaml file.
 * `install`: Install TAP.
 * `setup`: Setup Dev Namespace with Git and Registry...
+
+### `tappr tap edit`
+
+Edit tap-values yaml file.
+
+**Usage**:
+
+```console
+$ tappr tap edit [OPTIONS]
+```
+
+**Options**:
+
+* `--help`: Show this message and exit.
 
 ### `tappr tap install`
 

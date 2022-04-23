@@ -50,9 +50,7 @@ class TanzuApplicationPlatform:
             raise typer.Exit(-1)
 
         _, kube_context, _ = self.ui_helper.progress(
-            cmd=f"kubectl config current-context",
-            message=":man_police_officer: Getting current context",
-            state=self.state
+            cmd=f"kubectl config current-context", message=":man_police_officer: Getting current context", state=self.state
         )
         kube_context = kube_context.decode().strip()
         self.logger.msg(f":file_folder: Using k8s context [yellow]{kube_context}[/yellow] for installation", bold=True)
