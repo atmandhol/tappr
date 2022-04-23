@@ -6,33 +6,24 @@ import random
 
 from tappr.modules.utils import constants
 
-"""
-CLI Color Coding Standard:
-- DEBUG statements of the main commands as BOLD yellow
-- DEBUG statements of the subcommands as normal yellow
-- ERROR in BOLD red
-- WARN in BOLD magenta
-- SUCCESS in BOLD green
-- RUNNING Commands in white
-- Important values in BOLD Cyan
-"""
-
 
 # TODO: Add feature to always run some tests at the end even in case of failure
 class TestFramework:
-    def __init__(self, logger, subprocess_helper):
+    def __init__(self, logger, subprocess_helper, ui_helper):
         self.logger = logger
         self.sh = subprocess_helper
+        self.ui_helper = ui_helper
 
     # noinspection PyUnresolvedReferences
-    def run_tests(self, test_file: str, output="stdout"):
+    def run_tests(self, test_file: str, output="stdout", state=None):
         # Build context
         try:
             test_data = json.loads(open(test_file, "r").read())
         except Exception:
-            self.logger.error(
-                f"Invalid json test file structure in file {test_file}. Make sure it follows the following structure.\n"
-                '{"tests": [], "context": {}}'
+            self.logger.msg(
+                f":broken_heart: Invalid json test file structure in file {test_file}. Make sure it follows the following structure.\n"
+                '{"tests": [], "context": {}}',
+                bold=True,
             )
             raise typer.Exit(-1)
 
@@ -42,7 +33,7 @@ class TestFramework:
         context[constants.OUTPUT] = output
 
         for test in tests:
-            self.logger.debug(f"Running {test.get('name')}")
+            self.logger.msg(f":test_tube: Running test [yellow]{test.get('name')}[/yellow]", bold=True)
             out_agg = str()
             for cmd in test.get("run"):
                 if str(cmd).startswith("SET context"):
@@ -50,27 +41,27 @@ class TestFramework:
                     context[comp[2].replace("{$$", "").replace("}", "")] = self.add_values_from_context(comp[3], context=context)
                     continue
                 run_cmd = self.add_values_from_context(cmd=cmd, context=context)
-                self.logger.debug(f"Running {run_cmd}", bold=False)
-                proc, out, err = self.sh.run_proc(cmd=run_cmd)
-                self.logger.msg(out.decode())
-                self.logger.msg(err.decode())
+
+                proc, out, err = self.ui_helper.progress(
+                    cmd=run_cmd, message=":man_running: Running", state=state
+                )
                 out_agg += out.decode() + "\n"
 
                 # check if return code is acceptable
                 acceptable_codes = test.get("acceptable_exit_code")
                 if acceptable_codes and proc.returncode not in acceptable_codes:
-                    self.logger.error(
-                        f"Command {run_cmd} returned error code {proc.returncode} which is not in the allowed list {acceptable_codes}"
+                    self.logger.msg(
+                        f":cry: Command [yellow]{run_cmd}[/yellow] returned exit code [red]{proc.returncode}[/red] which is not in the allowed list {acceptable_codes}"
                     )
                     raise typer.Exit(-1)
                 if test.get("fail_on_stderr", True) and err:
-                    self.logger.error(f"Command failed. stderr: {err}")
+                    self.logger.msg(f":cry: Command failed. stderr: [red]{err}[/red]")
                     raise typer.Exit(-1)
 
             if test.get("assert_in_output"):
                 for item in test.get("assert_in_output"):
                     if item not in out_agg:
-                        self.logger.error(f"Value: '{item}' not found in the stdout")
+                        self.logger.msg(f":cry: [red]test {test.get('name')} failed[/red]. Value: [yellow]{item}[/yellow] not found in the stdout")
                         raise typer.Exit(-1)
 
     def prep_context(self, context: dict):
@@ -79,7 +70,7 @@ class TestFramework:
             if "{$$" in context[item]:
                 val = os.environ.get(context[item][3:-1])
                 if val is None:
-                    self.logger.error(f"env var {context[item][3:-1]} not found!")
+                    self.logger.msg(f":stop_sign: env var [yellow]{context[item][3:-1]}[/yellow] not found!")
                     raise typer.Exit(-1)
                 context[item] = val
         return context

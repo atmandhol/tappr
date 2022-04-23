@@ -22,9 +22,9 @@ typer_logger = TyperLogger()
 console = Console(color_system="truecolor")
 subprocess_helpers = SubProcessHelpers()
 pivnet_helpers = PivnetHelpers()
-test_framework = TestFramework(logger=typer_logger, subprocess_helper=subprocess_helpers)
 creds_helpers = CredsHelper(logger=typer_logger, subprocess_helper=subprocess_helpers)
 ui_helpers = UI(subprocess_helper=subprocess_helpers, logger=typer_logger)
+test_framework = TestFramework(logger=typer_logger, subprocess_helper=subprocess_helpers, ui_helper=ui_helpers)
 k8s_helpers = K8s()
 tap_helpers = TanzuApplicationPlatform(
     subprocess_helper=subprocess_helpers,
@@ -33,7 +33,7 @@ tap_helpers = TanzuApplicationPlatform(
     creds_helper=creds_helpers,
     state=state,
     ui_helper=ui_helpers,
-    k8s_helper=k8s_helpers
+    k8s_helper=k8s_helpers,
 )
 
 # noinspection PyTypeChecker
@@ -193,7 +193,7 @@ def test(
     output: Defaults to stdout. Change to something else for a file output
 
     """
-    test_framework.run_tests(test_file=test_file, output=output)
+    test_framework.run_tests(test_file=test_file, output=output, state=state)
 
 
 # =============================================================================================

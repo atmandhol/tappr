@@ -57,9 +57,7 @@ class TanzuApplicationPlatform:
         if exit_code != 0:
             raise typer.Exit(-1)
 
-        self.ui_helper.progress(
-            cmd=f"kubectl config use-context {k8s_context}", message=":man_police_officer: Setting context", state=self.state
-        )
+        self.ui_helper.progress(cmd=f"kubectl config use-context {k8s_context}", message=":man_police_officer: Setting context", state=self.state)
         self.logger.msg(f":file_folder: Using k8s context [yellow]{k8s_context}[/yellow] for installation", bold=True)
 
         hash_str = str(profile + version)
