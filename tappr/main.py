@@ -23,17 +23,18 @@ console = Console(color_system="truecolor")
 subprocess_helpers = SubProcessHelpers()
 pivnet_helpers = PivnetHelpers()
 test_framework = TestFramework(logger=typer_logger, subprocess_helper=subprocess_helpers)
-creds_helper = CredsHelper(logger=typer_logger, subprocess_helper=subprocess_helpers)
+creds_helpers = CredsHelper(logger=typer_logger, subprocess_helper=subprocess_helpers)
 ui_helpers = UI(subprocess_helper=subprocess_helpers, logger=typer_logger)
+k8s_helpers = K8s()
 tap_helpers = TanzuApplicationPlatform(
     subprocess_helper=subprocess_helpers,
     pivnet_helper=pivnet_helpers,
     logger=typer_logger,
-    creds_helper=creds_helper,
+    creds_helper=creds_helpers,
     state=state,
     ui_helper=ui_helpers,
+    k8s_helper=k8s_helpers
 )
-k8s_helper = K8s()
 
 # noinspection PyTypeChecker
 app = typer.Typer()
@@ -94,7 +95,7 @@ def init(
     """
     Initialize the tappr cli with required creds.
     """
-    creds_helper.set_config(
+    creds_helpers.set_config(
         tanzunet_username=tanzunet_username,
         tanzunet_password=tanzunet_password,
         pivnet_uaa_token=pivnet_uaa_token,
@@ -465,6 +466,9 @@ def stop():
 def install(
     profile: PROFILE,
     version,
+    k8s_context: str = typer.Option(
+        None, help="Valid k8s context to install TAP. If this param is not provided, a picker will show up in case of multiple contexts"
+    ),
     host_os: OS = OS.MAC,
     tap_values_file: str = None,
 ):
@@ -476,6 +480,7 @@ def install(
         profile=profile,
         version=version,
         host_os=host_os,
+        k8s_context=k8s_context,
         tap_values_file=tap_values_file,
     )
 

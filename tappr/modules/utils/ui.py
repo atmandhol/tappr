@@ -103,7 +103,7 @@ class Picker:
             self.scroll_top = 0
         elif current_line - self.scroll_top > max_rows:
             self.scroll_top = current_line - max_rows
-        lines_to_draw = lines[self.scroll_top: self.scroll_top + max_rows]
+        lines_to_draw = lines[self.scroll_top : self.scroll_top + max_rows]
         for line in lines_to_draw:
             if type(line) is tuple:
                 screen.addnstr(y, x, line[0], max_x - 2, line[1])

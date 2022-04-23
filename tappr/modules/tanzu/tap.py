@@ -19,18 +19,26 @@ pivnet_products = {
 
 
 class TanzuApplicationPlatform:
-    def __init__(self, subprocess_helper, pivnet_helper, logger, creds_helper, state, ui_helper):
+    def __init__(self, subprocess_helper, pivnet_helper, logger, creds_helper, state, ui_helper, k8s_helper):
         self.creds_helper = creds_helper
         self.logger = logger
         self.sh = subprocess_helper
         self.pivnet_helpers = pivnet_helper
         self.state = state
         self.ui_helper = ui_helper
+        self.k8s_helper = k8s_helper
 
     def sh_call(self, cmd, msg, spinner_msg, error_msg):
         return self.ui_helper.sh_call(cmd=cmd, msg=msg, spinner_msg=spinner_msg, error_msg=error_msg, state=self.state)
 
-    def tap_install(self, profile, version, host_os, tap_values_file):
+    def tap_install(self, profile, version, host_os, k8s_context, tap_values_file):
+        if k8s_context is None:
+            k8s_context = self.k8s_helper.pick_context()
+
+        if k8s_context not in self.k8s_helper.contexts:
+            self.logger.msg(f":woman_police_officer: No valid context named [yellow]{k8s_context}[/yellow] found in KUBECONFIG.", bold=True)
+            raise typer.Exit(-1)
+
         exit_code = self.sh_call(
             cmd=f"kubectl cluster-info",
             msg=":man_police_officer: Checking k8s cluster and kubectl",
@@ -49,11 +57,11 @@ class TanzuApplicationPlatform:
         if exit_code != 0:
             raise typer.Exit(-1)
 
-        _, kube_context, _ = self.ui_helper.progress(
-            cmd=f"kubectl config current-context", message=":man_police_officer: Getting current context", state=self.state
+        self.ui_helper.progress(
+            cmd=f"kubectl config use-context {k8s_context}", message=":man_police_officer: Setting context", state=self.state
         )
-        kube_context = kube_context.decode().strip()
-        self.logger.msg(f":file_folder: Using k8s context [yellow]{kube_context}[/yellow] for installation", bold=True)
+        self.logger.msg(f":file_folder: Using k8s context [yellow]{k8s_context}[/yellow] for installation", bold=True)
+
         hash_str = str(profile + version)
         tmp_dir = f"/tmp/{hashlib.md5(hash_str.encode()).hexdigest()}"
         self.logger.msg(f":file_folder: Staging Installation Dir is at [yellow]{tmp_dir}[/yellow]", bold=True)

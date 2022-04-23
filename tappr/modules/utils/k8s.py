@@ -50,7 +50,12 @@ class K8s:
 
     def pick_context(self):
         options = self.contexts
-        options.remove(self.current_context)
+        try:
+            # We do a try here because if you delete a cluster which was the current context and don't switch your current
+            # context before running anything that needs to call pick_context, the remove will fail as it will no longer be in the contexts list.
+            options.remove(self.current_context)
+        except Exception:
+            pass
         options.append(self.current_context)
         if len(options) > 1:
             option, _ = Picker(options, "Pick k8s context (Last one in the list is the current context):").start()
