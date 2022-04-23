@@ -3,6 +3,7 @@ from kubernetes.client.rest import ApiException
 from tappr.modules.utils.ui import Picker
 
 
+# noinspection PyBroadException
 class K8s:
     def __init__(self):
         self.config = k8s.config
@@ -14,15 +15,19 @@ class K8s:
         self.load_contexts_and_clients()
 
     def load_contexts_and_clients(self):
-        contexts_obj, current_context = self.config.list_kube_config_contexts()
-        # Set currents
-        self.current_context = current_context.get("name")
-        self.current_client = self.client.CoreV1Api(api_client=self.config.new_client_from_config(context=self.current_context))
+        # Adding try/catch block so that tappr init does not blow up if the KUBECONFIG has no clusters/entries
+        try:
+            contexts_obj, current_context = self.config.list_kube_config_contexts()
+            # Set currents
+            self.current_context = current_context.get("name")
+            self.current_client = self.client.CoreV1Api(api_client=self.config.new_client_from_config(context=self.current_context))
 
-        # Set all
-        for ctx in contexts_obj:
-            self.contexts.append(ctx["name"])
-            self.clients[ctx["name"]] = self.client.CoreV1Api(api_client=self.config.new_client_from_config(context=ctx["name"]))
+            # Set all
+            for ctx in contexts_obj:
+                self.contexts.append(ctx["name"])
+                self.clients[ctx["name"]] = self.client.CoreV1Api(api_client=self.config.new_client_from_config(context=ctx["name"]))
+        except Exception:
+            pass
 
     def create_namespace(self, namespace, client=None):
         """
