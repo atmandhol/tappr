@@ -118,9 +118,9 @@ class CredsHelper:
                     }
                 )
             )
-            self.logger.msg(":notebook: Config initialized at [green]~/.config/tappr/config[/green]", bold=True)
+            self.logger.msg(":notebook: Config initialized at [green]~/.config/tappr/config[/green]", bold=False)
         except Exception as ex:
-            self.logger.msg(f":person_shrugging: Error setting config.\n[red]Error: {ex}[/red]", bold=True)
+            self.logger.msg(f":person_shrugging: Error setting config.\n[red]Error: {ex}[/red]", bold=False)
 
     @staticmethod
     def get_config():
@@ -143,6 +143,6 @@ class CredsHelper:
             if env not in dict(os.environ):
                 self.logger.msg(
                     f":crying_cat_face: Environment variable [yellow]{env}[/yellow] not found. Please set that and retry or try setting up tappr using tappr init.",
-                    bold=True,
+                    bold=False,
                 )
                 raise typer.Exit(-1)

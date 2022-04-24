@@ -23,7 +23,7 @@ class TestFramework:
             self.logger.msg(
                 f":broken_heart: Invalid json test file structure in file {test_file}. Make sure it follows the following structure.\n"
                 '{"tests": [], "context": {}}',
-                bold=True,
+                bold=False,
             )
             raise typer.Exit(-1)
 
@@ -33,7 +33,7 @@ class TestFramework:
         context[constants.OUTPUT] = output
 
         for test in tests:
-            self.logger.msg(f":test_tube: Running test [yellow]{test.get('name')}[/yellow]", bold=True)
+            self.logger.msg(f":test_tube: Running test [yellow]{test.get('name')}[/yellow]", bold=False)
             out_agg = str()
             for cmd in test.get("run"):
                 if str(cmd).startswith("SET context"):

@@ -176,7 +176,7 @@ class UI:
         return proc, out, err
 
     def sh_call(self, cmd, msg, spinner_msg, error_msg, state):
-        self.logger.msg(msg, bold=True)
+        self.logger.msg(msg, bold=False)
         proc, _, _ = self.progress(cmd=cmd, state=state, message=spinner_msg)
         if proc.returncode != 0 and error_msg is not None:
             self.logger.msg(error_msg)

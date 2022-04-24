@@ -6,21 +6,21 @@ from datetime import datetime
 
 class TyperLogger:
     @staticmethod
-    def debug(message, bold=True):
+    def debug(message, bold=False):
         if bold:
             print(f"[white]\[{datetime.now().strftime('%H:%M:%S')}][/white] [bold][yellow]{message}[/yellow][/bold]")
         else:
             print(f"[white]\[{datetime.now().strftime('%H:%M:%S')}][/white] [yellow]{message}[/yellow]")
 
     @staticmethod
-    def error(message, bold=True):
+    def error(message, bold=False):
         if bold:
             print(f"[white]\[{datetime.now().strftime('%H:%M:%S')}][/white] [bold][red]{message}[/red][/bold]")
         else:
             print(f"[white]\[{datetime.now().strftime('%H:%M:%S')}][/white] [red]{message}[/red]")
 
     @staticmethod
-    def success(message, bold=True):
+    def success(message, bold=False):
         if bold:
             print(f"[white]\[{datetime.now().strftime('%H:%M:%S')}][/white] [bold][green]{message}[/green][/bold]")
         else:
@@ -34,7 +34,7 @@ class TyperLogger:
             print(f"[#5F9EA0]\[{datetime.now().strftime('%H:%M:%S')}][/#5F9EA0] {message}")
 
     @staticmethod
-    def important(message, bold=True):
+    def important(message, bold=False):
         if bold:
             print(f"[white]\[{datetime.now().strftime('%H:%M:%S')}][/white] [bold]{message}[/bold]")
         else:

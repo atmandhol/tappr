@@ -163,7 +163,7 @@ class TanzuApplicationPlatform:
             k8s_context = self.k8s_helper.pick_context()
 
         if k8s_context not in self.k8s_helper.contexts:
-            self.logger.msg(f":woman_police_officer: No valid context named [yellow]{k8s_context}[/yellow] found in KUBECONFIG.", bold=True)
+            self.logger.msg(f":woman_police_officer: No valid context named [yellow]{k8s_context}[/yellow] found in KUBECONFIG.", bold=False)
             raise typer.Exit(-1)
 
         exit_code = self.sh_call(
@@ -185,11 +185,11 @@ class TanzuApplicationPlatform:
             raise typer.Exit(-1)
 
         self.ui_helper.progress(cmd=f"kubectl config use-context {k8s_context}", message=":man_police_officer: Setting context", state=self.state)
-        self.logger.msg(f":file_folder: Using k8s context [yellow]{k8s_context}[/yellow] for installation", bold=True)
+        self.logger.msg(f":file_folder: Using k8s context [yellow]{k8s_context}[/yellow] for installation", bold=False)
 
         hash_str = str(profile + version)
         tmp_dir = f"/tmp/{hashlib.md5(hash_str.encode()).hexdigest()}"
-        self.logger.msg(f":file_folder: Staging Installation Dir is at [yellow]{tmp_dir}[/yellow]", bold=True)
+        self.logger.msg(f":file_folder: Staging Installation Dir is at [yellow]{tmp_dir}[/yellow]", bold=False)
 
         if not os.path.isdir(tmp_dir):
             self.sh_call(
@@ -423,7 +423,7 @@ class TanzuApplicationPlatform:
         if k8s_context is None:
             k8s_context = self.k8s_helper.pick_context()
         if k8s_context not in self.k8s_helper.contexts:
-            self.logger.msg(f":woman_police_officer: No valid context named [yellow]{k8s_context}[/yellow] found in KUBECONFIG.", bold=True)
+            self.logger.msg(f":woman_police_officer: No valid context named [yellow]{k8s_context}[/yellow] found in KUBECONFIG.", bold=False)
             raise typer.Exit(-1)
         if not k8s_context:
             self.logger.msg(":broken_heart: No valid k8s context found.")
@@ -441,7 +441,7 @@ class TanzuApplicationPlatform:
         if k8s_context is None:
             k8s_context = self.k8s_helper.pick_context()
         if k8s_context not in self.k8s_helper.contexts:
-            self.logger.msg(f":woman_police_officer: No valid context named [yellow]{k8s_context}[/yellow] found in KUBECONFIG.", bold=True)
+            self.logger.msg(f":woman_police_officer: No valid context named [yellow]{k8s_context}[/yellow] found in KUBECONFIG.", bold=False)
             raise typer.Exit(-1)
         if not k8s_context:
             self.logger.msg(":broken_heart: No valid k8s context found.")

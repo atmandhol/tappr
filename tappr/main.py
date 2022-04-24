@@ -59,7 +59,7 @@ def local_install(interactive, tool, cmd):
         ans = typer_logger.confirm(f"Install {tool} ?", default=False)
         if not ans:
             return
-    typer_logger.msg(f":package: Installing {tool}", bold=True)
+    typer_logger.msg(f":package: Installing {tool}", bold=False)
     proc, out, err = ui_helpers.progress(cmd=cmd, state=state, message=f"Downloading and Installing")
     if proc.returncode == 0:
         typer_logger.msg(":rocket: Install [green]complete[/green]")
@@ -272,7 +272,7 @@ def cleanup():
     Cleans up tanzu directories and CLI for a fresh installation.
     """
     cmd = "rm -rf $HOME/tanzu/ && rm /usr/local/bin/tanzu && rm -rf ~/.config/tanzu/ && rm -rf ~/.tanzu/"
-    typer_logger.msg(f":broom: Initiating cleanup", bold=True)
+    typer_logger.msg(f":broom: Initiating cleanup", bold=False)
     proc, out, err = ui_helpers.progress(cmd=cmd, state=state, message="Cleaning up all tanzu CLI files and configs")
     if proc.returncode == 0:
         typer_logger.msg(":rocket: Cleanup [green]complete[/green]")
@@ -307,7 +307,7 @@ def kind(cluster_name):
     check_if_cluster_name_valid(cluster_name)
     file_path = os.path.dirname(os.path.abspath(__file__)) + "/modules/artifacts/clusters/kind.yaml"
     cmd = f"kind create cluster --name {cluster_name} --config {file_path}"
-    typer_logger.msg(f":package: Creating a multi-node kind cluster named [yellow]{cluster_name}[/yellow].", bold=True)
+    typer_logger.msg(f":package: Creating a multi-node kind cluster named [yellow]{cluster_name}[/yellow].", bold=False)
     proc, out, err = ui_helpers.progress(cmd=cmd, state=state, message="Spinning up a Kind cluster")
     if proc.returncode == 0:
         typer_logger.msg(":rocket: KinD cluster created [green]successfully[/green]")
@@ -378,7 +378,9 @@ def gke(cluster_name=None, project=None, gcp_json: str = typer.Option(None, help
     )
 
     cmd = cmd.replace("{project}", gcp_project).replace("{region}", ccd.get("region") if "region" not in cco else cco.get("region"))
-    typer_logger.msg(f":package: Creating a GKE cluster named [yellow]{cluster_name}[/yellow] in project [yellow]{gcp_project}[/yellow]", bold=True)
+    typer_logger.msg(
+        f":package: Creating a GKE cluster named [yellow]{cluster_name}[/yellow] in project [yellow]{gcp_project}[/yellow]", bold=False
+    )
     proc, out, err = ui_helpers.progress(cmd=cmd, state=state, message="Spinning up a GKE cluster")
     if proc.returncode == 0:
         typer_logger.msg(":rocket: GKE Cluster created [green]successfully[/green]")
@@ -395,7 +397,7 @@ def kind(cluster_name):
     Delete a kind cluster.
     """
     cmd = f"kind delete cluster --name {cluster_name}"
-    typer_logger.msg(f":package: Deleting kind cluster named [yellow]{cluster_name}[/yellow].", bold=True)
+    typer_logger.msg(f":package: Deleting kind cluster named [yellow]{cluster_name}[/yellow].", bold=False)
     proc, out, err = ui_helpers.progress(cmd=cmd, state=state, message="Deleting Kind cluster")
     if proc.returncode == 0:
         typer_logger.msg(":rocket: KinD cluster deleted [green]successfully[/green]")
@@ -409,7 +411,7 @@ def gke(cluster_name, region: str = "us-east4"):
     Delete a GKE cluster.
     """
     cmd = f"gcloud container clusters delete {cluster_name} --region {region} -q"
-    typer_logger.msg(f":bomb: Deleting GKE cluster named [yellow]{cluster_name}[/yellow]", bold=True)
+    typer_logger.msg(f":bomb: Deleting GKE cluster named [yellow]{cluster_name}[/yellow]", bold=False)
     proc, out, err = ui_helpers.progress(cmd=cmd, state=state, message="Deleting a GKE cluster")
     if proc.returncode == 0:
         typer_logger.msg(":rocket: GKE Cluster deleted [green]successfully[/green]")
@@ -425,7 +427,7 @@ def start():
     # Start Docker registry
     cmd = f"docker run -d -p 5001:5000 --restart=always --name local-registry registry:2"
 
-    typer_logger.msg(f":whale: Starting Local Docker registry on port [yellow]5001[/yellow].", bold=True)
+    typer_logger.msg(f":whale: Starting Local Docker registry on port [yellow]5001[/yellow].", bold=False)
     proc, out, err = ui_helpers.progress(cmd=cmd, state=state, message="Starting container")
     if proc.returncode == 125:
         typer_logger.msg(":rocket: Local Docker registry already [green]running[/green]")
@@ -436,7 +438,7 @@ def start():
 
     # Connect registry to kind cluster network
     cmd = f"docker network connect kind local-registry"
-    typer_logger.msg(f":whale: Connecting registry with [yellow]kind[/yellow] network.", bold=True)
+    typer_logger.msg(f":whale: Connecting registry with [yellow]kind[/yellow] network.", bold=False)
     proc, out, err = ui_helpers.progress(cmd=cmd, state=state, message="Connecting")
     if proc.returncode == 1:
         typer_logger.msg(":rocket: Local docker registry already [green]part of kind network[/green]")
@@ -449,7 +451,7 @@ def start():
 @registry_app.command()
 def stop():
     cmd = f"docker container stop local-registry && docker container rm -v local-registry"
-    typer_logger.msg(f":whale: Stopping Local Docker registry on port [yellow]5001[/yellow].", bold=True)
+    typer_logger.msg(f":whale: Stopping Local Docker registry on port [yellow]5001[/yellow].", bold=False)
     proc, out, err = ui_helpers.progress(cmd=cmd, state=state, message="Stopping container")
     if proc.returncode == 1:
         typer_logger.msg(":rocket: Local Docker registry [red]not running[/red]")

@@ -26,7 +26,7 @@ class SubProcessHelpers:
                 ver = " " + ver + " "
 
         if process.returncode != 0:
-            typer_logger.msg(f":red_apple: [red]{tool}[/red] not found", bold=True)
+            typer_logger.msg(f":red_apple: [red]{tool}[/red] not found", bold=False)
             return False
         typer_logger.msg(f":green_apple: {tool}[green]{ver}[/green]installed")
         return True
@@ -43,7 +43,7 @@ class PivnetHelpers:
 
         """
         cmd = f"pivnet download-product-files --product-slug='{product_slug}' --release-version='{release_version}' --product-file-id={product_file_id} --download-dir='{download_dir}' --accept-eula"
-        typer_logger.msg(f":arrow_double_down: Download [yellow]{product_slug}[/yellow].", bold=True)
+        typer_logger.msg(f":arrow_double_down: Download [yellow]{product_slug}[/yellow]", bold=False)
         proc, _, _ = self.ui_helpers.progress(cmd=cmd, state=state, message="Downloading")
         if proc.returncode == 0:
             typer_logger.msg(f":package: {product_slug} downloaded [green]successfully[/green]")
@@ -57,7 +57,7 @@ class PivnetHelpers:
 
         """
         cmd = f"pivnet login --api-token='{api_token}'"
-        typer_logger.msg(f":key: Log into [yellow]Pivnet[/yellow].", bold=True)
+        typer_logger.msg(f":key: Log into [yellow]Pivnet[/yellow]", bold=False)
         proc, _, _ = self.ui_helpers.progress(cmd=cmd, state=state, message="Logging in")
         if proc.returncode == 0:
             typer_logger.msg(f":rocket: Login [green]successful[/green]")
