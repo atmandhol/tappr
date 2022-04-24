@@ -38,6 +38,7 @@ class CredsHelper:
                     f":see-no-evil_monkey: Tanzu Network Password [bold][cyan]({'**' + configs['tanzunet_password'][-4:] if configs else None})[/cyan]",
                     default=configs["tanzunet_password"] if configs else None,
                     show_default=False,
+                    password=True,
                 )
             )
         if pivnet_uaa_token is None:
@@ -46,6 +47,7 @@ class CredsHelper:
                     f":speak-no-evil_monkey: Pivnet UAA Token [bold][cyan]({'**' + configs['pivnet_uaa_token'][-4:] if configs else None})[/cyan]",
                     default=configs["pivnet_uaa_token"] if configs else None,
                     show_default=False,
+                    password=True,
                 )
             )
         if default_registry_server is None:
@@ -81,6 +83,7 @@ class CredsHelper:
                     f":speak-no-evil_monkey: Default Registry Password (Use absolute path to json key file path for gcr.io) [bold][cyan]({'**' + configs['default_registry_password'][-8:] if configs else None})[/cyan]",
                     default=configs["default_registry_password"] if configs else None,
                     show_default=False,
+                    password=True,
                 )
             )
         if vmware_username is None:
@@ -96,6 +99,7 @@ class CredsHelper:
                     f":see-no-evil_monkey: VMWare Password [bold][cyan]({'**' + configs['vmware_password'][-4:] if configs else None})[/cyan]",
                     default=configs["vmware_password"] if configs else None,
                     show_default=False,
+                    password=True,
                 )
             )
 

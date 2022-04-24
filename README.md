@@ -4,11 +4,12 @@
 
 ## Features
 
-- Install TAP on any K8s cluster using a single `tappr tap install` command.
-- Setup Developer namespace for workloads creation on any TAP cluster using `tappr tap setup` command.
-- Create/Delete k8s clusters suitable for TAP deployment using `tappr create/tappr delete` commands. (`gke` and `kind` supported. Other `cloud` providers will be added later)
-- Store your Tanzu Network, Registry and other useful credentials once, which are then seamlessly used throughout `tappr` commands.
-- Mini test-framework that can be used to write `bash` based integration tests.
+| Feature                                                                                              | Demo                                                                                                                                                                                                                                                                                                      |
+|------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Store your credentials once, which are then seamlessly used throughout `tappr` commands.             | ![Init Demo](assets/init.gif)                                                                                                                                                                                                                                                                          |
+| Create/Delete k8s clusters suitable for TAP deployment using `tappr create/tappr delete` commands.   | `kind` and `GKE` are supported as of now. Other providers will be added in the future.<br/> - `tappr create kind tap`<br/>- `tappr create gke --cluster-name tap-iterate-cluster`<br/><br/>GKE cluster creation requires `gcloud` CLI installed and configured using `gcloud auth` or `service-accounts`. |
+| Install TAP on any K8s cluster using a single `tappr tap install` command                            | ![TAP Install Demo](assets/tap-install.gif)                                                                                                                                                                                                                                                            |
+| Setup Developer namespace for workloads creation on any TAP cluster using `tappr tap setup` command. | ![Dev NS Setup Demo](assets/dev-setup.gif)                                                                                                                                                                                                                                                             |
 
 ### Upcoming
 
@@ -16,7 +17,7 @@
 - Supply chain and Workloads visualizer across multiple TAP clusters using `tappr tap visualize`.
 
 ### Utils
-
+- Mini test-framework that can be used to write `bash` based integration tests.
 - Auto generate `changelog` on a project using conventional commits standard using `tappr utils changelog`.
 - Auto generate `release` notes on any Git project using `tappr utils release`
 - Check/Set up your local environment for useful tools in life of a k8s developer/operator using `tappr utils local` commands.
