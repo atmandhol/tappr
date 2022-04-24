@@ -48,6 +48,14 @@ class K8s:
         except ApiException as err:
             return False, err
 
+    def get_namespaced_service(self, service, namespace, client=None):
+        client = self.current_client if not client else client
+        try:
+            response = client.read_namespaced_service(name=service, namespace=namespace)
+            return True, response
+        except ApiException as err:
+            return False, err
+
     def pick_context(self):
         options = self.contexts
         try:

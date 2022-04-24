@@ -42,9 +42,7 @@ class TestFramework:
                     continue
                 run_cmd = self.add_values_from_context(cmd=cmd, context=context)
 
-                proc, out, err = self.ui_helper.progress(
-                    cmd=run_cmd, message=":man_running: Running", state=state
-                )
+                proc, out, err = self.ui_helper.progress(cmd=run_cmd, message=":man_running: Running", state=state)
                 out_agg += out.decode() + "\n"
 
                 # check if return code is acceptable

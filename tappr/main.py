@@ -514,5 +514,27 @@ def edit():
     pass
 
 
+@tap_app.command()
+def ingress_ip(namespace: str = "tanzu-system-ingress", service: str = "envoy", k8s_context: str = None):
+    """
+    Get the Tanzu System Ingress External IP of the TAP cluster.
+
+    """
+    if k8s_context is None:
+        k8s_context = k8s_helpers.pick_context()
+    if k8s_context not in k8s_helpers.contexts:
+        typer_logger.msg(f":woman_police_officer: No valid context named [yellow]{k8s_context}[/yellow] found in KUBECONFIG.", bold=True)
+        raise typer.Exit(-1)
+    if not k8s_context:
+        typer_logger.msg(":broken_heart: No valid k8s context found.")
+        raise typer.Exit(1)
+    success, response = k8s_helpers.get_namespaced_service(service=service, namespace=namespace, client=k8s_helpers.clients[k8s_context])
+    if success:
+        for ingress in response.status.load_balancer.ingress:
+            print(ingress.ip)
+    else:
+        typer_logger.msg(":broken_heart: No external Ingress IP found")
+
+
 if __name__ == "__main__":
     app()

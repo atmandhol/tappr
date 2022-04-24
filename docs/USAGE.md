@@ -173,6 +173,7 @@ $ tappr tap [OPTIONS] COMMAND [ARGS]...
 **Commands**:
 
 * `edit`: Edit tap-values yaml file.
+* `ingress-ip`: Get the Tanzu System Ingress External IP of...
 * `install`: Install TAP.
 * `setup`: Setup Dev Namespace with Git and Registry...
 
@@ -188,6 +189,23 @@ $ tappr tap edit [OPTIONS]
 
 **Options**:
 
+* `--help`: Show this message and exit.
+
+### `tappr tap ingress-ip`
+
+Get the Tanzu System Ingress External IP of the TAP cluster.
+
+**Usage**:
+
+```console
+$ tappr tap ingress-ip [OPTIONS]
+```
+
+**Options**:
+
+* `--namespace TEXT`: [default: tanzu-system-ingress]
+* `--service TEXT`: [default: envoy]
+* `--k8s-context TEXT`
 * `--help`: Show this message and exit.
 
 ### `tappr tap install`
