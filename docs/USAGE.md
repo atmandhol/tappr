@@ -179,7 +179,7 @@ $ tappr tap [OPTIONS] COMMAND [ARGS]...
 
 ### `tappr tap edit`
 
-Edit tap-values yaml file.
+Edit tap-values yaml file. Using inline editor or file input.
 
 **Usage**:
 
@@ -189,6 +189,12 @@ $ tappr tap edit [OPTIONS]
 
 **Options**:
 
+* `--k8s-context TEXT`
+* `--namespace TEXT`: [default: tap-install]
+* `--secret TEXT`: [default: tap-tap-install-values]
+* `--from-file TEXT`: Yaml file path containing tap values to shallow merge (first level only) with the existing tap values on the cluster. Inline editor is not invoked if this option is used.
+* `--force / --no-force`: Force save the changes to the yaml file without any user prompt  [default: False]
+* `--show-current / --no-show-current`: Show the current content of the tap values file on the cluster in the inline editor. Defaults to false for security purposes.  [default: False]
 * `--help`: Show this message and exit.
 
 ### `tappr tap ingress-ip`
@@ -203,9 +209,9 @@ $ tappr tap ingress-ip [OPTIONS]
 
 **Options**:
 
-* `--namespace TEXT`: [default: tanzu-system-ingress]
-* `--service TEXT`: [default: envoy]
 * `--k8s-context TEXT`
+* `--service TEXT`: [default: envoy]
+* `--namespace TEXT`: [default: tanzu-system-ingress]
 * `--help`: Show this message and exit.
 
 ### `tappr tap install`

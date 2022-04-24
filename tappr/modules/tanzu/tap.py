@@ -1,8 +1,134 @@
 import os
 import hashlib
 import typer
+import base64
+import yaml
+from rich import print as rprint
+from difflib import Differ
 
 from tappr.modules.utils.enums import GITURL, REGISTRY
+
+auto_complete_list = [
+    "profile",
+    "ceip_policy_disclosed",
+    "buildservice",
+    "kp_default_repository",
+    "kp_default_repository_username",
+    "kp_default_repository_password",
+    "tanzunet_username",
+    "tanzunet_password",
+    "descriptor_name",
+    "supply_chain",
+    "cnrs",
+    "domain_name",
+    "ootb_supply_chain_basic",
+    "registry",
+    "server",
+    "repository",
+    "gitops",
+    "ssh_secret",
+    "learningcenter",
+    "ingressDomain",
+    "tap_gui",
+    "service_type",
+    "ingressEnabled",
+    "ingressDomain",
+    "app_config",
+    "app",
+    "baseUrl",
+    "catalog",
+    "locations",
+    "type",
+    "target",
+    "backend",
+    "cors",
+    "origin",
+    "metadata_store",
+    "grype",
+    "namespace",
+    "targetImagePullSecret",
+    "ca_cert_data",
+    "certificates",
+    "duration",
+    "renewBefore",
+    "configFileContents",
+    "logLevel",
+    "contour",
+    "replicas",
+    "useProxyProtocol",
+    "hostPorts",
+    "enable",
+    "service",
+    "annotations",
+    "externalTrafficPolicy",
+    "LBType",
+    "nodePorts",
+    "terminationGracePeriodSeconds",
+    "infrastructure_provider",
+    "hostNetwork",
+    "ingress",
+    "external",
+    "internal",
+    "reuse_crds",
+    "local_dns",
+    "domain",
+    "pdb",
+    "provider",
+    "ingressSecret",
+    "ingressClass",
+    "service_account",
+    "git_implementation",
+    "registry",
+    "repository",
+    "gitops",
+    "username",
+    "branch",
+    "commit_message",
+    "email",
+    "repository_prefix",
+    "ssh_secret",
+    "cluster_builder",
+    "user_name",
+    "user_email",
+    "excluded_templates",
+    "authSecret",
+    "name",
+    "allow_unmatched_images",
+    "custom_ca_secrets",
+    "custom_cas",
+    "deployment_namespace",
+    "limits_cpu",
+    "limits_memory",
+    "quota",
+    "pod_number",
+    "replicas",
+    "requests_cpu",
+    "requests_memory",
+    "app_service_type",
+    "auth_proxy_host",
+    "db_host",
+    "db_replicas",
+    "db_sslmode",
+    "pg_limit_memory",
+    "app_req_cpu",
+    "app_limit_memory",
+    "app_req_memory",
+    "auth_proxy_port",
+    "db_name",
+    "db_port",
+    "api_port",
+    "app_limit_cpu",
+    "app_replicas",
+    "pg_req_memory",
+    "priority_class_name",
+    "use_cert_manager",
+    "api_host",
+    "db_password",
+    "storage_class_name",
+    "database_request_storage",
+    "add_default_rw_service_account",
+    "enable_automatic_dependency_updates",
+]
 
 pivnet_products = {
     "darwin": {
@@ -18,6 +144,7 @@ pivnet_products = {
 }
 
 
+# noinspection PyBroadException
 class TanzuApplicationPlatform:
     def __init__(self, subprocess_helper, pivnet_helper, logger, creds_helper, state, ui_helper, k8s_helper):
         self.creds_helper = creds_helper
@@ -291,3 +418,96 @@ class TanzuApplicationPlatform:
         )
         if exit_code != 0:
             raise typer.Exit(-1)
+
+    def ingress_ip(self, k8s_context: str, service: str, namespace: str):
+        if k8s_context is None:
+            k8s_context = self.k8s_helper.pick_context()
+        if k8s_context not in self.k8s_helper.contexts:
+            self.logger.msg(f":woman_police_officer: No valid context named [yellow]{k8s_context}[/yellow] found in KUBECONFIG.", bold=True)
+            raise typer.Exit(-1)
+        if not k8s_context:
+            self.logger.msg(":broken_heart: No valid k8s context found.")
+            raise typer.Exit(1)
+        success, response = self.k8s_helper.get_namespaced_service(
+            service=service, namespace=namespace, client=self.k8s_helper.clients[k8s_context]
+        )
+        if success:
+            for ingress in response.status.load_balancer.ingress:
+                print(ingress.ip)
+        else:
+            self.logger.msg(":broken_heart: No external Ingress IP found")
+
+    def edit_tap_values(self, k8s_context: str, namespace: str, secret: str, from_file: str, force: bool, show_current: bool):
+        if k8s_context is None:
+            k8s_context = self.k8s_helper.pick_context()
+        if k8s_context not in self.k8s_helper.contexts:
+            self.logger.msg(f":woman_police_officer: No valid context named [yellow]{k8s_context}[/yellow] found in KUBECONFIG.", bold=True)
+            raise typer.Exit(-1)
+        if not k8s_context:
+            self.logger.msg(":broken_heart: No valid k8s context found.")
+            raise typer.Exit(1)
+        success, response = self.k8s_helper.get_namespaced_secret(secret=secret, namespace=namespace, client=self.k8s_helper.clients[k8s_context])
+
+        if success:
+            new_cluster_tap_values = str()
+            try:
+                og_cluster_tap_values = yaml.safe_load(base64.b64decode(list(response.data.values())[0]).decode())
+            except Exception:
+                self.logger.msg(":cry: tap-install-values secret was not proper yaml")
+                raise typer.Exit(1)
+
+            if from_file:
+                # Get the yaml data from the file
+                if os.path.isfile(from_file):
+                    try:
+                        yaml_updates = yaml.safe_load(open(from_file, "r").read())
+                    except Exception:
+                        self.logger.msg(":cry: provided file was not valid yaml")
+                        raise typer.Exit(1)
+                    new_cluster_tap_values = {**og_cluster_tap_values, **yaml_updates}
+            else:
+                if show_current:
+                    default = yaml.safe_dump(og_cluster_tap_values)
+                else:
+                    default = ""
+                data = self.ui_helper.yaml_prompt(
+                    message="Enter tap-values.yaml file updates. Press [ESC] and then [ENTER] when you are done\n",
+                    auto_complete_list=auto_complete_list,
+                    default=default,
+                )
+                try:
+                    yaml_updates = yaml.safe_load(data)
+                except Exception:
+                    self.logger.msg(":cry: inline updates were not in valid yaml format. Try again!")
+                    raise typer.Exit(1)
+                if show_current:
+                    new_cluster_tap_values = yaml_updates
+                else:
+                    if yaml_updates:
+                        new_cluster_tap_values = {**og_cluster_tap_values, **yaml_updates}
+                    else:
+                        new_cluster_tap_values = og_cluster_tap_values
+
+            self.logger.msg(":notebook: Input recorded. Calculating diff with current file")
+            print_smart_diff(og_cluster_tap_values, new_cluster_tap_values)
+
+            if not force:
+                save_it = self.logger.confirm(":question_mark: Do you want to make this edit?")
+                if not save_it:
+                    self.logger.msg(":sweat_smile: Not making any updates. Maybe some other time.")
+                    raise typer.Exit(0)
+
+            # TODO: Update the tap-values secret and see if it reconciles
+
+        else:
+            self.logger.msg(":broken_heart: tap-install-values secret not found in the k8s cluster. is TAP installed?")
+
+
+def print_smart_diff(old, new):
+    for line in Differ().compare(yaml.safe_dump(old).split("\n"), yaml.safe_dump(new).split("\n")):
+        if line.startswith("+"):
+            rprint(f"[green]{line}[/green]")
+        elif line.startswith("-"):
+            rprint(f"[red]{line}[/red]")
+        elif not line.startswith("   ") and not line.startswith("  -"):
+            print(line)

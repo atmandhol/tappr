@@ -495,45 +495,36 @@ def setup(namespace: str = "default"):
 
 
 @tap_app.command()
-def edit():
+def edit(
+    k8s_context: str = None,
+    namespace: str = "tap-install",
+    secret: str = "tap-tap-install-values",
+    from_file: str = typer.Option(
+        None,
+        help="Yaml file path containing tap values to shallow merge (first level only) with the existing tap values on the cluster. "
+        "Inline editor is not invoked if this option is used.",
+    ),
+    force: bool = typer.Option(False, help="Force save the changes to the yaml file without any user prompt"),
+    show_current: bool = typer.Option(
+        False, help="Show the current content of the tap values file on the cluster in the inline editor. Defaults to false for security purposes."
+    ),
+):
     """
-    Edit tap-values yaml file.
+    Edit tap-values yaml file. Using inline editor or file input.
 
     """
-    # TODO: Pick a context
-    # k8s_helper.pick_context()
-    # TODO: Get the values yaml secret
-    # k8s_helper.get_namespaced_secret(secret="tap-tap-install-values", namespace="tap-install")
-    # TODO: Open a window,
-    #  put the value there,
-    #  let the user edit,
-    #  check for valid yaml,
-    #  confirm prompt to update,
-    #  save in tmp,
-    #  run tanzu package install
-    pass
+    tap_helpers.edit_tap_values(
+        k8s_context=k8s_context, namespace=namespace, secret=secret, from_file=from_file, force=force, show_current=show_current
+    )
 
 
 @tap_app.command()
-def ingress_ip(namespace: str = "tanzu-system-ingress", service: str = "envoy", k8s_context: str = None):
+def ingress_ip(k8s_context: str = None, service: str = "envoy", namespace: str = "tanzu-system-ingress"):
     """
     Get the Tanzu System Ingress External IP of the TAP cluster.
 
     """
-    if k8s_context is None:
-        k8s_context = k8s_helpers.pick_context()
-    if k8s_context not in k8s_helpers.contexts:
-        typer_logger.msg(f":woman_police_officer: No valid context named [yellow]{k8s_context}[/yellow] found in KUBECONFIG.", bold=True)
-        raise typer.Exit(-1)
-    if not k8s_context:
-        typer_logger.msg(":broken_heart: No valid k8s context found.")
-        raise typer.Exit(1)
-    success, response = k8s_helpers.get_namespaced_service(service=service, namespace=namespace, client=k8s_helpers.clients[k8s_context])
-    if success:
-        for ingress in response.status.load_balancer.ingress:
-            print(ingress.ip)
-    else:
-        typer_logger.msg(":broken_heart: No external Ingress IP found")
+    tap_helpers.ingress_ip(k8s_context=k8s_context, service=service, namespace=namespace)
 
 
 if __name__ == "__main__":

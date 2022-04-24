@@ -1,7 +1,16 @@
 import curses
+
 from dataclasses import dataclass, field
 from typing import List, Optional, Callable, Dict
 from rich.progress import Progress, SpinnerColumn, TimeElapsedColumn, TextColumn
+
+from pygments.lexers import YamlLexer
+from pygments.styles import get_style_by_name
+from prompt_toolkit.styles.pygments import style_from_pygments_cls
+from prompt_toolkit.lexers import PygmentsLexer
+from prompt_toolkit import prompt
+from prompt_toolkit.completion import WordCompleter
+
 
 KEYS_ENTER = (curses.KEY_ENTER, ord("\n"), ord("\r"))
 KEYS_UP = (curses.KEY_UP, ord("k"))
@@ -172,3 +181,22 @@ class UI:
         if proc.returncode != 0 and error_msg is not None:
             self.logger.msg(error_msg)
         return proc.returncode
+
+    # noinspection PyTypeChecker
+    @staticmethod
+    def yaml_prompt(message, auto_complete_list=None, default=""):
+        style = style_from_pygments_cls(get_style_by_name("monokai"))
+        if auto_complete_list:
+            auto_complete_list = WordCompleter(auto_complete_list)
+        else:
+            auto_complete_list = list()
+        return prompt(
+            message=message,
+            lexer=PygmentsLexer(YamlLexer),
+            style=style,
+            include_default_pygments_style=False,
+            completer=auto_complete_list,
+            multiline=True,
+            default=default,
+            wrap_lines=True,
+        )
