@@ -6,6 +6,7 @@ import yaml
 from rich import print as rprint
 from difflib import Differ
 
+import tappr.modules.utils.k8s
 from tappr.modules.utils.enums import GITURL, REGISTRY
 
 auto_complete_list = [
@@ -153,7 +154,7 @@ class TanzuApplicationPlatform:
         self.pivnet_helpers = pivnet_helper
         self.state = state
         self.ui_helper = ui_helper
-        self.k8s_helper = k8s_helper
+        self.k8s_helper: tappr.modules.utils.k8s.K8s = k8s_helper
 
     def sh_call(self, cmd, msg, spinner_msg, error_msg):
         return self.ui_helper.sh_call(cmd=cmd, msg=msg, spinner_msg=spinner_msg, error_msg=error_msg, state=self.state)
@@ -429,15 +430,16 @@ class TanzuApplicationPlatform:
             self.logger.msg(":broken_heart: No valid k8s context found.")
             raise typer.Exit(1)
         success, response = self.k8s_helper.get_namespaced_service(
-            service=service, namespace=namespace, client=self.k8s_helper.clients[k8s_context]
+            service=service, namespace=namespace, client=self.k8s_helper.core_clients[k8s_context]
         )
         if success:
             for ingress in response.status.load_balancer.ingress:
                 print(ingress.ip)
         else:
             self.logger.msg(":broken_heart: No external Ingress IP found")
+            self.logger.msg(f"\n{response}", bold=False) if self.state["verbose"] else None
 
-    def edit_tap_values(self, k8s_context: str, namespace: str, secret: str, from_file: str, force: bool, show_current: bool):
+    def edit_tap_values(self, k8s_context: str, namespace: str, from_file: str, force: bool, show_current: bool):
         if k8s_context is None:
             k8s_context = self.k8s_helper.pick_context()
         if k8s_context not in self.k8s_helper.contexts:
@@ -446,7 +448,27 @@ class TanzuApplicationPlatform:
         if not k8s_context:
             self.logger.msg(":broken_heart: No valid k8s context found.")
             raise typer.Exit(1)
-        success, response = self.k8s_helper.get_namespaced_secret(secret=secret, namespace=namespace, client=self.k8s_helper.clients[k8s_context])
+
+        success, response = self.k8s_helper.get_namespaced_custom_objects(
+            name="tap",
+            group="packaging.carvel.dev",
+            version="v1alpha1",
+            namespace="tap-install",
+            plural="packageinstalls",
+            client=self.k8s_helper.custom_clients[k8s_context],
+        )
+        if not success:
+            self.logger.msg(":broken_heart: Cannot find tap package on the cluster. is it installed?")
+            self.logger.msg(f"\n{response}", bold=False) if self.state["verbose"] else None
+            raise typer.Exit(1)
+
+        # hack TODO: switch this to use a decent jsonpath lib
+        # tap_version_installed = response["spec"]["packageRef"]["versionSelection"]["constraints"]
+        tap_values_secret_name = response["spec"]["values"][0]["secretRef"]["name"]
+
+        success, response = self.k8s_helper.get_namespaced_secret(
+            secret=tap_values_secret_name, namespace=namespace, client=self.k8s_helper.core_clients[k8s_context]
+        )
 
         if success:
             new_cluster_tap_values = str()
@@ -497,10 +519,20 @@ class TanzuApplicationPlatform:
                     self.logger.msg(":sweat_smile: Not making any updates. Maybe some other time.")
                     raise typer.Exit(0)
 
-            # TODO: Update the tap-values secret and see if it reconciles
+            # hack: TODO: if the data object structure changes, it will have to be adjusted here. currently I assume there is only 1 key
+            data_key = list(response.data.keys())[0]
+            body = {"data": {data_key: base64.b64encode(yaml.safe_dump(new_cluster_tap_values).encode()).decode()}}
+            success, response = self.k8s_helper.patch_namespaced_secret(
+                client=self.k8s_helper.core_clients[k8s_context], secret=tap_values_secret_name, namespace=namespace, body=body
+            )
+            if not success:
+                self.logger.msg(":broken_heart: Unable to edit the configuration secret on TAP cluster. Try again later.")
+                self.logger.msg(f"\n{response}", bold=False) if self.state["verbose"] else None
+                raise typer.Exit(-1)
 
         else:
-            self.logger.msg(":broken_heart: tap-install-values secret not found in the k8s cluster. is TAP installed?")
+            self.logger.msg(f":broken_heart: {tap_values_secret_name} secret not found in the k8s cluster. is TAP installed properly?")
+            self.logger.msg(f"\n{response}", bold=False) if self.state["verbose"] else None
 
 
 def print_smart_diff(old, new):

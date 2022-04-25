@@ -500,7 +500,6 @@ def setup(namespace: str = "default"):
 def edit(
     k8s_context: str = None,
     namespace: str = "tap-install",
-    secret: str = "tap-tap-install-values",
     from_file: str = typer.Option(
         None,
         help="Yaml file path containing tap values to shallow merge (first level only) with the existing tap values on the cluster. "
@@ -515,9 +514,7 @@ def edit(
     Edit tap-values yaml file. Using inline editor or file input.
 
     """
-    tap_helpers.edit_tap_values(
-        k8s_context=k8s_context, namespace=namespace, secret=secret, from_file=from_file, force=force, show_current=show_current
-    )
+    tap_helpers.edit_tap_values(k8s_context=k8s_context, namespace=namespace, from_file=from_file, force=force, show_current=show_current)
 
 
 @tap_app.command()
