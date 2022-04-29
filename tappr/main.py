@@ -524,12 +524,12 @@ def ingress_ip(k8s_context: str = None, service: str = "envoy", namespace: str =
 
 
 @tap_app.command()
-def upgrade(version: str, k8s_context: str = None):
+def upgrade(version: str, k8s_context: str = None, namespace: str = "tap-install"):
     """
-    Get the Tanzu System Ingress External IP of the TAP cluster.
+    Upgrade Tanzu Application Platform to a higher version.
 
     """
-    tap_helpers.upgrade(version=version, k8s_context=k8s_context)
+    tap_helpers.upgrade(version=version, k8s_context=k8s_context, namespace=namespace)
 
 
 if __name__ == "__main__":

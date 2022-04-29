@@ -176,7 +176,7 @@ $ tappr tap [OPTIONS] COMMAND [ARGS]...
 * `ingress-ip`: Get the Tanzu System Ingress External IP of...
 * `install`: Install TAP.
 * `setup`: Setup Dev Namespace with Git and Registry...
-* `upgrade`: Get the Tanzu System Ingress External IP of...
+* `upgrade`: Upgrade Tanzu Application Platform to a...
 
 ### `tappr tap edit`
 
@@ -254,7 +254,7 @@ $ tappr tap setup [OPTIONS]
 
 ### `tappr tap upgrade`
 
-Get the Tanzu System Ingress External IP of the TAP cluster.
+Upgrade Tanzu Application Platform to a higher version.
 
 **Usage**:
 
@@ -269,6 +269,7 @@ $ tappr tap upgrade [OPTIONS] VERSION
 **Options**:
 
 * `--k8s-context TEXT`
+* `--namespace TEXT`: [default: tap-install]
 * `--help`: Show this message and exit.
 
 ## `tappr test`
