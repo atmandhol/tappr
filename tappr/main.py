@@ -472,6 +472,7 @@ def install(
         None, help="Valid k8s context to install TAP. If this param is not provided, a picker will show up in case of multiple contexts"
     ),
     host_os: OS = OS.MAC,
+    namespace: str = typer.Option("tap-install", help="Namespace where TAP should be installed"),
     tap_values_file: str = None,
 ):
     """
@@ -479,11 +480,7 @@ def install(
 
     """
     tap_helpers.tap_install(
-        profile=profile,
-        version=version,
-        host_os=host_os,
-        k8s_context=k8s_context,
-        tap_values_file=tap_values_file,
+        profile=profile, version=version, host_os=host_os, k8s_context=k8s_context, tap_values_file=tap_values_file, namespace=namespace
     )
 
 
@@ -524,6 +521,15 @@ def ingress_ip(k8s_context: str = None, service: str = "envoy", namespace: str =
 
     """
     tap_helpers.ingress_ip(k8s_context=k8s_context, service=service, namespace=namespace)
+
+
+@tap_app.command()
+def upgrade(version: str, k8s_context: str = None):
+    """
+    Get the Tanzu System Ingress External IP of the TAP cluster.
+
+    """
+    tap_helpers.upgrade(version=version, k8s_context=k8s_context)
 
 
 if __name__ == "__main__":

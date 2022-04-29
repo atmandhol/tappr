@@ -176,6 +176,7 @@ $ tappr tap [OPTIONS] COMMAND [ARGS]...
 * `ingress-ip`: Get the Tanzu System Ingress External IP of...
 * `install`: Install TAP.
 * `setup`: Setup Dev Namespace with Git and Registry...
+* `upgrade`: Get the Tanzu System Ingress External IP of...
 
 ### `tappr tap edit`
 
@@ -232,6 +233,7 @@ $ tappr tap install [OPTIONS] PROFILE:[iterate-local|iterate-slim|iterate] VERSI
 
 * `--k8s-context TEXT`: Valid k8s context to install TAP. If this param is not provided, a picker will show up in case of multiple contexts
 * `--host-os [darwin|linux|windows]`: [default: darwin]
+* `--namespace TEXT`: Namespace where TAP should be installed  [default: tap-install]
 * `--tap-values-file TEXT`
 * `--help`: Show this message and exit.
 
@@ -248,6 +250,25 @@ $ tappr tap setup [OPTIONS]
 **Options**:
 
 * `--namespace TEXT`: [default: default]
+* `--help`: Show this message and exit.
+
+### `tappr tap upgrade`
+
+Get the Tanzu System Ingress External IP of the TAP cluster.
+
+**Usage**:
+
+```console
+$ tappr tap upgrade [OPTIONS] VERSION
+```
+
+**Arguments**:
+
+* `VERSION`: [required]
+
+**Options**:
+
+* `--k8s-context TEXT`
 * `--help`: Show this message and exit.
 
 ## `tappr test`

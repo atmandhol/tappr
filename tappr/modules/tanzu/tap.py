@@ -159,7 +159,7 @@ class TanzuApplicationPlatform:
     def sh_call(self, cmd, msg, spinner_msg, error_msg):
         return self.ui_helper.sh_call(cmd=cmd, msg=msg, spinner_msg=spinner_msg, error_msg=error_msg, state=self.state)
 
-    def tap_install(self, profile, version, host_os, k8s_context, tap_values_file):
+    def tap_install(self, profile, version, host_os, k8s_context, tap_values_file, namespace: str = "tap-install"):
         if k8s_context is None:
             k8s_context = self.k8s_helper.pick_context()
 
@@ -176,14 +176,7 @@ class TanzuApplicationPlatform:
         if exit_code != 0:
             raise typer.Exit(-1)
 
-        exit_code = self.sh_call(
-            cmd=f"tanzu package version",
-            msg=":man_police_officer: Checking tanzu CLI",
-            spinner_msg="Checking",
-            error_msg=":broken_heart: tanzu cli checks failed. Use [bold]--verbose[/bold] flag for error details.",
-        )
-        if exit_code != 0:
-            raise typer.Exit(-1)
+        check_tanzu_cli(ui_helper=self.ui_helper, state=self.state)
 
         self.ui_helper.progress(cmd=f"kubectl config use-context {k8s_context}", message=":man_police_officer: Setting context", state=self.state)
         self.logger.msg(f":file_folder: Using k8s context [yellow]{k8s_context}[/yellow] for installation", bold=False)
@@ -252,11 +245,10 @@ class TanzuApplicationPlatform:
         if exit_code != 0:
             raise typer.Exit(-1)
 
-        # tap-install namespace setup
         _, out, _ = self.sh.run_proc(cmd=f"kubectl get ns")
-        if "tap-install" not in out.decode():
+        if namespace not in out.decode():
             exit_code = self.sh_call(
-                cmd=f"kubectl create ns tap-install",
+                cmd=f"kubectl create ns {namespace}",
                 msg=":file_cabinet:  Create TAP install namespace",
                 spinner_msg="Creating",
                 error_msg=":broken_heart: Unable to create TAP install namespace. Use [bold]--verbose[/bold] flag for error details.",
@@ -265,23 +257,23 @@ class TanzuApplicationPlatform:
                 raise typer.Exit(-1)
 
         _, out, _ = self.sh.run_proc(cmd=f"kubectl get ns")
-        if "tap-install" not in out.decode():
+        if namespace not in out.decode():
             self.logger.msg(":broken_heart: Unable to find TAP install namespace. Use [bold]--verbose[/bold] flag for error details.")
             raise typer.Exit(-1)
 
         # Setup registry secret
-        cmd = "tanzu secret registry list --namespace tap-install"
+        cmd = f"tanzu secret registry list --namespace {namespace}"
         _, out, _ = self.sh.run_proc(cmd=cmd)
 
         self.sh_call(
             cmd=(
                 f"tanzu secret registry update tap-registry --username {install_registry_username} --password {install_registry_password} --server {install_registry_hostname} "
-                f"--export-to-all-namespaces --yes --namespace tap-install"
+                f"--export-to-all-namespaces --yes --namespace {namespace}"
             )
             if "tap-registry" in out.decode()
             else (
                 f"tanzu secret registry add tap-registry --username {install_registry_username} --password {install_registry_password} --server {install_registry_hostname} "
-                f"--export-to-all-namespaces --yes --namespace tap-install"
+                f"--export-to-all-namespaces --yes --namespace {namespace}"
             ),
             msg=":key: Setting tanzu registry secret",
             spinner_msg="Setting up",
@@ -289,18 +281,18 @@ class TanzuApplicationPlatform:
         )
 
         # Setup TAP Packages repo
-        cmd = "tanzu package repository list --namespace tap-install"
+        cmd = f"tanzu package repository list --namespace {namespace}"
         _, out, _ = self.sh.run_proc(cmd=cmd)
 
         self.sh_call(
-            cmd=f"tanzu package repository update tanzu-tap-repository --url {install_registry_hostname}/tanzu-application-platform/tap-packages:{version} --namespace tap-install"
+            cmd=f"tanzu package repository update tanzu-tap-repository --url {install_registry_hostname}/tanzu-application-platform/tap-packages:{version} --namespace {namespace}"
             if "tanzu-tap-repository" in out.decode()
-            else f"tanzu package repository add tanzu-tap-repository --url {install_registry_hostname}/tanzu-application-platform/tap-packages:{version} --namespace tap-install",
+            else f"tanzu package repository add tanzu-tap-repository --url {install_registry_hostname}/tanzu-application-platform/tap-packages:{version} --namespace {namespace}",
             msg=":key: Setting up [yellow]tanzu-tap-repository[/yellow] package repo",
             spinner_msg="Setting up",
             error_msg=None,
         )
-        _, out, _ = self.sh.run_proc(cmd=f"tanzu package repository get tanzu-tap-repository --namespace tap-install")
+        _, out, _ = self.sh.run_proc(cmd=f"tanzu package repository get tanzu-tap-repository --namespace {namespace}")
         self.logger.msg(out.decode(), bold=False) if self.state["verbose"] and out else None
 
         if not tap_values_file:
@@ -317,7 +309,7 @@ class TanzuApplicationPlatform:
             open(f"{tap_values_file}", "w").write(tap_values_yml)
 
         # TAP install
-        cmd = f"tanzu package install tap -p tap.tanzu.vmware.com -v {version} --values-file {tap_values_file} -n tap-install"
+        cmd = f"tanzu package install tap -p tap.tanzu.vmware.com -v {version} --values-file {tap_values_file} -n {namespace}"
         self.logger.debug(f"Running {cmd}. Can take up to 15-20 minutes depending on your machine.") if self.state["verbose"] and out else None
         self.sh_call(
             cmd=cmd,
@@ -533,6 +525,56 @@ class TanzuApplicationPlatform:
         else:
             self.logger.msg(f":broken_heart: {tap_values_secret_name} secret not found in the k8s cluster. is TAP installed properly?")
             self.logger.msg(f"\n{response}", bold=False) if self.state["verbose"] else None
+
+    def upgrade(self, version: str, k8s_context: str, namespace: str = "tap-install"):
+        if k8s_context is None:
+            k8s_context = self.k8s_helper.pick_context()
+        if k8s_context not in self.k8s_helper.contexts:
+            self.logger.msg(f":woman_police_officer: No valid context named [yellow]{k8s_context}[/yellow] found in KUBECONFIG.", bold=False)
+            raise typer.Exit(-1)
+        if not k8s_context:
+            self.logger.msg(":broken_heart: No valid k8s context found.")
+            raise typer.Exit(1)
+        check_tanzu_cli(ui_helper=self.ui_helper, state=self.state)
+        self.ui_helper.progress(cmd=f"kubectl config use-context {k8s_context}", message=":man_police_officer: Setting context", state=self.state)
+        self.logger.msg(f":file_folder: Using k8s context [yellow]{k8s_context}[/yellow] for installation", bold=False)
+
+        install_registry_hostname = self.creds_helper.get("default_tap_install_registry", "INSTALL_REGISTRY_HOSTNAME")
+
+        cmd = f"tanzu package installed list --namespace {namespace}"
+        _, out, _ = self.sh.run_proc(cmd=cmd)
+        if "tap.tanzu.vmware.com" not in out.decode():
+            self.logger.msg(":broken_heart: TAP package not found. Nothing to upgrade. Please check if TAP is installed")
+            raise typer.Exit(1)
+
+        self.sh_call(
+            cmd=f"tanzu package repository update tanzu-tap-repository --url {install_registry_hostname}/tanzu-application-platform/tap-packages:{version} --namespace {namespace}",
+            msg=":key: Setting up [yellow]tanzu-tap-repository[/yellow] package repo",
+            spinner_msg="Setting up",
+            error_msg=None,
+        )
+        _, out, _ = self.sh.run_proc(cmd=f"tanzu package repository get tanzu-tap-repository --namespace {namespace}")
+        self.logger.msg(out.decode(), bold=False) if self.state["verbose"] and out else None
+
+        self.sh_call(
+            cmd=f"tanzu package installed update tap -p tap.tanzu.vmware.com -v {version} -n {namespace}",
+            msg=f":wine_glass: Updating [yellow]TAP[/yellow] to version [yellow]{version}[/yellow]",
+            spinner_msg="Updating. Waiting to reconcile..",
+            error_msg=None,
+        )
+        self.logger.msg(":rocket: TAP is upgraded")
+
+
+def check_tanzu_cli(ui_helper, state):
+    exit_code = ui_helper.sh_call(
+        cmd=f"tanzu package version",
+        msg=":man_police_officer: Checking tanzu CLI",
+        spinner_msg="Checking",
+        error_msg=":broken_heart: tanzu cli checks failed. Use [bold]--verbose[/bold] flag for error details.",
+        state=state,
+    )
+    if exit_code != 0:
+        raise typer.Exit(-1)
 
 
 def print_smart_diff(old, new):
