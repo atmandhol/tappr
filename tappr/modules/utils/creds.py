@@ -29,7 +29,7 @@ class CredsHelper:
         if tanzunet_username is None:
             tanzunet_username = str(
                 Prompt.ask(
-                    f":person_raising_hand_light_skin_tone: Tanzu Network Username", default=configs["tanzunet_username"] if configs else None
+                    f":person_raising_hand: Tanzu Network Username", default=configs["tanzunet_username"] if configs else None
                 )
             )
         if tanzunet_password is None:
@@ -89,7 +89,7 @@ class CredsHelper:
         if vmware_username is None:
             vmware_username = str(
                 Prompt.ask(
-                    f":person_raising_hand_light_skin_tone: VMWare Username",
+                    f":person_raising_hand: VMWare Username",
                     default=configs["vmware_username"] if configs else None,
                 )
             )

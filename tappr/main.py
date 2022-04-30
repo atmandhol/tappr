@@ -296,7 +296,7 @@ def kind(cluster_name):
     """
     exit_code = ui_helpers.sh_call(
         cmd=f"kind --version",
-        msg=":man_police_officer: Checking Kind Installation",
+        msg=":magnifying_glass_tilted_left: Checking Kind Installation",
         spinner_msg="Checking",
         error_msg=":broken_heart: is Kind installed?. Use [bold]--verbose[/bold] flag for error details.",
         state=state,
@@ -320,7 +320,7 @@ def gke(cluster_name=None, project=None, gcp_json: str = typer.Option(None, help
     """
     Create a GKE cluster. Assumes gcloud is set to create clusters.
     """
-    proc, out, _ = ui_helpers.progress(cmd=f"gcloud info --format json", message=":man_police_officer: Checking gcloud installation", state=state)
+    proc, out, _ = ui_helpers.progress(cmd=f"gcloud info --format json", message=":magnifying_glass_tilted_left: Checking gcloud installation", state=state)
     if proc.returncode != 0:
         raise typer.Exit(-1)
 

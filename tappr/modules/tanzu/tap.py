@@ -164,12 +164,12 @@ class TanzuApplicationPlatform:
             k8s_context = self.k8s_helper.pick_context()
 
         if k8s_context not in self.k8s_helper.contexts:
-            self.logger.msg(f":woman_police_officer: No valid context named [yellow]{k8s_context}[/yellow] found in KUBECONFIG.", bold=False)
+            self.logger.msg(f":worried: No valid context named [yellow]{k8s_context}[/yellow] found in KUBECONFIG.", bold=False)
             raise typer.Exit(-1)
 
         exit_code = self.sh_call(
             cmd=f"kubectl cluster-info",
-            msg=":man_police_officer: Checking k8s cluster and kubectl",
+            msg=":magnifying_glass_tilted_left: Checking k8s cluster and kubectl",
             spinner_msg="Checking",
             error_msg=":broken_heart: Unable to connect to k8s cluster. Use [bold]--verbose[/bold] flag for error details.",
         )
@@ -178,7 +178,7 @@ class TanzuApplicationPlatform:
 
         check_tanzu_cli(ui_helper=self.ui_helper, state=self.state)
 
-        self.ui_helper.progress(cmd=f"kubectl config use-context {k8s_context}", message=":man_police_officer: Setting context", state=self.state)
+        self.ui_helper.progress(cmd=f"kubectl config use-context {k8s_context}", message=":hourglass: Setting context", state=self.state)
         self.logger.msg(f":file_folder: Using k8s context [yellow]{k8s_context}[/yellow] for installation", bold=False)
 
         hash_str = str(profile + version)
@@ -238,7 +238,7 @@ class TanzuApplicationPlatform:
         os.chdir(tmp_dir)
         exit_code = self.sh_call(
             cmd=f"bash {tmp_dir}/install.sh",
-            msg=":man_mechanic_medium-light_skin_tone: Install Cluster Essentials",
+            msg=":hourglass: Install Cluster Essentials",
             spinner_msg="Installing",
             error_msg=":broken_heart: Unable to Install cluster essentials. Use [bold]--verbose[/bold] flag for error details.",
         )
@@ -326,7 +326,7 @@ class TanzuApplicationPlatform:
         if namespace not in out.decode():
             exit_code = self.sh_call(
                 cmd=f"kubectl create ns {namespace}",
-                msg=f":file_cabinet:  Creating [yellow]{namespace}[/yellow] as it does not exist.",
+                msg=f":construction: Creating [yellow]{namespace}[/yellow] as it does not exist.",
                 spinner_msg="Creating",
                 error_msg=f":broken_heart: Unable to create namespace [yellow]{namespace}[/yellow]. Use [bold]--verbose[/bold] flag for error details.",
             )
@@ -357,7 +357,7 @@ class TanzuApplicationPlatform:
 
             exit_code = self.sh_call(
                 cmd=f"kp secret create {ssh_secret_name} --git-url {git_url} --git-ssh-key {ssh_key_loc} -n {namespace}",
-                msg=":man_gesturing_ok: Create Git secret on the cluster",
+                msg=":sunglasses: Create Git secret on the cluster",
                 spinner_msg="Creating",
                 error_msg=":broken_heart: Unable to create SSH secret. Use [bold]--verbose[/bold] flag for error details.",
             )
@@ -387,7 +387,7 @@ class TanzuApplicationPlatform:
 
         exit_code = self.sh_call(
             cmd=cmd,
-            msg=":man_gesturing_ok: Create Registry secret on the cluster",
+            msg=":sunglasses: Create Registry secret on the cluster",
             spinner_msg="Creating",
             error_msg=":broken_heart: Unable to create Registry secret. Use [bold]--verbose[/bold] flag for error details.",
         )
@@ -396,7 +396,7 @@ class TanzuApplicationPlatform:
 
         exit_code = self.sh_call(
             cmd=f"kubectl -n {namespace} apply -f {dev_yaml_path}",
-            msg=f":man_gesturing_ok: Setting up developer namespace {namespace}",
+            msg=f":sunglasses: Setting up developer namespace {namespace}",
             spinner_msg="Finalizing",
             error_msg=":broken_heart: Unable to setup developer namespace. Use [bold]--verbose[/bold] flag for error details.",
         )
@@ -405,7 +405,7 @@ class TanzuApplicationPlatform:
 
         exit_code = self.sh_call(
             cmd=f"kubectl config set-context --current --namespace={namespace}",
-            msg=f":man_gesturing_ok: Setting namespace {namespace} as default in current context",
+            msg=f":sunglasses: Setting namespace {namespace} as default in current context",
             spinner_msg="Finalizing",
             error_msg=":broken_heart: Unable to set namespace as default. Use [bold]--verbose[/bold] flag for error details.",
         )
@@ -416,7 +416,7 @@ class TanzuApplicationPlatform:
         if k8s_context is None:
             k8s_context = self.k8s_helper.pick_context()
         if k8s_context not in self.k8s_helper.contexts:
-            self.logger.msg(f":woman_police_officer: No valid context named [yellow]{k8s_context}[/yellow] found in KUBECONFIG.", bold=False)
+            self.logger.msg(f":worried: No valid context named [yellow]{k8s_context}[/yellow] found in KUBECONFIG.", bold=False)
             raise typer.Exit(-1)
         if not k8s_context:
             self.logger.msg(":broken_heart: No valid k8s context found.")
@@ -435,7 +435,7 @@ class TanzuApplicationPlatform:
         if k8s_context is None:
             k8s_context = self.k8s_helper.pick_context()
         if k8s_context not in self.k8s_helper.contexts:
-            self.logger.msg(f":woman_police_officer: No valid context named [yellow]{k8s_context}[/yellow] found in KUBECONFIG.", bold=False)
+            self.logger.msg(f":worried: No valid context named [yellow]{k8s_context}[/yellow] found in KUBECONFIG.", bold=False)
             raise typer.Exit(-1)
         if not k8s_context:
             self.logger.msg(":broken_heart: No valid k8s context found.")
@@ -530,13 +530,13 @@ class TanzuApplicationPlatform:
         if k8s_context is None:
             k8s_context = self.k8s_helper.pick_context()
         if k8s_context not in self.k8s_helper.contexts:
-            self.logger.msg(f":woman_police_officer: No valid context named [yellow]{k8s_context}[/yellow] found in KUBECONFIG.", bold=False)
+            self.logger.msg(f":worried: No valid context named [yellow]{k8s_context}[/yellow] found in KUBECONFIG.", bold=False)
             raise typer.Exit(-1)
         if not k8s_context:
             self.logger.msg(":broken_heart: No valid k8s context found.")
             raise typer.Exit(1)
         check_tanzu_cli(ui_helper=self.ui_helper, state=self.state)
-        self.ui_helper.progress(cmd=f"kubectl config use-context {k8s_context}", message=":man_police_officer: Setting context", state=self.state)
+        self.ui_helper.progress(cmd=f"kubectl config use-context {k8s_context}", message=":hourglass: Setting context", state=self.state)
         self.logger.msg(f":file_folder: Using k8s context [yellow]{k8s_context}[/yellow] for installation", bold=False)
 
         install_registry_hostname = self.creds_helper.get("default_tap_install_registry", "INSTALL_REGISTRY_HOSTNAME")
@@ -568,7 +568,7 @@ class TanzuApplicationPlatform:
 def check_tanzu_cli(ui_helper, state):
     exit_code = ui_helper.sh_call(
         cmd=f"tanzu package version",
-        msg=":man_police_officer: Checking tanzu CLI",
+        msg=":magnifying_glass_tilted_left: Checking tanzu CLI",
         spinner_msg="Checking",
         error_msg=":broken_heart: tanzu cli checks failed. Use [bold]--verbose[/bold] flag for error details.",
         state=state,
