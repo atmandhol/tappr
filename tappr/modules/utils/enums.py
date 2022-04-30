@@ -34,3 +34,8 @@ class PROFILE(str, Enum):
     ITERATE = "iterate"
     BUILD = "build"
     BUILD_SLIM = "build-slim"
+
+
+class TEMPLATE(str, Enum):
+    TEKTON_GRADLE_TEST = "tekton-gradle-test-pipeline"
+    SCAN_POLICY = "scan-policy"

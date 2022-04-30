@@ -425,8 +425,13 @@ class TanzuApplicationPlatform:
             service=service, namespace=namespace, client=self.k8s_helper.core_clients[k8s_context]
         )
         if success:
-            for ingress in response.status.load_balancer.ingress:
-                print(ingress.ip)
+            try:
+                # This fails when you try to get a public ip when contour is not installed as load balancer,
+                # or you are trying to do this in a build cluster
+                for ingress in response.status.load_balancer.ingress:
+                    print(ingress.ip)
+            except Exception:
+                self.logger.msg(":broken_heart: No external Ingress IP found")
         else:
             self.logger.msg(":broken_heart: No external Ingress IP found")
             self.logger.msg(f"\n{response}", bold=False) if self.state["verbose"] else None

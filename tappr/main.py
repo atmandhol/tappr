@@ -25,7 +25,7 @@ pivnet_helpers = PivnetHelpers()
 creds_helpers = CredsHelper(logger=typer_logger, subprocess_helper=subprocess_helpers)
 ui_helpers = UI(subprocess_helper=subprocess_helpers, logger=typer_logger)
 test_framework = TestFramework(logger=typer_logger, subprocess_helper=subprocess_helpers, ui_helper=ui_helpers)
-k8s_helpers = K8s()
+k8s_helpers = K8s(state=state, logger=typer_logger)
 tap_helpers = TanzuApplicationPlatform(
     subprocess_helper=subprocess_helpers,
     pivnet_helper=pivnet_helpers,
