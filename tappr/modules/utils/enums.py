@@ -32,3 +32,5 @@ class PROFILE(str, Enum):
     ITERATE_LOCAL = "iterate-local"
     ITERATE_SLIM = "iterate-slim"
     ITERATE = "iterate"
+    BUILD = "build"
+    BUILD_SLIM = "build-slim"

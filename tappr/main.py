@@ -320,7 +320,9 @@ def gke(cluster_name=None, project=None, gcp_json: str = typer.Option(None, help
     """
     Create a GKE cluster. Assumes gcloud is set to create clusters.
     """
-    proc, out, _ = ui_helpers.progress(cmd=f"gcloud info --format json", message=":magnifying_glass_tilted_left: Checking gcloud installation", state=state)
+    proc, out, _ = ui_helpers.progress(
+        cmd=f"gcloud info --format json", message=":magnifying_glass_tilted_left: Checking gcloud installation", state=state
+    )
     if proc.returncode != 0:
         raise typer.Exit(-1)
 
@@ -530,6 +532,15 @@ def upgrade(version: str, k8s_context: str = None, namespace: str = "tap-install
 
     """
     tap_helpers.upgrade(version=version, k8s_context=k8s_context, namespace=namespace)
+
+
+@tap_app.command()
+def uninstall(package: str = typer.Option("tap", help="Package name to uninstall"), k8s_context: str = None, namespace: str = "tap-install"):
+    """
+    Uninstall TAP.
+
+    """
+    tap_helpers.uninstall(package=package, k8s_context=k8s_context, namespace=namespace)
 
 
 if __name__ == "__main__":

@@ -176,6 +176,7 @@ $ tappr tap [OPTIONS] COMMAND [ARGS]...
 * `ingress-ip`: Get the Tanzu System Ingress External IP of...
 * `install`: Install TAP.
 * `setup`: Setup Dev Namespace with Git and Registry...
+* `uninstall`: Uninstall TAP.
 * `upgrade`: Upgrade Tanzu Application Platform to a...
 
 ### `tappr tap edit`
@@ -221,12 +222,12 @@ Install TAP. Make sure to run tappr init before installing TAP.
 **Usage**:
 
 ```console
-$ tappr tap install [OPTIONS] PROFILE:[iterate-local|iterate-slim|iterate] VERSION
+$ tappr tap install [OPTIONS] PROFILE:[iterate-local|iterate-slim|iterate|build|build-slim] VERSION
 ```
 
 **Arguments**:
 
-* `PROFILE:[iterate-local|iterate-slim|iterate]`: [required]
+* `PROFILE:[iterate-local|iterate-slim|iterate|build|build-slim]`: [required]
 * `VERSION`: [required]
 
 **Options**:
@@ -250,6 +251,23 @@ $ tappr tap setup [OPTIONS]
 **Options**:
 
 * `--namespace TEXT`: [default: default]
+* `--help`: Show this message and exit.
+
+### `tappr tap uninstall`
+
+Uninstall TAP.
+
+**Usage**:
+
+```console
+$ tappr tap uninstall [OPTIONS]
+```
+
+**Options**:
+
+* `--package TEXT`: Package name to uninstall  [default: tap]
+* `--k8s-context TEXT`
+* `--namespace TEXT`: [default: tap-install]
 * `--help`: Show this message and exit.
 
 ### `tappr tap upgrade`

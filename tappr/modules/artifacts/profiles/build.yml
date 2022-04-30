@@ -1,0 +1,33 @@
+# Install a full build profile with testing scanning supply chain
+
+profile: build
+ceip_policy_disclosed: true
+
+buildservice:
+  kp_default_repository: $REGISTRY_SERVER/$REGISTRY_REPO
+  kp_default_repository_username: '$REGISTRY_USERNAME'
+  kp_default_repository_password: '$REGISTRY_PASSWORD'
+  tanzunet_username: '$INSTALL_REGISTRY_USERNAME'
+  tanzunet_password: '$INSTALL_REGISTRY_PASSWORD'
+  enable_automatic_dependency_updates: false
+
+supply_chain: testing_scanning
+
+ootb_supply_chain_testing_scanning:
+  registry:
+    server: $REGISTRY_SERVER
+    repository: $REGISTRY_REPO
+  gitops:
+    ssh_secret: git-ssh
+
+scanning:
+  metadataStore:
+    url: "127.0.0.1.nip.io"
+    caSecret:
+      name: store-ca-cert
+      importFromNamespace: metadata-store-secrets
+    authSecret:
+      name: store-auth-token
+
+grype:
+  targetImagePullSecret: registry-credentials

@@ -527,17 +527,9 @@ class TanzuApplicationPlatform:
             self.logger.msg(f"\n{response}", bold=False) if self.state["verbose"] else None
 
     def upgrade(self, version: str, k8s_context: str, namespace: str = "tap-install"):
-        if k8s_context is None:
-            k8s_context = self.k8s_helper.pick_context()
-        if k8s_context not in self.k8s_helper.contexts:
-            self.logger.msg(f":worried: No valid context named [yellow]{k8s_context}[/yellow] found in KUBECONFIG.", bold=False)
-            raise typer.Exit(-1)
-        if not k8s_context:
-            self.logger.msg(":broken_heart: No valid k8s context found.")
-            raise typer.Exit(1)
-        check_tanzu_cli(ui_helper=self.ui_helper, state=self.state)
-        self.ui_helper.progress(cmd=f"kubectl config use-context {k8s_context}", message=":hourglass: Setting context", state=self.state)
-        self.logger.msg(f":file_folder: Using k8s context [yellow]{k8s_context}[/yellow] for installation", bold=False)
+        check_and_pick_k8s_context(
+            k8s_context=k8s_context, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
+        )
 
         install_registry_hostname = self.creds_helper.get("default_tap_install_registry", "INSTALL_REGISTRY_HOSTNAME")
 
@@ -559,10 +551,22 @@ class TanzuApplicationPlatform:
         self.sh_call(
             cmd=f"tanzu package installed update tap -p tap.tanzu.vmware.com -v {version} -n {namespace}",
             msg=f":wine_glass: Updating [yellow]TAP[/yellow] to version [yellow]{version}[/yellow]",
-            spinner_msg="Updating. Waiting to reconcile..",
+            spinner_msg="Updating. Waiting to reconcile",
             error_msg=None,
         )
         self.logger.msg(":rocket: TAP is upgraded")
+
+    def uninstall(self, package: str, k8s_context: str, namespace: str = "tap-install"):
+        check_and_pick_k8s_context(
+            k8s_context=k8s_context, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
+        )
+        self.sh_call(
+            cmd=f"tanzu package installed delete {package} --namespace {namespace} --yes",
+            msg=f":wine_glass: Uninstalling [yellow]TAP[/yellow]",
+            spinner_msg="Deleting package",
+            error_msg=None,
+        )
+        self.logger.msg(":rocket: TAP is uninstalled")
 
 
 def check_tanzu_cli(ui_helper, state):
@@ -575,6 +579,20 @@ def check_tanzu_cli(ui_helper, state):
     )
     if exit_code != 0:
         raise typer.Exit(-1)
+
+
+def check_and_pick_k8s_context(k8s_context: str, k8s_helper, logger, ui_helper, state):
+    if k8s_context is None:
+        k8s_context = k8s_helper.pick_context()
+    if k8s_context not in k8s_helper.contexts:
+        logger.msg(f":worried: No valid context named [yellow]{k8s_context}[/yellow] found in KUBECONFIG.", bold=False)
+        raise typer.Exit(-1)
+    if not k8s_context:
+        logger.msg(":broken_heart: No valid k8s context found.")
+        raise typer.Exit(1)
+    check_tanzu_cli(ui_helper=ui_helper, state=state)
+    ui_helper.progress(cmd=f"kubectl config use-context {k8s_context}", message=":hourglass: Setting context", state=state)
+    logger.msg(f":file_folder: Using k8s context [yellow]{k8s_context}[/yellow] for installation", bold=False)
 
 
 def print_smart_diff(old, new):

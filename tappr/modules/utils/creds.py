@@ -28,9 +28,7 @@ class CredsHelper:
 
         if tanzunet_username is None:
             tanzunet_username = str(
-                Prompt.ask(
-                    f":person_raising_hand: Tanzu Network Username", default=configs["tanzunet_username"] if configs else None
-                )
+                Prompt.ask(f":person_raising_hand: Tanzu Network Username", default=configs["tanzunet_username"] if configs else None)
             )
         if tanzunet_password is None:
             tanzunet_password = str(
