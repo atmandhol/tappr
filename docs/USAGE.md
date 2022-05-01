@@ -74,6 +74,7 @@ $ tappr create kind [OPTIONS] CLUSTER_NAME
 
 **Options**:
 
+* `--customize / --no-customize`: Customize the default config file  [default: False]
 * `--help`: Show this message and exit.
 
 ## `tappr delete`

@@ -1,6 +1,7 @@
 import typer
 import json
 import os
+import yaml
 import random
 import string
 
@@ -290,7 +291,7 @@ def check_if_cluster_name_valid(name: str):
 
 
 @create_cluster_app.command()
-def kind(cluster_name):
+def kind(cluster_name, customize: bool = typer.Option(False, help="Customize the default config file")):
     """
     Create a multi-node kind cluster.
     """
@@ -305,8 +306,21 @@ def kind(cluster_name):
         raise typer.Exit(-1)
 
     check_if_cluster_name_valid(cluster_name)
-    file_path = os.path.dirname(os.path.abspath(__file__)) + "/modules/artifacts/clusters/kind.yaml"
-    cmd = f"kind create cluster --name {cluster_name} --config {file_path}"
+    kind_config = open(os.path.dirname(os.path.abspath(__file__)) + "/modules/artifacts/clusters/kind.yaml").read()
+
+    if customize:
+        kind_config = ui_helpers.yaml_prompt(
+            message="Press [ESC] and then [ENTER] when you are done\n",
+            auto_complete_list=[],
+            default=kind_config,
+        )
+        try:
+            yaml.safe_load(kind_config)
+        except Exception:
+            typer_logger.msg(":cry: inline updates were not in valid yaml format. Try again!")
+            raise typer.Exit(1)
+
+    cmd = f"cat << EOF | kind create cluster --name {cluster_name} --config -\n{kind_config}\nEOF"
     typer_logger.msg(f":package: Creating a multi-node kind cluster named [yellow]{cluster_name}[/yellow].", bold=False)
     proc, out, err = ui_helpers.progress(cmd=cmd, state=state, message="Spinning up a Kind cluster")
     if proc.returncode == 0:
