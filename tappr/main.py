@@ -532,7 +532,7 @@ def edit(
         "Inline editor is not invoked if this option is used.",
     ),
     force: bool = typer.Option(False, help="Force save the changes to the yaml file without any user prompt"),
-    show_current: bool = typer.Option(
+    show: bool = typer.Option(
         False, help="Show the current content of the tap values file on the cluster in the inline editor. Defaults to false for security purposes."
     ),
 ):
@@ -540,7 +540,7 @@ def edit(
     Edit tap-values yaml file. Using inline editor or file input.
 
     """
-    tap_helpers.edit_tap_values(k8s_context=k8s_context, namespace=namespace, from_file=from_file, force=force, show_current=show_current)
+    tap_helpers.edit_tap_values(k8s_context=k8s_context, namespace=namespace, from_file=from_file, force=force, show_current=show)
 
 
 @tap_app.command()
