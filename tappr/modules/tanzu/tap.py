@@ -586,19 +586,21 @@ class TanzuApplicationPlatform:
         )
         if success:
             for item in response["items"]:
-                if item["status"]["conditions"][0]["type"] == "ReconcileSucceeded":
-                    rprint(
-                        f":package: {item['metadata']['name']} [cyan]{item['status']['version']}[/cyan] has [bold][green]Reconciled[/green][/bold]"
-                    )
-                elif item["status"]["conditions"][0]["type"] == "Reconciling":
-                    rprint(
-                        f":package: {item['metadata']['name']} [cyan]{item['status']['version']}[/cyan] is [bold][yellow]Reconciling[/yellow][/bold]"
-                    )
-                else:
-                    rprint(
-                        f":package: {item['metadata']['name']} [cyan]{item['status']['version']}[/cyan] [bold][red]failed to Reconcile[/red][/bold]"
-                    )
-                    rprint(f":worried: [bold][red]Error:[/red][/bold] {item['status']['usefulErrorMessage']}")
+                if "status" in item:
+                    if item["status"]["conditions"][0]["type"] == "ReconcileSucceeded":
+                        rprint(
+                            f":package: {item['metadata']['name']} [cyan]{item['status']['version']}[/cyan] has [bold][green]Reconciled[/green][/bold]"
+                        )
+                    elif item["status"]["conditions"][0]["type"] == "Reconciling":
+                        rprint(
+                            f":package: {item['metadata']['name']} [cyan]{item['status']['version']}[/cyan] is [bold][yellow]Reconciling[/yellow][/bold]"
+                        )
+                    else:
+                        rprint(
+                            f":package: {item['metadata']['name']} [cyan]{item['status']['version']}[/cyan] [bold][red]{item['status']['conditions'][0]['type']}[/red][/bold]"
+                        )
+                        if "usefulErrorMessage" in item["status"]:
+                            rprint(f":worried: [bold][red]Error:[/red][/bold] {item['status']['usefulErrorMessage']}")
 
 
 def check_tanzu_cli(ui_helper, state):
