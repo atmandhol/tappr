@@ -173,6 +173,7 @@ $ tappr tap [OPTIONS] COMMAND [ARGS]...
 
 **Commands**:
 
+* `addons`: TAP Addon templates for custom resources.
 * `edit`: Edit tap-values yaml file.
 * `ingress-ip`: Get the Tanzu System Ingress External IP of...
 * `install`: Install TAP.
@@ -180,6 +181,83 @@ $ tappr tap [OPTIONS] COMMAND [ARGS]...
 * `status`: Get TAP installation status.
 * `uninstall`: Uninstall TAP.
 * `upgrade`: Upgrade Tanzu Application Platform to a...
+
+### `tappr tap addons`
+
+TAP Addon templates for custom resources.
+
+**Usage**:
+
+```console
+$ tappr tap addons [OPTIONS] COMMAND [ARGS]...
+```
+
+**Options**:
+
+* `--help`: Show this message and exit.
+
+**Commands**:
+
+* `apply`: Apply a custom resource template from the...
+* `delete`: Delete a custom resource template from the...
+* `list`: List all custom resources created by tappr.
+
+#### `tappr tap addons apply`
+
+Apply a custom resource template from the library.
+
+**Usage**:
+
+```console
+$ tappr tap addons apply [OPTIONS] TEMPLATE:[tekton-gradle-test-pipeline|scan-policy]
+```
+
+**Arguments**:
+
+* `TEMPLATE:[tekton-gradle-test-pipeline|scan-policy]`: [required]
+
+**Options**:
+
+* `--k8s-context TEXT`
+* `--namespace TEXT`: [default: default]
+* `--customize / --no-customize`: Customize the default values  [default: False]
+* `--help`: Show this message and exit.
+
+#### `tappr tap addons delete`
+
+Delete a custom resource template from the cluster.
+
+**Usage**:
+
+```console
+$ tappr tap addons delete [OPTIONS] RESOURCE_NAME
+```
+
+**Arguments**:
+
+* `RESOURCE_NAME`: [required]
+
+**Options**:
+
+* `--k8s-context TEXT`
+* `--namespace TEXT`: [default: default]
+* `--help`: Show this message and exit.
+
+#### `tappr tap addons list`
+
+List all custom resources created by tappr.
+
+**Usage**:
+
+```console
+$ tappr tap addons list [OPTIONS]
+```
+
+**Options**:
+
+* `--k8s-context TEXT`
+* `--namespace TEXT`: [default: default]
+* `--help`: Show this message and exit.
 
 ### `tappr tap edit`
 
