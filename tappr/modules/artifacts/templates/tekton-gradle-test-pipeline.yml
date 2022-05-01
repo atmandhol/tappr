@@ -1,3 +1,4 @@
+# $$tekton.dev,v1beta1,pipelines$$
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:

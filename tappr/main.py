@@ -12,7 +12,7 @@ from tappr.modules.test.test_framework import TestFramework
 from tappr.modules.tanzu.tap import TanzuApplicationPlatform
 from tappr.modules.utils.helpers import PivnetHelpers, SubProcessHelpers
 from tappr.modules.utils.logger import TyperLogger
-from tappr.modules.utils.enums import PROFILE, OS
+from tappr.modules.utils.enums import PROFILE, OS, TEMPLATE
 from tappr.modules.utils.creds import CredsHelper
 from tappr.modules.utils.ui import UI
 from tappr.modules.utils.k8s import K8s
@@ -45,6 +45,7 @@ create_cluster_app = typer.Typer(help="Create k8s clusters.")
 delete_cluster_app = typer.Typer(help="Delete k8s clusters.")
 registry_app = typer.Typer(help="Manage local docker registry.")
 tap_app = typer.Typer(help="Tanzu Application Platform management.")
+addons_app = typer.Typer(help="TAP Addon templates for custom resources.")
 local_app = typer.Typer(help="Helpers to setup your local environment.")
 
 app.add_typer(create_cluster_app, name="create")
@@ -53,6 +54,7 @@ app.add_typer(tap_app, name="tap")
 app.add_typer(utils_app, name="utils")
 utils_app.add_typer(registry_app, name="registry")
 utils_app.add_typer(local_app, name="local")
+tap_app.add_typer(addons_app, name="addons")
 
 
 def local_install(interactive, tool, cmd):
@@ -591,6 +593,46 @@ def status(k8s_context: str = None, namespace: str = "tap-install"):
 
     """
     tap_helpers.status(k8s_context=k8s_context, namespace=namespace)
+
+
+@addons_app.command()
+def apply(
+    template: TEMPLATE,
+    k8s_context: str = None,
+    namespace: str = "default",
+    customize: bool = typer.Option(False, help="Customize the default values"),
+):
+    """
+    Apply a custom resource template from the library.
+
+    """
+    pass
+
+
+@addons_app.command()
+def delete(
+    resource_name: str,
+    k8s_context: str = None,
+    namespace: str = "default",
+):
+    """
+    Delete a custom resource template from the cluster.
+
+    """
+    pass
+
+
+# noinspection PyShadowingBuiltins
+@addons_app.command()
+def list(
+    k8s_context: str = None,
+    namespace: str = "default",
+):
+    """
+    List all custom resources created by tappr.
+
+    """
+    pass
 
 
 if __name__ == "__main__":

@@ -1,3 +1,4 @@
+# $$scanning.apps.tanzu.vmware.com,v1beta1,scanpolicies$$
 apiVersion: scanning.apps.tanzu.vmware.com/v1beta1
 kind: ScanPolicy
 metadata:

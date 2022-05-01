@@ -1,4 +1,6 @@
+import yaml
 import kubernetes as k8s
+
 from kubernetes.client.rest import ApiException
 from tappr.modules.utils.ui import Picker
 from tappr.modules.utils.logger import TyperLogger
@@ -101,6 +103,24 @@ class K8s:
     def get_namespaced_custom_objects(name, group, version, namespace, plural, client=None):
         try:
             response = client.get_namespaced_custom_object(group=group, version=version, namespace=namespace, plural=plural, name=name)
+            return True, response
+        except ApiException as err:
+            return False, err
+
+    @staticmethod
+    def create_namespaced_custom_objects(yml, namespace: str = "default", client=None):
+        # Any file in the template directory will expect the first line to be of this format
+        # $$group,version,plural$$
+        try:
+            components = yml.split("\n")[0].split("$$")[1].split(",")
+            group = components[0]
+            version = components[1]
+            plural = components[2]
+        except Exception as err:
+            return False, err
+
+        try:
+            response = client.create_namespaced_custom_object(group=group, version=version, namespace=namespace, plural=plural, body=yml)
             return True, response
         except ApiException as err:
             return False, err
