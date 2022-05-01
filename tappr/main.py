@@ -543,5 +543,14 @@ def uninstall(package: str = typer.Option("tap", help="Package name to uninstall
     tap_helpers.uninstall(package=package, k8s_context=k8s_context, namespace=namespace)
 
 
+@tap_app.command()
+def status(k8s_context: str = None, namespace: str = "tap-install"):
+    """
+    Get TAP installation status.
+
+    """
+    tap_helpers.status(k8s_context=k8s_context, namespace=namespace)
+
+
 if __name__ == "__main__":
     app()

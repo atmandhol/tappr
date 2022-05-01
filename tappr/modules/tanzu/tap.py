@@ -450,7 +450,7 @@ class TanzuApplicationPlatform:
             name="tap",
             group="packaging.carvel.dev",
             version="v1alpha1",
-            namespace="tap-install",
+            namespace=namespace,
             plural="packageinstalls",
             client=self.k8s_helper.custom_clients[k8s_context],
         )
@@ -472,7 +472,7 @@ class TanzuApplicationPlatform:
             try:
                 og_cluster_tap_values = yaml.safe_load(base64.b64decode(list(response.data.values())[0]).decode())
             except Exception:
-                self.logger.msg(":cry: tap-install-values secret was not proper yaml")
+                self.logger.msg(f":cry: {tap_values_secret_name} secret was not proper yaml")
                 raise typer.Exit(1)
 
             if from_file:
@@ -573,6 +573,27 @@ class TanzuApplicationPlatform:
         )
         self.logger.msg(":rocket: TAP is uninstalled")
 
+    def status(self, k8s_context: str, namespace: str = "tap-install"):
+        k8s_context = check_and_pick_k8s_context(
+            k8s_context=k8s_context, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
+        )
+        success, response = self.k8s_helper.list_namespaced_custom_objects(
+            group="packaging.carvel.dev",
+            version="v1alpha1",
+            namespace=namespace,
+            plural="packageinstalls",
+            client=self.k8s_helper.custom_clients[k8s_context],
+        )
+        if success:
+            for item in response["items"]:
+                if item["status"]["conditions"][0]["type"] == 'ReconcileSucceeded':
+                    rprint(f":package: {item['metadata']['name']} [cyan]{item['status']['version']}[/cyan] has [bold][green]Reconciled[/green][/bold]")
+                elif item["status"]["conditions"][0]["type"] == 'Reconciling':
+                    rprint(f":package: {item['metadata']['name']} [cyan]{item['status']['version']}[/cyan] is [bold][yellow]Reconciling[/yellow][/bold]")
+                else:
+                    rprint(f":package: {item['metadata']['name']} [cyan]{item['status']['version']}[/cyan] [bold][red]failed to Reconcile[/red][/bold]")
+                    rprint(f":worried: [bold][red]Error:[/red][/bold] {item['status']['usefulErrorMessage']}")
+
 
 def check_tanzu_cli(ui_helper, state):
     exit_code = ui_helper.sh_call(
@@ -598,6 +619,7 @@ def check_and_pick_k8s_context(k8s_context: str, k8s_helper, logger, ui_helper, 
     check_tanzu_cli(ui_helper=ui_helper, state=state)
     ui_helper.progress(cmd=f"kubectl config use-context {k8s_context}", message=":hourglass: Setting context", state=state)
     logger.msg(f":file_folder: Using k8s context [yellow]{k8s_context}[/yellow] for installation", bold=False)
+    return k8s_context
 
 
 def print_smart_diff(old, new):
