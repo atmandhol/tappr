@@ -5,7 +5,7 @@ metadata:
   name: tappr-tekton-gradle-test
   labels:
     apps.tanzu.vmware.com/pipeline: test
-    addons.tappr/pipelines: true
+    addons.tappr/pipelines: "true"
 spec:
   params:
     - name: source-url
