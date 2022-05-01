@@ -108,7 +108,7 @@ class K8s:
             return False, err
 
     @staticmethod
-    def create_namespaced_custom_objects(yml, namespace: str = "default", client=None):
+    def patch_namespaced_custom_objects(yml, namespace: str = "default", client=None):
         # Any file in the template directory will expect the first line to be of this format
         # $$group,version,plural$$
         try:
@@ -117,10 +117,10 @@ class K8s:
             version = components[1]
             plural = components[2]
         except Exception as err:
-            return False, err
+            return False, "Template file is missing '# $$group,version,plural$$' on the first line"
 
         try:
-            response = client.create_namespaced_custom_object(group=group, version=version, namespace=namespace, plural=plural, body=yml)
+            response = client.patch_namespaced_custom_object(group=group, version=version, namespace=namespace, plural=plural, body=yml)
             return True, response
         except ApiException as err:
             return False, err

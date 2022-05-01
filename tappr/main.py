@@ -35,6 +35,7 @@ tap_helpers = TanzuApplicationPlatform(
     state=state,
     ui_helper=ui_helpers,
     k8s_helper=k8s_helpers,
+    console=console,
 )
 
 # noinspection PyTypeChecker

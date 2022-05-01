@@ -3,10 +3,10 @@ import hashlib
 import typer
 import base64
 import yaml
+import tappr.modules.utils.k8s
+
 from rich import print as rprint
 from difflib import Differ
-
-import tappr.modules.utils.k8s
 from tappr.modules.utils.enums import GITURL, REGISTRY
 
 auto_complete_list = [
@@ -147,7 +147,8 @@ pivnet_products = {
 
 # noinspection PyBroadException
 class TanzuApplicationPlatform:
-    def __init__(self, subprocess_helper, pivnet_helper, logger, creds_helper, state, ui_helper, k8s_helper):
+    def __init__(self, subprocess_helper, pivnet_helper, logger, creds_helper, state, ui_helper, k8s_helper, console):
+        self.console = console
         self.creds_helper = creds_helper
         self.logger = logger
         self.sh = subprocess_helper
@@ -585,6 +586,7 @@ class TanzuApplicationPlatform:
             client=self.k8s_helper.custom_clients[k8s_context],
         )
         if success:
+            errs = list()
             for item in response["items"]:
                 if "status" in item:
                     if item["status"]["conditions"][0]["type"] == "ReconcileSucceeded":
@@ -595,12 +597,18 @@ class TanzuApplicationPlatform:
                         rprint(
                             f":package: {item['metadata']['name']} [cyan]{item['status']['version']}[/cyan] is [bold][yellow]Reconciling[/yellow][/bold]"
                         )
-                    else:
+                    elif item["status"]["conditions"][0]["type"] == "Deleting":
                         rprint(
-                            f":package: {item['metadata']['name']} [cyan]{item['status']['version']}[/cyan] [bold][red]{item['status']['conditions'][0]['type']}[/red][/bold]"
+                            f":package: {item['metadata']['name']} [cyan]{item['status']['version']}[/cyan] is [bold][yellow]Reconciling[/yellow][/bold]"
                         )
-                        if "usefulErrorMessage" in item["status"]:
-                            rprint(f":worried: [bold][red]Error:[/red][/bold] {item['status']['usefulErrorMessage']}")
+                    else:
+                        errs.append([item["metadata"]["name"], item["status"]["version"], item["status"]["conditions"][0]["type"], item["status"]])
+            if len(errs) > 0:
+                self.console.rule("Errors")
+            for err in errs:
+                rprint(f":worried: {err[0]} [cyan]{err[1]}[/cyan] [bold][red]{err[2]}[/red][/bold]")
+                if "usefulErrorMessage" in err[3]:
+                    rprint(f"[bold][red]Error:[/red][/bold] {err[3]['usefulErrorMessage']}")
 
 
 def check_tanzu_cli(ui_helper, state):
