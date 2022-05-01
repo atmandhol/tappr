@@ -176,6 +176,7 @@ $ tappr tap [OPTIONS] COMMAND [ARGS]...
 * `ingress-ip`: Get the Tanzu System Ingress External IP of...
 * `install`: Install TAP.
 * `setup`: Setup Dev Namespace with Git and Registry...
+* `status`: Get TAP installation status.
 * `uninstall`: Uninstall TAP.
 * `upgrade`: Upgrade Tanzu Application Platform to a...
 
@@ -251,6 +252,22 @@ $ tappr tap setup [OPTIONS]
 **Options**:
 
 * `--namespace TEXT`: [default: default]
+* `--help`: Show this message and exit.
+
+### `tappr tap status`
+
+Get TAP installation status.
+
+**Usage**:
+
+```console
+$ tappr tap status [OPTIONS]
+```
+
+**Options**:
+
+* `--k8s-context TEXT`
+* `--namespace TEXT`: [default: tap-install]
 * `--help`: Show this message and exit.
 
 ### `tappr tap uninstall`
