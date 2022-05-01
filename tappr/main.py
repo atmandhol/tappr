@@ -316,19 +316,28 @@ def kind(cluster_name):
 
 
 @create_cluster_app.command()
-def gke(cluster_name=None, project=None, gcp_json: str = typer.Option(None, help="A json file to override values in artifacts/gke_defaults.json")):
+def gke(
+    cluster_name: str = typer.Option(None, help="Name of the GKE cluster"),
+    project: str = typer.Option(
+        None, help="Name of the GCP project. If gcloud is pointing to a specific project, it will be automatically picked up"
+    ),
+    customize: bool = typer.Option(False, help="Customize the default values"),
+):
     """
     Create a GKE cluster. Assumes gcloud is set to create clusters.
     """
+    # Check if gcloud is installed
     proc, out, _ = ui_helpers.progress(
         cmd=f"gcloud info --format json", message=":magnifying_glass_tilted_left: Checking gcloud installation", state=state
     )
     if proc.returncode != 0:
         raise typer.Exit(-1)
 
+    # Get the default project
     gcloud_op = json.loads(out.decode())
     gcp_project = gcloud_op["config"]["project"] if not project else project
 
+    # Check if gcloud beta is installed
     if "beta" not in gcloud_op["installation"]["components"]:
         typer_logger.msg(
             ":broken_heart: 'beta' component for gcloud is not installed which is required. Run gcloud components install beta to fix this."
@@ -349,13 +358,31 @@ def gke(cluster_name=None, project=None, gcp_json: str = typer.Option(None, help
         typer_logger.msg(":broken_heart: Unable to read artifacts/clusters/gke_defaults.json")
         raise typer.Exit(-1)
 
+    auto_complete_list = [
+        "region",
+        "cluster_version",
+        "release_channel",
+        "machine_type",
+        "image_type",
+        "disk_type",
+        "disk_size",
+        "max_pods_per_node",
+        "num_nodes",
+        "network",
+        "sub_network",
+    ]
     cco = dict()
-    if gcp_json:
+    if customize:
+        data = ui_helpers.yaml_prompt(
+            message="Press [ESC] and then [ENTER] when you are done\n",
+            auto_complete_list=auto_complete_list,
+            default=json.dumps(ccd, indent=2, sort_keys=True),
+        )
         # Cluster config overrides
         try:
-            cco = json.loads(open(gcp_json, "r").read())
+            cco = json.loads(data)
         except Exception:
-            typer_logger.msg(":broken_heart: Unable to read provided gcp.json")
+            typer_logger.msg(":broken_heart: Customized output was not a proper json")
             raise typer.Exit(-1)
 
     subprocess_helpers.run_proc("gcloud components install beta -q")

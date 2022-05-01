@@ -53,9 +53,9 @@ $ tappr create gke [OPTIONS]
 
 **Options**:
 
-* `--cluster-name TEXT`
-* `--project TEXT`
-* `--gcp-json TEXT`: A json file to override values in artifacts/gke_defaults.json
+* `--cluster-name TEXT`: Name of the GKE cluster
+* `--project TEXT`: Name of the GCP project. If gcloud is pointing to a specific project, it will be automatically picked up
+* `--customize / --no-customize`: Customize the default values  [default: False]
 * `--help`: Show this message and exit.
 
 ### `tappr create kind`
