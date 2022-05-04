@@ -1,9 +1,11 @@
-# Build Slim profile excludes following components from the Build profile
+# Build Essentials profile excludes following components from the Build profile
 # - App Live View (Build) Conventions
 # - Grype (as this profile will install basic supply chain)
 # - SCST Scan
 # - Spring Boot Conventions
 # - Telemetry
+# - All OOTB Supply chains
+# NOTE: only install this profile if you plan on building your own supply chains and test it
 
 profile: build
 ceip_policy_disclosed: true
@@ -16,16 +18,6 @@ buildservice:
   tanzunet_password: '$INSTALL_REGISTRY_PASSWORD'
   enable_automatic_dependency_updates: false
 
-supply_chain: basic
-
-ootb_supply_chain_basic:
-  registry:
-    server: $REGISTRY_SERVER
-    repository: $REGISTRY_REPO
-  gitops:
-    ssh_secret: ""
-
-
 excluded_packages:
 - build.appliveview.tanzu.vmware.com
 - tap-telemetry.tanzu.vmware.com
@@ -33,3 +25,5 @@ excluded_packages:
 - conventions.appliveview.tanzu.vmware.com
 - grype.scanning.apps.tanzu.vmware.com
 - spring-boot-conventions.tanzu.vmware.com
+- ootb-templates.tanzu.vmware.com
+- ootb-supply-chain-basic.tanzu.vmware.com

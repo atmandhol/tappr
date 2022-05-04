@@ -16,7 +16,7 @@ ootb_supply_chain_basic:
     server: $REGISTRY_SERVER
     repository: $REGISTRY_REPO
   gitops:
-    ssh_secret: git-ssh
+    ssh_secret: ""
 
 contour:
   envoy:

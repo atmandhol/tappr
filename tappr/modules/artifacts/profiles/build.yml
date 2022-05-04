@@ -1,4 +1,4 @@
-# Install a full build profile with testing scanning supply chain
+# Install a full build profile with testing & scanning supply chain
 
 profile: build
 ceip_policy_disclosed: true
@@ -18,7 +18,7 @@ ootb_supply_chain_testing_scanning:
     server: $REGISTRY_SERVER
     repository: $REGISTRY_REPO
   gitops:
-    ssh_secret: git-ssh
+    ssh_secret: ""
 
 scanning:
   metadataStore:

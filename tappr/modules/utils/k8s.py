@@ -1,4 +1,3 @@
-import yaml
 import kubernetes as k8s
 
 from kubernetes.client.rest import ApiException
@@ -16,23 +15,27 @@ class K8s:
         self.contexts: list[str] = list()
         self.core_clients: dict[str, k8s.client.CoreV1Api] = dict()
         self.custom_clients: dict[str, k8s.client.CustomObjectsApi] = dict()
-        self.load_contexts_and_clients()
+        self.plural_of = dict()
+
+        # Not doing this on init cause it takes a while if you have multiple active contexts in your file
+        # self.load_contexts_and_clients()
 
     def load_contexts_and_clients(self):
         # Adding try/catch block so that tappr init does not blow up if the KUBECONFIG has no clusters/entries
-        try:
-            contexts_obj, current_context = self.config.list_kube_config_contexts()
-            for ctx in contexts_obj:
-                try:
-                    self.core_clients[ctx["name"]] = self.client.CoreV1Api(api_client=self.config.new_client_from_config(context=ctx["name"]))
-                    self.custom_clients[ctx["name"]] = self.client.CustomObjectsApi(
-                        api_client=self.config.new_client_from_config(context=ctx["name"])
-                    )
-                    self.contexts.append(ctx["name"])
-                except Exception:
-                    pass
-        except Exception:
-            pass
+        if len(self.contexts) == 0:
+            try:
+                contexts_obj, current_context = self.config.list_kube_config_contexts()
+                for ctx in contexts_obj:
+                    try:
+                        self.core_clients[ctx["name"]] = self.client.CoreV1Api(api_client=self.config.new_client_from_config(context=ctx["name"]))
+                        self.custom_clients[ctx["name"]] = self.client.CustomObjectsApi(
+                            api_client=self.config.new_client_from_config(context=ctx["name"])
+                        )
+                        self.contexts.append(ctx["name"])
+                    except Exception:
+                        pass
+            except Exception:
+                pass
 
     @staticmethod
     def create_namespace(namespace, client=None):
@@ -70,6 +73,7 @@ class K8s:
             return False, err
 
     def pick_context(self):
+        self.load_contexts_and_clients()
         options = self.contexts
         if len(options) == 0:
             return ""
@@ -80,6 +84,7 @@ class K8s:
         return option
 
     def pick_multiple_contexts(self):
+        self.load_contexts_and_clients()
         options = self.contexts
         if len(options) == 0:
             return []
@@ -124,3 +129,7 @@ class K8s:
             return True, response
         except ApiException as err:
             return False, err
+
+    def populate_plural_of(self):
+        # Stub for something I am thinking of doing
+        pass

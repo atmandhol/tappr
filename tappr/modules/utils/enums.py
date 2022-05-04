@@ -34,6 +34,7 @@ class PROFILE(str, Enum):
     ITERATE = "iterate"
     BUILD = "build"
     BUILD_SLIM = "build-slim"
+    BUILD_ESSENTIALS = "build-essential"
 
 
 class TEMPLATE(str, Enum):
