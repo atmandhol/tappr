@@ -1,0 +1,20 @@
+profile: run
+ceip_policy_disclosed: true
+supply_chain: basic
+
+cnrs:
+  provider: local
+  domain_name: run.127.0.0.1.nip.io
+
+contour:
+  envoy:
+    service:
+      type: NodePort
+      nodePorts:
+        http: 31080
+        https: 31090
+
+appliveview_connector:
+  backend:
+    sslDisabled: "true"
+    host: appliveview.127.0.0.1.nip.io
