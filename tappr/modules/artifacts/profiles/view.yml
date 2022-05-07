@@ -1,0 +1,33 @@
+profile: view
+ceip_policy_disclosed: true
+
+contour:
+  envoy:
+    service:
+      type: LoadBalancer
+
+learningcenter:
+  ingressDomain: learning.127.0.0.1.nip.io
+
+tap_gui:
+  service_type: LoadBalancer
+  ingressEnabled: "true"
+  ingressDomain: 127.0.0.1.nip.io
+  app_config:
+    app:
+      baseUrl: http://tap-gui.127.0.0.1.nip.io
+    catalog:
+      locations:
+        - type: url
+          target: https://github.com/atmandhol/tap-blank-catalog/blob/main/catalog-info.yaml
+    backend:
+      baseUrl: http://tap-gui.127.0.0.1.nip.io
+      cors:
+        origin: http://tap-gui.127.0.0.1.nip.io
+
+metadata_store:
+  app_service_type: LoadBalancer
+
+appliveview:
+  ingressEnabled: "true"
+  ingressDomain: appliveview.127.0.0.1.nip.io

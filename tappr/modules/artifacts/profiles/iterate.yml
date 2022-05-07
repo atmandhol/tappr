@@ -11,6 +11,9 @@ buildservice:
 
 supply_chain: basic
 
+cnrs:
+  domain_name: 127.0.0.1.nip.io
+
 ootb_supply_chain_basic:
   registry:
     server: $REGISTRY_SERVER
@@ -26,4 +29,9 @@ contour:
 ceip_policy_disclosed: true
 
 metadata_store:
-  app_service_type: 'NodePort'
+  app_service_type: "NodePort"
+
+appliveview_connector:
+  backend:
+    sslDisabled: "true"
+    host: appliveview.127.0.0.1.nip.io

@@ -37,6 +37,7 @@ class PROFILE(str, Enum):
     BUILD_ESSENTIALS = "build-essential"
     RUN = "run"
     RUN_LOCAL = "run-local"
+    VIEW = "view"
 
 
 class TEMPLATE(str, Enum):

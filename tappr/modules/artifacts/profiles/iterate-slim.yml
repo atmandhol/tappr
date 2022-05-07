@@ -11,6 +11,9 @@ buildservice:
 
 supply_chain: basic
 
+cnrs:
+  domain_name: "127.0.0.1.nip.io"
+
 ootb_supply_chain_basic:
   registry:
     server: $REGISTRY_SERVER
@@ -29,19 +32,13 @@ metadata_store:
   app_service_type: 'NodePort'
 
 excluded_packages:
-  - tap-gui.tanzu.vmware.com
-  - learningcenter.tanzu.vmware.com
   - run.appliveview.tanzu.vmware.com
   - build.appliveview.tanzu.vmware.com
+  - backend.appliveview.tanzu.vmware.com
+  - connector.appliveview.tanzu.vmware.com
+  - conventions.appliveview.tanzu.vmware.com
   - tap-telemetry.tanzu.vmware.com
   - image-policy-webhook.signing.apps.tanzu.vmware.com
-  - backend.appliveview.tanzu.vmware.com
-  - accelerator.apps.tanzu.vmware.com
-  - api-portal.tanzu.vmware.com
-  - connector.appliveview.tanzu.vmware.com
-  - run.appliveview.tanzu.vmware.com
-  - scanning.apps.tanzu.vmware.com
-  - workshops.learningcenter.tanzu.vmware.com
   - tap-auth.tanzu.vmware.com
-  - conventions.appliveview.tanzu.vmware.com
   - developer-conventions.tanzu.vmware.com
+  - spring-boot-conventions.tanzu.vmware.com
