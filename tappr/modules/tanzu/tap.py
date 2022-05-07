@@ -336,7 +336,7 @@ class TanzuApplicationPlatform:
 
         private_git = self.logger.confirm(f":cd: Are you going to use private git repos ?", default=False)
 
-        dev_yaml_path = os.path.dirname(os.path.abspath(__file__)).replace("/modules/tanzu", "") + f"/modules/artifacts/profiles/developer.yml"
+        dev_yaml_path = os.path.dirname(os.path.abspath(__file__)).replace("/modules/tanzu", "") + f"/modules/artifacts/rbac/developer.yml"
         if not private_git:
             exit_code = self.sh_call(
                 cmd=f"kubectl create secret generic git-ssh -n {namespace}",

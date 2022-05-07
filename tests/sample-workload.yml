@@ -1,0 +1,47 @@
+apiVersion: carto.run/v1alpha1
+kind: Workload
+metadata:
+  annotations:
+    foo: bar
+  labels:
+    app.kubernetes.io/part-of: testing-app
+    apps.tanzu.vmware.com/workload-type: web
+  name: test-workload
+  namespace: ns2
+spec:
+  build:
+    env:
+    - name: foo
+      value: bar
+  env:
+  - name: foo
+    value: bar
+  # image: index.docker.io/test/workload:latest@sha256:f00
+  params:
+  - name: foo
+    value: bar
+  - name: live-update
+    value: "true"
+  resources:
+    limits:
+      cpu: "512"
+      memory: "2048"
+    requests:
+      cpu: "512"
+      memory: "2048"
+  serviceAccountName: default-sa
+  serviceClaims:
+  - name: database
+    ref:
+      apiVersion: services.apps.tanzu.vmware.com/v1alpha1
+      kind: ResourceClaim
+      name: postgres
+  source:
+    git:
+      ref:
+        branch: master
+        commit: acfed21530
+        tag: v1.0.0
+      url: https://github.com/gm2552/direct-smtp-mq-gateway.git
+    # image: index.docker.io/test/workload:latest@sha256:f00
+    subPath: src

@@ -22,12 +22,7 @@ ootb_supply_chain_testing_scanning:
 
 scanning:
   metadataStore:
-    url: "127.0.0.1.nip.io"
-    caSecret:
-      name: store-ca-cert
-      importFromNamespace: metadata-store-secrets
-    authSecret:
-      name: store-auth-token
+    url: ""
 
 grype:
   targetImagePullSecret: registry-credentials

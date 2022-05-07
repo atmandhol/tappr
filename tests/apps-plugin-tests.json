@@ -1,0 +1,30 @@
+{
+    "context": {
+      "workload_name": "This will be randomly generated",
+      "source_image": "$SOURCE_IMAGE"
+    },
+    "tests": [
+      {
+        "name": "test_pre_check",
+        "run": [
+          "tanzu apps version",
+          "kubectl version --client",
+          "SET context {$$workload_name} {$$python.random}"
+        ],
+        "acceptable_exit_code": [
+          0
+        ]
+      },
+      {
+        "name": "test_apps_workload_create_git",
+        "run": [
+          "tanzu apps workload create ",
+          "kubectl version --client",
+          "SET context {$$workload_name} {$$python.random}"
+        ],
+        "acceptable_exit_code": [
+          0
+        ]
+      }
+    ]
+}
