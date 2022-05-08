@@ -12,10 +12,12 @@ ceip_policy_disclosed: true
 
 buildservice:
   kp_default_repository: $REGISTRY_SERVER/$REGISTRY_REPO
-  kp_default_repository_username: '$REGISTRY_USERNAME'
-  kp_default_repository_password: '$REGISTRY_PASSWORD'
-  tanzunet_username: '$INSTALL_REGISTRY_USERNAME'
-  tanzunet_password: '$INSTALL_REGISTRY_PASSWORD'
+  kp_default_repository_secret:
+    name: registry-credentials
+    namespace: $INSTALL_NS
+  tanzunet_secret:
+    name: tap-registry
+    namespace: $INSTALL_NS
   enable_automatic_dependency_updates: false
 
 excluded_packages:

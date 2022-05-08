@@ -12,7 +12,7 @@ from tappr.modules.test.test_framework import TestFramework
 from tappr.modules.tanzu.tap import TanzuApplicationPlatform
 from tappr.modules.utils.helpers import PivnetHelpers, SubProcessHelpers
 from tappr.modules.utils.logger import TyperLogger
-from tappr.modules.utils.enums import PROFILE, OS, TEMPLATE
+from tappr.modules.utils.enums import PROFILE, OS
 from tappr.modules.utils.creds import CredsHelper
 from tappr.modules.utils.ui import UI
 from tappr.modules.utils.k8s import K8s
@@ -518,13 +518,14 @@ def install(
     host_os: OS = OS.MAC,
     namespace: str = typer.Option("tap-install", help="Namespace where TAP should be installed"),
     tap_values_file: str = None,
+    wait: bool = typer.Option(False, help="Wait for the TAP install to complete"),
 ):
     """
     Install TAP. Make sure to run tappr init before installing TAP.
 
     """
     tap_helpers.tap_install(
-        profile=profile, version=version, host_os=host_os, k8s_context=k8s_context, tap_values_file=tap_values_file, namespace=namespace
+        profile=profile, version=version, host_os=host_os, k8s_context=k8s_context, tap_values_file=tap_values_file, wait=wait, namespace=namespace
     )
 
 
@@ -568,12 +569,17 @@ def ingress_ip(k8s_context: str = None, service: str = "envoy", namespace: str =
 
 
 @tap_app.command()
-def upgrade(version: str, k8s_context: str = None, namespace: str = "tap-install"):
+def upgrade(
+    version: str,
+    k8s_context: str = None,
+    namespace: str = "tap-install",
+    wait: bool = typer.Option(False, help="Wait for the TAP install to complete"),
+):
     """
     Upgrade Tanzu Application Platform to a higher version.
 
     """
-    tap_helpers.upgrade(version=version, k8s_context=k8s_context, namespace=namespace)
+    tap_helpers.upgrade(version=version, k8s_context=k8s_context, wait=wait, namespace=namespace)
 
 
 @tap_app.command()

@@ -1,5 +1,7 @@
 import os
 import hashlib
+import time
+
 import typer
 import base64
 import yaml
@@ -160,7 +162,7 @@ class TanzuApplicationPlatform:
     def sh_call(self, cmd, msg, spinner_msg, error_msg):
         return self.ui_helper.sh_call(cmd=cmd, msg=msg, spinner_msg=spinner_msg, error_msg=error_msg, state=self.state)
 
-    def tap_install(self, profile, version, host_os, k8s_context, tap_values_file, namespace: str = "tap-install"):
+    def tap_install(self, profile, version, host_os, k8s_context, tap_values_file, wait: bool, namespace: str = "tap-install"):
         if k8s_context is None:
             k8s_context = self.k8s_helper.pick_context()
 
@@ -268,15 +270,30 @@ class TanzuApplicationPlatform:
 
         self.sh_call(
             cmd=(
-                f"tanzu secret registry update tap-registry --username {install_registry_username} --password {install_registry_password} --server {install_registry_hostname} "
+                f"tanzu secret registry update tap-registry --username '{install_registry_username}' --password '{install_registry_password}' --server {install_registry_hostname} "
                 f"--export-to-all-namespaces --yes --namespace {namespace}"
             )
             if "tap-registry" in out.decode()
             else (
-                f"tanzu secret registry add tap-registry --username {install_registry_username} --password {install_registry_password} --server {install_registry_hostname} "
+                f"tanzu secret registry add tap-registry --username '{install_registry_username}' --password '{install_registry_password}' --server {install_registry_hostname} "
                 f"--export-to-all-namespaces --yes --namespace {namespace}"
             ),
-            msg=":key: Setting tanzu registry secret",
+            msg=":key: Setting up TAP Install Registry secret",
+            spinner_msg="Setting up",
+            error_msg=None,
+        )
+
+        self.sh_call(
+            cmd=(
+                f"tanzu secret registry update registry-credentials --username '{registry_username}' --password '{registry_password}' --server {registry_server} "
+                f"--export-to-all-namespaces --yes --namespace {namespace}"
+            )
+            if "registry-credentials" in out.decode()
+            else (
+                f"tanzu secret registry add registry-credentials --username '{registry_username}' --password '{registry_password}' --server {registry_server} "
+                f"--export-to-all-namespaces --yes --namespace {namespace}"
+            ),
+            msg=":key: Setting up TAP Registry Credentials secret",
             spinner_msg="Setting up",
             error_msg=None,
         )
@@ -305,12 +322,13 @@ class TanzuApplicationPlatform:
             tap_values_yml = tap_values_yml.replace("$REGISTRY_REPO", registry_repo)
             tap_values_yml = tap_values_yml.replace("$REGISTRY_USERNAME", registry_username)
             tap_values_yml = tap_values_yml.replace("$REGISTRY_PASSWORD", registry_password)
+            tap_values_yml = tap_values_yml.replace("$INSTALL_NS", namespace)
             tap_values_file = f"{tmp_dir}/tap-values.yml"
             self.logger.msg(f":memo: Creating values yml file at [yellow]{tap_values_file}[/yellow]")
             open(f"{tap_values_file}", "w").write(tap_values_yml)
 
         # TAP install
-        cmd = f"tanzu package install tap -p tap.tanzu.vmware.com -v {version} --values-file {tap_values_file} -n {namespace}"
+        cmd = f"tanzu package install tap -p tap.tanzu.vmware.com -v {version} --values-file {tap_values_file} -n {namespace} --wait={'false' if not wait else 'true'}"
         self.logger.debug(f"Running {cmd}. Can take up to 15-20 minutes depending on your machine.") if self.state["verbose"] and out else None
         self.sh_call(
             cmd=cmd,
@@ -318,7 +336,10 @@ class TanzuApplicationPlatform:
             spinner_msg="Waiting to reconcile",
             error_msg=None,
         )
-        self.logger.msg(":rocket: TAP is installed. Use tappr tap setup to setup developer namespace.")
+        if wait:
+            self.logger.msg(":rocket: TAP is installed. Use tappr tap setup to setup developer namespace.")
+        else:
+            self.logger.msg(":rocket: TAP install started on the cluster. Use tappr tap setup to setup developer namespace.")
 
         return
 
@@ -334,9 +355,8 @@ class TanzuApplicationPlatform:
             if exit_code != 0:
                 raise typer.Exit(-1)
 
+        """
         private_git = self.logger.confirm(f":cd: Are you going to use private git repos ?", default=False)
-
-        dev_yaml_path = os.path.dirname(os.path.abspath(__file__)).replace("/modules/tanzu", "") + f"/modules/artifacts/rbac/developer.yml"
         if not private_git:
             exit_code = self.sh_call(
                 cmd=f"kubectl create secret generic git-ssh -n {namespace}",
@@ -364,7 +384,9 @@ class TanzuApplicationPlatform:
             )
             if exit_code != 0:
                 raise typer.Exit(-1)
-
+        """
+        # This registry part is no longer needed
+        """
         registry_server = self.creds_helper.get("default_registry_server", "REGISTRY_SERVER")
         registry_password = self.creds_helper.get("default_registry_password", "REGISTRY_PASSWORD")
         reg = self.logger.question_with_type(
@@ -372,7 +394,6 @@ class TanzuApplicationPlatform:
             choices=[REGISTRY.GCR, REGISTRY.DOCKERHUB, REGISTRY.OTHER],
             default=REGISTRY.GCR if "gcr.io" in registry_server else None,
         )
-
         if reg == REGISTRY.GCR:
             reg_key = self.logger.question(
                 f":key: Where is your GCR service account .json key file ?", default=registry_password if "gcr.io" in registry_server else None
@@ -394,9 +415,15 @@ class TanzuApplicationPlatform:
         )
         if exit_code != 0:
             raise typer.Exit(-1)
+        """
+
+        dev_yaml_path = os.path.dirname(os.path.abspath(__file__)).replace("/modules/tanzu", "") + f"/modules/artifacts/rbac/developer.yml"
+        hash_str = str(time.time())
+        tmp_dir = f"/tmp/{hashlib.md5(hash_str.encode()).hexdigest()}"
+        open(tmp_dir, "w").write(open(dev_yaml_path, "r").read().replace("{$$namespace}", namespace))
 
         exit_code = self.sh_call(
-            cmd=f"kubectl -n {namespace} apply -f {dev_yaml_path}",
+            cmd=f"kubectl -n {namespace} apply -f {tmp_dir}",
             msg=f":sunglasses: Setting up developer namespace {namespace}",
             spinner_msg="Finalizing",
             error_msg=":broken_heart: Unable to setup developer namespace. Use [bold]--verbose[/bold] flag for error details.",
@@ -532,7 +559,7 @@ class TanzuApplicationPlatform:
             self.logger.msg(f":broken_heart: {tap_values_secret_name} secret not found in the k8s cluster. is TAP installed properly?")
             self.logger.msg(f"\n{response}", bold=False) if self.state["verbose"] else None
 
-    def upgrade(self, version: str, k8s_context: str, namespace: str = "tap-install"):
+    def upgrade(self, version: str, k8s_context: str, wait: bool, namespace: str = "tap-install"):
         check_and_pick_k8s_context(
             k8s_context=k8s_context, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
         )
@@ -555,12 +582,15 @@ class TanzuApplicationPlatform:
         self.logger.msg(out.decode(), bold=False) if self.state["verbose"] and out else None
 
         self.sh_call(
-            cmd=f"tanzu package installed update tap -p tap.tanzu.vmware.com -v {version} -n {namespace}",
+            cmd=f"tanzu package installed update tap -p tap.tanzu.vmware.com -v {version} -n {namespace} --wait={'false' if not wait else 'true'}",
             msg=f":wine_glass: Updating [yellow]TAP[/yellow] to version [yellow]{version}[/yellow]",
             spinner_msg="Updating. Waiting to reconcile",
             error_msg=None,
         )
-        self.logger.msg(":rocket: TAP is upgraded")
+        if wait:
+            self.logger.msg(":rocket: TAP is upgraded")
+        else:
+            self.logger.msg(":rocket: TAP upgrade started on the cluster")
 
     def uninstall(self, package: str, k8s_context: str, namespace: str = "tap-install"):
         check_and_pick_k8s_context(

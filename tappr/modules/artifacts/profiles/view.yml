@@ -7,7 +7,7 @@ contour:
       type: LoadBalancer
 
 learningcenter:
-  ingressDomain: learning.127.0.0.1.nip.io
+  ingressDomain: learning.example.com
 
 tap_gui:
   service_type: LoadBalancer
