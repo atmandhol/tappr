@@ -155,11 +155,10 @@ data:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: developer
+  name: default
   namespace: {$$namespace}
 secrets:
   - name: registry-credentials
-  - name: git-ssh
 imagePullSecrets:
   - name: registry-credentials
   - name: tanzunet-registry-creds
@@ -173,7 +172,7 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: developer
+  name: default-developer
   namespace: {$$namespace}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -181,7 +180,7 @@ roleRef:
   name: developer
 subjects:
   - kind: ServiceAccount
-    name: developer
+    name: default
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
