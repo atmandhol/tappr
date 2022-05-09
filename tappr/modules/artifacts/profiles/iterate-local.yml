@@ -1,12 +1,13 @@
 profile: iterate
 
 buildservice:
-  kp_default_repository: $REGISTRY_SERVER/$REGISTRY_REPO
-  kp_default_repository_username: '$REGISTRY_USERNAME'
-  kp_default_repository_password: '$REGISTRY_PASSWORD'
-  tanzunet_username: '$INSTALL_REGISTRY_USERNAME'
-  tanzunet_password: '$INSTALL_REGISTRY_PASSWORD'
-  descriptor_name: full
+  kp_default_repository: $REGISTRY_SERVER/$REGISTRY_TBS_REPO
+  kp_default_repository_secret:
+    name: registry-credentials-tbs
+    namespace: $INSTALL_NS
+  tanzunet_secret:
+    name: tanzunet-registry-creds-tbs
+    namespace: $INSTALL_NS
   enable_automatic_dependency_updates: false
 
 supply_chain: basic
@@ -14,7 +15,7 @@ supply_chain: basic
 ootb_supply_chain_basic:
   registry:
     server: $REGISTRY_SERVER
-    repository: $REGISTRY_REPO
+    repository: $REGISTRY_TBS_REPO
   gitops:
     ssh_secret: ""
 

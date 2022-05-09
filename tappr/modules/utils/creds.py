@@ -14,11 +14,11 @@ class CredsHelper:
         tanzunet_username,
         tanzunet_password,
         pivnet_uaa_token,
-        default_registry_server,
-        default_registry_repo,
-        default_tap_install_registry,
-        default_registry_username,
-        default_registry_password,
+        registry_server,
+        registry_username,
+        registry_password,
+        registry_tbs_repo,
+        registry_tap_package_repo,
         vmware_username,
         vmware_password,
     ):
@@ -48,41 +48,39 @@ class CredsHelper:
                     password=True,
                 )
             )
-        if default_registry_server is None:
-            default_registry_server = str(
+        if registry_server is None:
+            registry_server = str(
                 Prompt.ask(
                     f":convenience_store: Default Registry Server (e.g. gcr.io, index.docker.com)",
-                    default=configs["default_registry_server"] if configs else None,
+                    default=configs["registry_server"] if configs else None,
                 )
             )
-        if default_registry_repo is None:
-            default_registry_repo = str(
+        if registry_username is None:
+            registry_username = str(
                 Prompt.ask(
-                    f":convenience_store: Default Registry Repo (Don't include the registry server or starting /)",
-                    default=configs["default_registry_repo"] if configs else None,
+                    f":convenience_store: Registry Username (use _json_key for gcr.io)",
+                    default=configs["registry_username"] if configs else None,
                 )
             )
-        if default_tap_install_registry is None:
-            default_tap_install_registry = str(
+        if registry_password is None:
+            registry_password = str(
                 Prompt.ask(
-                    f":convenience_store: Default TAP install registry", default=configs["default_tap_install_registry"] if configs else None
-                )
-            )
-        if default_registry_username is None:
-            default_registry_username = str(
-                Prompt.ask(
-                    f":convenience_store: Default Registry Username (use _json_key for gcr.io)",
-                    default=configs["default_registry_username"] if configs else None,
-                )
-            )
-        if default_registry_password is None:
-            default_registry_password = str(
-                Prompt.ask(
-                    f":speak-no-evil_monkey: Default Registry Password (Use absolute path to json key file path for gcr.io) [bold][cyan]({'**' + configs['default_registry_password'][-8:] if configs else None})[/cyan]",
-                    default=configs["default_registry_password"] if configs else None,
+                    f":speak-no-evil_monkey: Registry Password (Use absolute path to json key file path for gcr.io) [bold][cyan]({'**' + configs['registry_password'][-8:] if configs else None})[/cyan]",
+                    default=configs["registry_password"] if configs else None,
                     show_default=False,
                     password=True,
                 )
+            )
+        if registry_tbs_repo is None:
+            registry_tbs_repo = str(
+                Prompt.ask(
+                    f":convenience_store: Build service repo",
+                    default=configs["registry_tbs_repo"] if configs else None,
+                )
+            )
+        if registry_tap_package_repo is None:
+            registry_tap_package_repo = str(
+                Prompt.ask(f":convenience_store: TAP package repo", default=configs["registry_tap_package_repo"] if configs else None)
             )
         if vmware_username is None:
             vmware_username = str(
@@ -110,11 +108,11 @@ class CredsHelper:
                         "tanzunet_username": tanzunet_username,
                         "tanzunet_password": tanzunet_password,
                         "pivnet_uaa_token": pivnet_uaa_token,
-                        "default_registry_server": default_registry_server,
-                        "default_registry_repo": default_registry_repo,
-                        "default_tap_install_registry": default_tap_install_registry,
-                        "default_registry_username": default_registry_username,
-                        "default_registry_password": default_registry_password,
+                        "registry_server": registry_server,
+                        "registry_username": registry_username,
+                        "registry_password": registry_password,
+                        "registry_tbs_repo": registry_tbs_repo,
+                        "registry_tap_package_repo": registry_tap_package_repo,
                         "vmware_username": vmware_username,
                         "vmware_password": vmware_password,
                     }

@@ -80,15 +80,13 @@ def init(
     tanzunet_username: str = typer.Option(None, help="Tanzu Network Username."),
     tanzunet_password: str = typer.Option(None, help="Tanzu Network Password."),
     pivnet_uaa_token: str = typer.Option(None, help="Pivnet UAA Login Token used to download artifacts."),
-    default_registry_server: str = typer.Option(
-        None, help="Default registry server to use while installing tap. e.g. gcr.io, index.docker.io etc."
-    ),
-    default_registry_repo: str = typer.Option(
+    registry_server: str = typer.Option(None, help="Default registry server to use while installing tap. e.g. gcr.io, index.docker.io etc."),
+    registry_tap_package_repo: str = typer.Option(None, help="Default registry repo on the registry server to use for relocating TAP packages to."),
+    registry_tbs_repo: str = typer.Option(
         None, help="Default registry repo on the registry server to use for build service. Don't include the registry server or starting /."
     ),
-    default_tap_install_registry: str = typer.Option("registry.tanzu.vmware.com", help="Default registry to use while installing tap."),
-    default_registry_username: str = typer.Option(None, help="Registry username to use while installing tap"),
-    default_registry_password: str = typer.Option(
+    registry_username: str = typer.Option(None, help="Registry username to use while installing tap"),
+    registry_password: str = typer.Option(
         None, help="Registry password to use while installing tap. If using GCR set this as path to jsonkey file."
     ),
     vmware_username: str = typer.Option(None, help="VMWare username"),
@@ -101,11 +99,11 @@ def init(
         tanzunet_username=tanzunet_username,
         tanzunet_password=tanzunet_password,
         pivnet_uaa_token=pivnet_uaa_token,
-        default_registry_server=default_registry_server,
-        default_registry_username=default_registry_username,
-        default_registry_password=default_registry_password,
-        default_registry_repo=default_registry_repo,
-        default_tap_install_registry=default_tap_install_registry,
+        registry_server=registry_server,
+        registry_username=registry_username,
+        registry_password=registry_password,
+        registry_tbs_repo=registry_tbs_repo,
+        registry_tap_package_repo=registry_tap_package_repo,
         vmware_username=vmware_username,
         vmware_password=vmware_password,
     )

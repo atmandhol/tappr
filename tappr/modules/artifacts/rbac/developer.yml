@@ -133,7 +133,7 @@ rules:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: tap-registry
+  name: tanzunet-registry-creds
   namespace: {$$namespace}
   annotations:
     secretgen.carvel.dev/image-pull-secret: ""
@@ -162,7 +162,7 @@ secrets:
   - name: git-ssh
 imagePullSecrets:
   - name: registry-credentials
-  - name: tap-registry
+  - name: tanzunet-registry-creds
 ---
 apiVersion: v1
 kind: ServiceAccount

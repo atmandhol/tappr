@@ -9,7 +9,6 @@ import tappr.modules.utils.k8s
 
 from rich import print as rprint
 from difflib import Differ
-from tappr.modules.utils.enums import GITURL, REGISTRY
 
 auto_complete_list = [
     "profile",
@@ -136,13 +135,15 @@ auto_complete_list = [
 pivnet_products = {
     "darwin": {
         "CLI_BUNDLE": "1178279",
-        "CLUSTER_ESSENTIALS_BUNDLE": "1105820",
-        "CLUSTER_ESSENTIALS_BUNDLE_SHA": "registry.tanzu.vmware.com/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:82dfaf70656b54dcba0d4def85ccae1578ff27054e7533d08320244af7fb0343",
+        "CLUSTER_ESSENTIALS_BUNDLE": "1191985",
+        "CLUSTER_ESSENTIALS_BUNDLE_SHA": "registry.tanzu.vmware.com/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:ab0a3539da241a6ea59c75c0743e9058511d7c56312ea3906178ec0f3491f51d",
+        "VERSION": "1.1.0",
     },
     "linux": {
         "CLI_BUNDLE": "1178280",
-        "CLUSTER_ESSENTIALS_BUNDLE": "1105818",
-        "CLUSTER_ESSENTIALS_BUNDLE_SHA": "registry.tanzu.vmware.com/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:82dfaf70656b54dcba0d4def85ccae1578ff27054e7533d08320244af7fb0343",
+        "CLUSTER_ESSENTIALS_BUNDLE": "1191987",
+        "CLUSTER_ESSENTIALS_BUNDLE_SHA": "registry.tanzu.vmware.com/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:ab0a3539da241a6ea59c75c0743e9058511d7c56312ea3906178ec0f3491f51d",
+        "VERSION": "1.1.0",
     },
 }
 
@@ -196,31 +197,38 @@ class TanzuApplicationPlatform:
                 error_msg=":broken_heart: Unable to create staging directory. Use [bold]--verbose[/bold] flag for error details.",
             )
 
-        install_registry_hostname = self.creds_helper.get("default_tap_install_registry", "INSTALL_REGISTRY_HOSTNAME")
-        install_registry_username = self.creds_helper.get("tanzunet_username", "INSTALL_REGISTRY_USERNAME")
-        install_registry_password = self.creds_helper.get("tanzunet_password", "INSTALL_REGISTRY_PASSWORD")
-        registry_server = self.creds_helper.get("default_registry_server", "REGISTRY_SERVER")
-        registry_repo = self.creds_helper.get("default_registry_repo", "REGISTRY_REPO")
-        registry_username = self.creds_helper.get("default_registry_username", "REGISTRY_USERNAME")
-        registry_password = self.creds_helper.get("default_registry_password", "REGISTRY_PASSWORD")
+        tanzunet_username = self.creds_helper.get("tanzunet_username", "INSTALL_REGISTRY_USERNAME")
+        tanzunet_password = self.creds_helper.get("tanzunet_password", "INSTALL_REGISTRY_PASSWORD")
         pivnet_uaa_token = self.creds_helper.get("pivnet_uaa_token", "PIVNET_TOKEN")
+
+        registry_server = self.creds_helper.get("registry_server", "REGISTRY_SERVER")
+        registry_username = self.creds_helper.get("registry_username", "REGISTRY_USERNAME")
+        registry_password = self.creds_helper.get("registry_password", "REGISTRY_PASSWORD")
+
+        # This is where TAP packages get relocated
+        registry_tap_package_repo = self.creds_helper.get("registry_tap_package_repo", "REGISTRY_TAP_PACKAGE_REPO")
+        # This is your TAP install and Build service repo info
+        registry_tbs_repo = self.creds_helper.get("registry_tbs_repo", "REGISTRY_TBS_REPO")
 
         if os.path.isfile(registry_password):
             registry_password = open(registry_password, "r").read()
 
         os.environ["TAP_VERSION"] = version
         os.environ["INSTALL_BUNDLE"] = pivnet_products[host_os]["CLUSTER_ESSENTIALS_BUNDLE_SHA"]
+        os.environ["INSTALL_REGISTRY_HOSTNAME"] = "registry.tanzu.vmware.com"
+        os.environ["INSTALL_REGISTRY_USERNAME"] = tanzunet_username
+        os.environ["INSTALL_REGISTRY_PASSWORD"] = tanzunet_password
 
         # Cluster essentials
         exit_code = self.pivnet_helpers.login(api_token=pivnet_uaa_token, state=self.state)
         if exit_code != 0:
             raise typer.Exit(-1)
 
-        cluster_essential_tar = f"{tmp_dir}/tanzu-cluster-essentials-{host_os}-amd64-1.0.0.tgz"
+        cluster_essential_tar = f"{tmp_dir}/tanzu-cluster-essentials-{host_os}-amd64-{pivnet_products[host_os]['VERSION']}.tgz"
         if not os.path.isfile(cluster_essential_tar):
             exit_code = self.pivnet_helpers.download(
                 product_slug="tanzu-cluster-essentials",
-                release_version="1.0.0",
+                release_version=pivnet_products[host_os]["VERSION"],
                 product_file_id=pivnet_products[host_os]["CLUSTER_ESSENTIALS_BUNDLE"],
                 download_dir=tmp_dir,
                 state=self.state,
@@ -228,9 +236,9 @@ class TanzuApplicationPlatform:
             if exit_code != 0:
                 raise typer.Exit(-1)
 
-        if not os.path.isfile(f"{tmp_dir}/install.sh"):
+        if not os.path.isfile(f"{tmp_dir}/cluster-essentials/install.sh"):
             exit_code = self.sh_call(
-                cmd=f"tar xvf {cluster_essential_tar} -C {tmp_dir}",
+                cmd=f"mkdir -p {tmp_dir}/cluster-essentials && tar xvf {cluster_essential_tar} -C {tmp_dir}/cluster-essentials",
                 msg=":compression:  Extracting Cluster essentials",
                 spinner_msg="Extracting",
                 error_msg=":broken_heart: Unable to extract cluster essentials. Use [bold]--verbose[/bold] flag for error details.",
@@ -238,15 +246,36 @@ class TanzuApplicationPlatform:
             if exit_code != 0:
                 raise typer.Exit(-1)
 
-        os.chdir(tmp_dir)
+        os.chdir(tmp_dir + "/cluster-essentials")
         exit_code = self.sh_call(
-            cmd=f"bash {tmp_dir}/install.sh",
+            cmd=f"bash {tmp_dir}/cluster-essentials/install.sh --yes",
             msg=":hourglass: Install Cluster Essentials",
             spinner_msg="Installing",
             error_msg=":broken_heart: Unable to Install cluster essentials. Use [bold]--verbose[/bold] flag for error details.",
         )
         if exit_code != 0:
             raise typer.Exit(-1)
+
+        # This is crazy, so we are not doing this
+        """
+        exit_code = self.sh_call(
+            cmd=f"docker login registry.tanzu.vmware.com --username {tanzunet_username} --password {tanzunet_password}",
+            msg=":key: Login to Tanzu Network",
+            spinner_msg="Logging in",
+            error_msg=":broken_heart: Unable to Login to Tanzu Network. Use [bold]--verbose[/bold] flag for error details.",
+        )
+        if exit_code != 0:
+            raise typer.Exit(-1)
+
+        exit_code = self.sh_call(
+            cmd=f"imgpkg copy -b registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:{version} --to-repo {registry_server}/{registry_tap_package_repo}",
+            msg=":hourglass: Relocating TAP packages from Tanzu Network to your registry",
+            spinner_msg="Relocating",
+            error_msg=":broken_heart: Unable to Relocating TAP packages from Tanzu Network to your registry. Use [bold]--verbose[/bold] flag for error details.",
+        )
+        if exit_code != 0:
+            raise typer.Exit(-1)
+        """
 
         _, out, _ = self.sh.run_proc(cmd=f"kubectl get ns")
         if namespace not in out.decode():
@@ -270,15 +299,45 @@ class TanzuApplicationPlatform:
 
         self.sh_call(
             cmd=(
-                f"tanzu secret registry update tap-registry --username '{install_registry_username}' --password '{install_registry_password}' --server {install_registry_hostname} "
+                f"tanzu secret registry update tanzunet-registry-creds --username '{tanzunet_username}' --password '{tanzunet_password}' --server registry.tanzu.vmware.com "
                 f"--export-to-all-namespaces --yes --namespace {namespace}"
             )
-            if "tap-registry" in out.decode()
+            if "tanzunet-registry-creds" in out.decode()
             else (
-                f"tanzu secret registry add tap-registry --username '{install_registry_username}' --password '{install_registry_password}' --server {install_registry_hostname} "
+                f"tanzu secret registry add tanzunet-registry-creds --username '{tanzunet_username}' --password '{tanzunet_password}' --server registry.tanzu.vmware.com "
                 f"--export-to-all-namespaces --yes --namespace {namespace}"
             ),
             msg=":key: Setting up TAP Install Registry secret",
+            spinner_msg="Setting up",
+            error_msg=None,
+        )
+
+        self.sh_call(
+            cmd=(
+                f"tanzu secret registry update tanzunet-registry-creds-tbs --username '{tanzunet_username}' --password '{tanzunet_password}' --server registry.tanzu.vmware.com "
+                f"--export-to-all-namespaces --yes --namespace {namespace}"
+            )
+            if "tanzunet-registry-creds-tbs" in out.decode()
+            else (
+                f"tanzu secret registry add tanzunet-registry-creds-tbs --username '{tanzunet_username}' --password '{tanzunet_password}' --server registry.tanzu.vmware.com "
+                f"--export-to-all-namespaces --yes --namespace {namespace}"
+            ),
+            msg=":key: Setting up TAP Install Registry secret for TBS",
+            spinner_msg="Setting up",
+            error_msg=None,
+        )
+
+        self.sh_call(
+            cmd=(
+                f"tanzu secret registry update registry-credentials-tbs --username '{registry_username}' --password '{registry_password}' --server {registry_server} "
+                f"--export-to-all-namespaces --yes --namespace {namespace}"
+            )
+            if "registry-credentials-tbs" in out.decode()
+            else (
+                f"tanzu secret registry add registry-credentials-tbs --username '{registry_username}' --password '{registry_password}' --server {registry_server} "
+                f"--export-to-all-namespaces --yes --namespace {namespace}"
+            ),
+            msg=":key: Setting up User Registry secret",
             spinner_msg="Setting up",
             error_msg=None,
         )
@@ -293,7 +352,7 @@ class TanzuApplicationPlatform:
                 f"tanzu secret registry add registry-credentials --username '{registry_username}' --password '{registry_password}' --server {registry_server} "
                 f"--export-to-all-namespaces --yes --namespace {namespace}"
             ),
-            msg=":key: Setting up TAP Registry Credentials secret",
+            msg=":key: Setting up User Registry secret for TBS",
             spinner_msg="Setting up",
             error_msg=None,
         )
@@ -303,9 +362,9 @@ class TanzuApplicationPlatform:
         _, out, _ = self.sh.run_proc(cmd=cmd)
 
         self.sh_call(
-            cmd=f"tanzu package repository update tanzu-tap-repository --url {install_registry_hostname}/tanzu-application-platform/tap-packages:{version} --namespace {namespace}"
+            cmd=f"tanzu package repository update tanzu-tap-repository --url registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:{version} --namespace {namespace}"
             if "tanzu-tap-repository" in out.decode()
-            else f"tanzu package repository add tanzu-tap-repository --url {install_registry_hostname}/tanzu-application-platform/tap-packages:{version} --namespace {namespace}",
+            else f"tanzu package repository add tanzu-tap-repository --url registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:{version} --namespace {namespace}",
             msg=":key: Setting up [yellow]tanzu-tap-repository[/yellow] package repo",
             spinner_msg="Setting up",
             error_msg=None,
@@ -315,13 +374,12 @@ class TanzuApplicationPlatform:
 
         if not tap_values_file:
             tap_values_yml = open(os.path.dirname(os.path.abspath(__file__)).replace("/tanzu", f"/artifacts/profiles/{profile}.yml"), "r").read()
-            tap_values_yml = tap_values_yml.replace("$INSTALL_REGISTRY_HOSTNAME", install_registry_hostname)
-            tap_values_yml = tap_values_yml.replace("$INSTALL_REGISTRY_USERNAME", install_registry_username)
-            tap_values_yml = tap_values_yml.replace("$INSTALL_REGISTRY_PASSWORD", install_registry_password)
+            tap_values_yml = tap_values_yml.replace("$INSTALL_REGISTRY_USERNAME", tanzunet_username)
+            tap_values_yml = tap_values_yml.replace("$INSTALL_REGISTRY_PASSWORD", tanzunet_password)
             tap_values_yml = tap_values_yml.replace("$REGISTRY_SERVER", registry_server)
-            tap_values_yml = tap_values_yml.replace("$REGISTRY_REPO", registry_repo)
             tap_values_yml = tap_values_yml.replace("$REGISTRY_USERNAME", registry_username)
             tap_values_yml = tap_values_yml.replace("$REGISTRY_PASSWORD", registry_password)
+            tap_values_yml = tap_values_yml.replace("$REGISTRY_TBS_REPO", registry_tbs_repo)
             tap_values_yml = tap_values_yml.replace("$INSTALL_NS", namespace)
             tap_values_file = f"{tmp_dir}/tap-values.yml"
             self.logger.msg(f":memo: Creating values yml file at [yellow]{tap_values_file}[/yellow]")
