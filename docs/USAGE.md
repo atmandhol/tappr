@@ -148,11 +148,11 @@ $ tappr init [OPTIONS]
 * `--tanzunet-username TEXT`: Tanzu Network Username.
 * `--tanzunet-password TEXT`: Tanzu Network Password.
 * `--pivnet-uaa-token TEXT`: Pivnet UAA Login Token used to download artifacts.
-* `--default-registry-server TEXT`: Default registry server to use while installing tap. e.g. gcr.io, index.docker.io etc.
-* `--default-registry-repo TEXT`: Default registry repo on the registry server to use for build service. Don't include the registry server or starting /.
-* `--default-tap-install-registry TEXT`: Default registry to use while installing tap.  [default: registry.tanzu.vmware.com]
-* `--default-registry-username TEXT`: Registry username to use while installing tap
-* `--default-registry-password TEXT`: Registry password to use while installing tap. If using GCR set this as path to jsonkey file.
+* `--registry-server TEXT`: Default registry server to use while installing tap. e.g. gcr.io, index.docker.io etc.
+* `--registry-tap-package-repo TEXT`: Default registry repo on the registry server to use for relocating TAP packages to.
+* `--registry-tbs-repo TEXT`: Default registry repo on the registry server to use for build service. Don't include the registry server or starting /.
+* `--registry-username TEXT`: Registry username to use while installing tap
+* `--registry-password TEXT`: Registry password to use while installing tap. If using GCR set this as path to jsonkey file.
 * `--vmware-username TEXT`: VMWare username
 * `--vmware-password TEXT`: VMWare password
 * `--help`: Show this message and exit.
@@ -173,7 +173,6 @@ $ tappr tap [OPTIONS] COMMAND [ARGS]...
 
 **Commands**:
 
-* `addons`: TAP Addon templates for custom resources.
 * `edit`: Edit tap-values yaml file.
 * `ingress-ip`: Get the Tanzu System Ingress External IP of...
 * `install`: Install TAP.
@@ -181,83 +180,6 @@ $ tappr tap [OPTIONS] COMMAND [ARGS]...
 * `status`: Get TAP installation status.
 * `uninstall`: Uninstall TAP.
 * `upgrade`: Upgrade Tanzu Application Platform to a...
-
-### `tappr tap addons`
-
-TAP Addon templates for custom resources.
-
-**Usage**:
-
-```console
-$ tappr tap addons [OPTIONS] COMMAND [ARGS]...
-```
-
-**Options**:
-
-* `--help`: Show this message and exit.
-
-**Commands**:
-
-* `apply`: Apply a custom resource template from the...
-* `delete`: Delete a custom resource template from the...
-* `list`: List all custom resources created by tappr.
-
-#### `tappr tap addons apply`
-
-Apply a custom resource template from the library.
-
-**Usage**:
-
-```console
-$ tappr tap addons apply [OPTIONS] TEMPLATE:[tekton-gradle-test-pipeline|scan-policy]
-```
-
-**Arguments**:
-
-* `TEMPLATE:[tekton-gradle-test-pipeline|scan-policy]`: [required]
-
-**Options**:
-
-* `--k8s-context TEXT`
-* `--namespace TEXT`: [default: default]
-* `--customize / --no-customize`: Customize the default values  [default: False]
-* `--help`: Show this message and exit.
-
-#### `tappr tap addons delete`
-
-Delete a custom resource template from the cluster.
-
-**Usage**:
-
-```console
-$ tappr tap addons delete [OPTIONS] RESOURCE_NAME
-```
-
-**Arguments**:
-
-* `RESOURCE_NAME`: [required]
-
-**Options**:
-
-* `--k8s-context TEXT`
-* `--namespace TEXT`: [default: default]
-* `--help`: Show this message and exit.
-
-#### `tappr tap addons list`
-
-List all custom resources created by tappr.
-
-**Usage**:
-
-```console
-$ tappr tap addons list [OPTIONS]
-```
-
-**Options**:
-
-* `--k8s-context TEXT`
-* `--namespace TEXT`: [default: default]
-* `--help`: Show this message and exit.
 
 ### `tappr tap edit`
 
@@ -302,12 +224,12 @@ Install TAP. Make sure to run tappr init before installing TAP.
 **Usage**:
 
 ```console
-$ tappr tap install [OPTIONS] PROFILE:[iterate-local|iterate-slim|iterate|build|build-slim|build-essential] VERSION
+$ tappr tap install [OPTIONS] PROFILE:[iterate-local|iterate-slim|iterate|build|build-slim|build-essential|run|run-local|view] VERSION
 ```
 
 **Arguments**:
 
-* `PROFILE:[iterate-local|iterate-slim|iterate|build|build-slim|build-essential]`: [required]
+* `PROFILE:[iterate-local|iterate-slim|iterate|build|build-slim|build-essential|run|run-local|view]`: [required]
 * `VERSION`: [required]
 
 **Options**:
@@ -316,6 +238,7 @@ $ tappr tap install [OPTIONS] PROFILE:[iterate-local|iterate-slim|iterate|build|
 * `--host-os [darwin|linux|windows]`: [default: darwin]
 * `--namespace TEXT`: Namespace where TAP should be installed  [default: tap-install]
 * `--tap-values-file TEXT`
+* `--wait / --no-wait`: Wait for the TAP install to complete  [default: False]
 * `--help`: Show this message and exit.
 
 ### `tappr tap setup`
@@ -384,6 +307,7 @@ $ tappr tap upgrade [OPTIONS] VERSION
 
 * `--k8s-context TEXT`
 * `--namespace TEXT`: [default: tap-install]
+* `--wait / --no-wait`: Wait for the TAP install to complete  [default: False]
 * `--help`: Show this message and exit.
 
 ## `tappr test`
