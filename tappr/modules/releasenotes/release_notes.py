@@ -33,7 +33,7 @@ class ReleaseNotes:
         sp = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
         git_log_op = sp.stdout.read().decode()
         if git_log_op == "":
-            self.logger.error("* No Git log found using the following command: %s" % cmd)
+            self.logger.msg("* No Git log found using the following command: %s" % cmd)
             sys.exit(-1)
 
         git_log_op = git_log_op.split("\n")
