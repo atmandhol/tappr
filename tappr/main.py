@@ -17,7 +17,7 @@ from tappr.modules.utils.creds import CredsHelper
 from tappr.modules.utils.ui import UI
 from tappr.modules.utils.k8s import K8s
 
-state = {"verbose": False}
+state = {"verbose": False, "context": None}
 
 typer_logger = TyperLogger()
 console = Console(color_system="truecolor")
@@ -70,9 +70,19 @@ def local_install(interactive, tool, cmd):
 
 
 @app.callback()
-def tappr(verbose: bool = False):
+def tappr(
+    verbose: bool = typer.Option(False, help="Logger verbose flag."),
+):
     if verbose:
         state["verbose"] = True
+
+
+@tap_app.callback()
+def tap(
+    context: str = typer.Option(None, help="Kubernetes context to target from the KUBECONFIG"),
+):
+    if context:
+        state["context"] = context
 
 
 @app.command()
@@ -510,9 +520,6 @@ def stop():
 def install(
     profile: PROFILE,
     version,
-    k8s_context: str = typer.Option(
-        None, help="Valid k8s context to install TAP. If this param is not provided, a picker will show up in case of multiple contexts"
-    ),
     host_os: OS = OS.MAC,
     namespace: str = typer.Option("tap-install", help="Namespace where TAP should be installed"),
     tap_values_file: str = None,
@@ -522,13 +529,13 @@ def install(
     Install TAP. Make sure to run tappr init before installing TAP.
 
     """
-    tap_helpers.tap_install(
-        profile=profile, version=version, host_os=host_os, k8s_context=k8s_context, tap_values_file=tap_values_file, wait=wait, namespace=namespace
-    )
+    tap_helpers.tap_install(profile=profile, version=version, host_os=host_os, tap_values_file=tap_values_file, wait=wait, namespace=namespace)
 
 
 @tap_app.command()
-def setup(namespace: str = "default"):
+def setup(
+    namespace: str = "default",
+):
     """
     Setup Dev Namespace with Git and Registry secrets.
 
@@ -538,7 +545,6 @@ def setup(namespace: str = "default"):
 
 @tap_app.command()
 def edit(
-    k8s_context: str = None,
     namespace: str = "tap-install",
     from_file: str = typer.Option(
         None,
@@ -554,22 +560,21 @@ def edit(
     Edit tap-values yaml file. Using inline editor or file input.
 
     """
-    tap_helpers.edit_tap_values(k8s_context=k8s_context, namespace=namespace, from_file=from_file, force=force, show_current=show)
+    tap_helpers.edit_tap_values(namespace=namespace, from_file=from_file, force=force, show_current=show)
 
 
 @tap_app.command()
-def ingress_ip(k8s_context: str = None, service: str = "envoy", namespace: str = "tanzu-system-ingress"):
+def ingress_ip(service: str = "envoy", namespace: str = "tanzu-system-ingress"):
     """
     Get the Tanzu System Ingress External IP of the TAP cluster.
 
     """
-    tap_helpers.ingress_ip(k8s_context=k8s_context, service=service, namespace=namespace)
+    tap_helpers.ingress_ip(service=service, namespace=namespace)
 
 
 @tap_app.command()
 def upgrade(
     version: str,
-    k8s_context: str = None,
     namespace: str = "tap-install",
     wait: bool = typer.Option(False, help="Wait for the TAP install to complete"),
 ):
@@ -577,25 +582,30 @@ def upgrade(
     Upgrade Tanzu Application Platform to a higher version.
 
     """
-    tap_helpers.upgrade(version=version, k8s_context=k8s_context, wait=wait, namespace=namespace)
+    tap_helpers.upgrade(version=version, wait=wait, namespace=namespace)
 
 
 @tap_app.command()
-def uninstall(package: str = typer.Option("tap", help="Package name to uninstall"), k8s_context: str = None, namespace: str = "tap-install"):
+def uninstall(package: str = typer.Option("tap", help="Package name to uninstall"), namespace: str = "tap-install"):
     """
     Uninstall TAP.
 
     """
-    tap_helpers.uninstall(package=package, k8s_context=k8s_context, namespace=namespace)
+    tap_helpers.uninstall(package=package, namespace=namespace)
 
 
 @tap_app.command()
-def status(k8s_context: str = None, namespace: str = "tap-install"):
+def status(namespace: str = "tap-install"):
     """
     Get TAP installation status.
 
     """
-    tap_helpers.status(k8s_context=k8s_context, namespace=namespace)
+    tap_helpers.status(namespace=namespace)
+
+
+@tap_app.command()
+def tester(namespace: str = "tap-install"):
+    pass
 
 
 if __name__ == "__main__":

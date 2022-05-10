@@ -47,9 +47,7 @@ class TyperLogger:
     @staticmethod
     def question_with_type(message, choices, bold=False, default=None):
         if bold:
-            return Prompt.ask(
-                f"[bold]{message}[/bold]", choices=choices, default=default
-            )
+            return Prompt.ask(f"[bold]{message}[/bold]", choices=choices, default=default)
         return Prompt.ask(f"{message}", choices=choices, default=default)
 
     @staticmethod

@@ -8,7 +8,7 @@ $ tappr [OPTIONS] COMMAND [ARGS]...
 
 **Options**:
 
-* `--verbose / --no-verbose`: [default: False]
+* `--verbose / --no-verbose`: Logger verbose flag.  [default: False]
 * `--install-completion`: Install completion for the current shell.
 * `--show-completion`: Show completion for the current shell, to copy it or customize the installation.
 * `--help`: Show this message and exit.
@@ -169,6 +169,7 @@ $ tappr tap [OPTIONS] COMMAND [ARGS]...
 
 **Options**:
 
+* `--context TEXT`: Kubernetes context to target from the KUBECONFIG
 * `--help`: Show this message and exit.
 
 **Commands**:
@@ -178,6 +179,7 @@ $ tappr tap [OPTIONS] COMMAND [ARGS]...
 * `install`: Install TAP.
 * `setup`: Setup Dev Namespace with Git and Registry...
 * `status`: Get TAP installation status.
+* `tester`
 * `uninstall`: Uninstall TAP.
 * `upgrade`: Upgrade Tanzu Application Platform to a...
 
@@ -193,7 +195,6 @@ $ tappr tap edit [OPTIONS]
 
 **Options**:
 
-* `--k8s-context TEXT`
 * `--namespace TEXT`: [default: tap-install]
 * `--from-file TEXT`: Yaml file path containing tap values to shallow merge (first level only) with the existing tap values on the cluster. Inline editor is not invoked if this option is used.
 * `--force / --no-force`: Force save the changes to the yaml file without any user prompt  [default: False]
@@ -212,7 +213,6 @@ $ tappr tap ingress-ip [OPTIONS]
 
 **Options**:
 
-* `--k8s-context TEXT`
 * `--service TEXT`: [default: envoy]
 * `--namespace TEXT`: [default: tanzu-system-ingress]
 * `--help`: Show this message and exit.
@@ -234,7 +234,6 @@ $ tappr tap install [OPTIONS] PROFILE:[iterate-local|iterate-slim|iterate|build|
 
 **Options**:
 
-* `--k8s-context TEXT`: Valid k8s context to install TAP. If this param is not provided, a picker will show up in case of multiple contexts
 * `--host-os [darwin|linux|windows]`: [default: darwin]
 * `--namespace TEXT`: Namespace where TAP should be installed  [default: tap-install]
 * `--tap-values-file TEXT`
@@ -268,7 +267,19 @@ $ tappr tap status [OPTIONS]
 
 **Options**:
 
-* `--k8s-context TEXT`
+* `--namespace TEXT`: [default: tap-install]
+* `--help`: Show this message and exit.
+
+### `tappr tap tester`
+
+**Usage**:
+
+```console
+$ tappr tap tester [OPTIONS]
+```
+
+**Options**:
+
 * `--namespace TEXT`: [default: tap-install]
 * `--help`: Show this message and exit.
 
@@ -285,7 +296,6 @@ $ tappr tap uninstall [OPTIONS]
 **Options**:
 
 * `--package TEXT`: Package name to uninstall  [default: tap]
-* `--k8s-context TEXT`
 * `--namespace TEXT`: [default: tap-install]
 * `--help`: Show this message and exit.
 
@@ -305,7 +315,6 @@ $ tappr tap upgrade [OPTIONS] VERSION
 
 **Options**:
 
-* `--k8s-context TEXT`
 * `--namespace TEXT`: [default: tap-install]
 * `--wait / --no-wait`: Wait for the TAP install to complete  [default: False]
 * `--help`: Show this message and exit.

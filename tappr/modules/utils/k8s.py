@@ -38,7 +38,7 @@ class K8s:
                 pass
 
     @staticmethod
-    def create_namespace(namespace, client=None):
+    def create_namespace(namespace, client: k8s.client.CoreV1Api):
         """
         return success:bool, obj: kubernetes.client.models.v1_namespace.V1Namespace/kubernetes.client.exceptions.ApiException
         """
@@ -49,7 +49,18 @@ class K8s:
             return False, err
 
     @staticmethod
-    def get_namespaced_secret(client, secret, namespace):
+    def list_namespaces(client: k8s.client.CoreV1Api):
+        """
+        return success:bool, obj: kubernetes.client.models.v1_namespace.V1Namespace/kubernetes.client.exceptions.ApiException
+        """
+        try:
+            response = client.list_namespace()
+            return True, response
+        except ApiException as err:
+            return False, err
+
+    @staticmethod
+    def get_namespaced_secret(client: k8s.client.CoreV1Api, secret, namespace):
         try:
             response = client.read_namespaced_secret(name=secret, namespace=namespace)
             return True, response
@@ -57,7 +68,7 @@ class K8s:
             return False, err
 
     @staticmethod
-    def patch_namespaced_secret(client, secret, namespace, body):
+    def patch_namespaced_secret(client: k8s.client.CoreV1Api, secret, namespace, body):
         try:
             response = client.patch_namespaced_secret(name=secret, namespace=namespace, body=body)
             return True, response
@@ -65,20 +76,22 @@ class K8s:
             return False, err
 
     @staticmethod
-    def get_namespaced_service(service, namespace, client=None):
+    def get_namespaced_service(service, namespace, client: k8s.client.CoreV1Api):
         try:
             response = client.read_namespaced_service(name=service, namespace=namespace)
             return True, response
         except ApiException as err:
             return False, err
 
-    def pick_context(self):
+    def pick_context(self, context=None):
         self.load_contexts_and_clients()
         options = self.contexts
+        if context in self.contexts:
+            return context
         if len(options) == 0:
             return ""
         if len(options) > 1:
-            option, _ = Picker(options, "Pick k8s context (Last one in the list is the current context):").start()
+            option, _ = Picker(options, "Pick Kubernetes Context:").start()
         else:
             return options[0]
         return option
@@ -89,15 +102,13 @@ class K8s:
         if len(options) == 0:
             return []
         if len(options) > 1:
-            selected = Picker(
-                options, "Pick k8s context (Last one in the list is the current context):", multiselect=True, min_selection_count=1
-            ).start()
+            selected = Picker(options, "Pick Kubernetes Context:", multiselect=True, min_selection_count=1).start()
         else:
             return [options[0]]
         return selected
 
     @staticmethod
-    def list_namespaced_custom_objects(group, version, namespace, plural, client=None):
+    def list_namespaced_custom_objects(group, version, namespace, plural, client: k8s.client.CustomObjectsApi):
         try:
             response = client.list_namespaced_custom_object(group=group, version=version, namespace=namespace, plural=plural)
             return True, response
@@ -105,7 +116,7 @@ class K8s:
             return False, err
 
     @staticmethod
-    def get_namespaced_custom_objects(name, group, version, namespace, plural, client=None):
+    def get_namespaced_custom_objects(name, group, version, namespace, plural, client: k8s.client.CustomObjectsApi):
         try:
             response = client.get_namespaced_custom_object(group=group, version=version, namespace=namespace, plural=plural, name=name)
             return True, response

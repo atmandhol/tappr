@@ -163,28 +163,10 @@ class TanzuApplicationPlatform:
     def sh_call(self, cmd, msg, spinner_msg, error_msg):
         return self.ui_helper.sh_call(cmd=cmd, msg=msg, spinner_msg=spinner_msg, error_msg=error_msg, state=self.state)
 
-    def tap_install(self, profile, version, host_os, k8s_context, tap_values_file, wait: bool, namespace: str = "tap-install"):
-        if k8s_context is None:
-            k8s_context = self.k8s_helper.pick_context()
-
-        if k8s_context not in self.k8s_helper.contexts:
-            self.logger.msg(f":worried: No valid context named [yellow]{k8s_context}[/yellow] found in KUBECONFIG.", bold=False)
-            raise typer.Exit(-1)
-
-        exit_code = self.sh_call(
-            cmd=f"kubectl cluster-info",
-            msg=":magnifying_glass_tilted_left: Checking k8s cluster and kubectl",
-            spinner_msg="Checking",
-            error_msg=":broken_heart: Unable to connect to k8s cluster. Use [bold]--verbose[/bold] flag for error details.",
+    def tap_install(self, profile, version, host_os, tap_values_file, wait: bool, namespace: str = "tap-install"):
+        k8s_context = check_and_pick_k8s_context(
+            k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
         )
-        if exit_code != 0:
-            raise typer.Exit(-1)
-
-        check_tanzu_cli(ui_helper=self.ui_helper, state=self.state)
-
-        self.ui_helper.progress(cmd=f"kubectl config use-context {k8s_context}", message=":hourglass: Setting context", state=self.state)
-        self.logger.msg(f":file_folder: Using k8s context [yellow]{k8s_context}[/yellow] for installation", bold=False)
-
         hash_str = str(profile + version)
         tmp_dir = f"/tmp/{hashlib.md5(hash_str.encode()).hexdigest()}"
         self.logger.msg(f":file_folder: Staging Installation Dir is at [yellow]{tmp_dir}[/yellow]", bold=False)
@@ -206,7 +188,7 @@ class TanzuApplicationPlatform:
         registry_password = self.creds_helper.get("registry_password", "REGISTRY_PASSWORD")
 
         # This is where TAP packages get relocated
-        registry_tap_package_repo = self.creds_helper.get("registry_tap_package_repo", "REGISTRY_TAP_PACKAGE_REPO")
+        # registry_tap_package_repo = self.creds_helper.get("registry_tap_package_repo", "REGISTRY_TAP_PACKAGE_REPO")
         # This is your TAP install and Build service repo info
         registry_tbs_repo = self.creds_helper.get("registry_tbs_repo", "REGISTRY_TBS_REPO")
 
@@ -256,40 +238,16 @@ class TanzuApplicationPlatform:
         if exit_code != 0:
             raise typer.Exit(-1)
 
-        # This is crazy, so we are not doing this
-        """
-        exit_code = self.sh_call(
-            cmd=f"docker login registry.tanzu.vmware.com --username {tanzunet_username} --password {tanzunet_password}",
-            msg=":key: Login to Tanzu Network",
-            spinner_msg="Logging in",
-            error_msg=":broken_heart: Unable to Login to Tanzu Network. Use [bold]--verbose[/bold] flag for error details.",
-        )
-        if exit_code != 0:
-            raise typer.Exit(-1)
-
-        exit_code = self.sh_call(
-            cmd=f"imgpkg copy -b registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:{version} --to-repo {registry_server}/{registry_tap_package_repo}",
-            msg=":hourglass: Relocating TAP packages from Tanzu Network to your registry",
-            spinner_msg="Relocating",
-            error_msg=":broken_heart: Unable to Relocating TAP packages from Tanzu Network to your registry. Use [bold]--verbose[/bold] flag for error details.",
-        )
-        if exit_code != 0:
-            raise typer.Exit(-1)
-        """
-
-        _, out, _ = self.sh.run_proc(cmd=f"kubectl get ns")
-        if namespace not in out.decode():
-            exit_code = self.sh_call(
-                cmd=f"kubectl create ns {namespace}",
-                msg=":file_cabinet:  Create TAP install namespace",
-                spinner_msg="Creating",
-                error_msg=":broken_heart: Unable to create TAP install namespace. Use [bold]--verbose[/bold] flag for error details.",
-            )
-            if exit_code != 0:
+        ns_list = get_ns_list(k8s_helper=self.k8s_helper, client=self.k8s_helper.core_clients[k8s_context])
+        if namespace not in ns_list:
+            success, response = self.k8s_helper.create_namespace(namespace=namespace, client=self.k8s_helper.core_clients[k8s_context])
+            if not success:
+                self.logger.msg(f"Error response {response}") if self.state["verbose"] else None
+                self.logger.msg(":broken_heart: Unable to create TAP install namespace. Use [bold]--verbose[/bold] flag for error details.")
                 raise typer.Exit(-1)
 
-        _, out, _ = self.sh.run_proc(cmd=f"kubectl get ns")
-        if namespace not in out.decode():
+        ns_list = get_ns_list(k8s_helper=self.k8s_helper, client=self.k8s_helper.core_clients[k8s_context])
+        if namespace not in ns_list:
             self.logger.msg(":broken_heart: Unable to find TAP install namespace. Use [bold]--verbose[/bold] flag for error details.")
             raise typer.Exit(-1)
 
@@ -402,6 +360,22 @@ class TanzuApplicationPlatform:
         return
 
     def developer_ns_setup(self, namespace):
+        k8s_context = check_and_pick_k8s_context(
+            k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
+        )
+        ns_list = get_ns_list(k8s_helper=self.k8s_helper, client=self.k8s_helper.core_clients[k8s_context])
+        if namespace not in ns_list:
+            success, response = self.k8s_helper.create_namespace(namespace=namespace, client=self.k8s_helper.core_clients[k8s_context])
+            if not success:
+                self.logger.msg(f"Error response {response}") if self.state["verbose"] else None
+                self.logger.msg(":broken_heart: Unable to create TAP install namespace. Use [bold]--verbose[/bold] flag for error details.")
+                raise typer.Exit(-1)
+
+        ns_list = get_ns_list(k8s_helper=self.k8s_helper, client=self.k8s_helper.core_clients[k8s_context])
+        if namespace not in ns_list:
+            self.logger.msg(":broken_heart: Unable to find TAP install namespace. Use [bold]--verbose[/bold] flag for error details.")
+            raise typer.Exit(-1)
+
         _, out, _ = self.sh.run_proc(cmd=f"kubectl get ns")
         if namespace not in out.decode():
             exit_code = self.sh_call(
@@ -412,68 +386,6 @@ class TanzuApplicationPlatform:
             )
             if exit_code != 0:
                 raise typer.Exit(-1)
-
-        """
-        private_git = self.logger.confirm(f":cd: Are you going to use private git repos ?", default=False)
-        if not private_git:
-            exit_code = self.sh_call(
-                cmd=f"kubectl create secret generic git-ssh -n {namespace}",
-                msg=":key: Create generic SSH secret",
-                spinner_msg="Creating",
-                error_msg=":broken_heart: Unable to create SSH secret. Use [bold]--verbose[/bold] flag for error details.",
-            )
-            if exit_code != 0:
-                raise typer.Exit(-1)
-        else:
-            ssh_secret_name = self.logger.question(f":key: Git SSH secret name in TAP values (Set git-ssh if you don't know) ?")
-            git_url = self.logger.question_with_type(
-                message=f":page_with_curl: Git Host URL ?",
-                choices=[GITURL.GITLAB_VMWARE_SSH, GITURL.GIT_SSH, GITURL.OTHER],
-            )
-            if git_url == GITURL.OTHER:
-                git_url = self.logger.question(":octopus: Enter your git url")
-            ssh_key_loc = self.logger.question(":key: Enter path to your SSH private key (PEM)")
-
-            exit_code = self.sh_call(
-                cmd=f"kp secret create {ssh_secret_name} --git-url {git_url} --git-ssh-key {ssh_key_loc} -n {namespace}",
-                msg=":sunglasses: Create Git secret on the cluster",
-                spinner_msg="Creating",
-                error_msg=":broken_heart: Unable to create SSH secret. Use [bold]--verbose[/bold] flag for error details.",
-            )
-            if exit_code != 0:
-                raise typer.Exit(-1)
-        """
-        # This registry part is no longer needed
-        """
-        registry_server = self.creds_helper.get("default_registry_server", "REGISTRY_SERVER")
-        registry_password = self.creds_helper.get("default_registry_password", "REGISTRY_PASSWORD")
-        reg = self.logger.question_with_type(
-            message=f":framed_picture:  Image Registry ?",
-            choices=[REGISTRY.GCR, REGISTRY.DOCKERHUB, REGISTRY.OTHER],
-            default=REGISTRY.GCR if "gcr.io" in registry_server else None,
-        )
-        if reg == REGISTRY.GCR:
-            reg_key = self.logger.question(
-                f":key: Where is your GCR service account .json key file ?", default=registry_password if "gcr.io" in registry_server else None
-            )
-            cmd = f"kp secret create registry-credentials --gcr {reg_key} -n {namespace}"
-        elif reg == REGISTRY.DOCKERHUB:
-            docker_id = self.logger.question(f":whale: Where is your dockerhub-id ?")
-            cmd = f"kp secret create registry-credentials --dockerhub {docker_id} -n {namespace}"
-        else:
-            registry = self.logger.question(f":key: Registry url ?")
-            registry_user = self.logger.question(f":key: Registry UserId ?")
-            cmd = f"kp secret create registry-credentials --registry {registry} --registry-user {registry_user} -n {namespace}"
-
-        exit_code = self.sh_call(
-            cmd=cmd,
-            msg=":sunglasses: Create Registry secret on the cluster",
-            spinner_msg="Creating",
-            error_msg=":broken_heart: Unable to create Registry secret. Use [bold]--verbose[/bold] flag for error details.",
-        )
-        if exit_code != 0:
-            raise typer.Exit(-1)
-        """
 
         dev_yaml_path = os.path.dirname(os.path.abspath(__file__)).replace("/modules/tanzu", "") + f"/modules/artifacts/rbac/developer.yml"
         hash_str = str(time.time())
@@ -498,15 +410,10 @@ class TanzuApplicationPlatform:
         if exit_code != 0:
             raise typer.Exit(-1)
 
-    def ingress_ip(self, k8s_context: str, service: str, namespace: str):
-        if k8s_context is None:
-            k8s_context = self.k8s_helper.pick_context()
-        if k8s_context not in self.k8s_helper.contexts:
-            self.logger.msg(f":worried: No valid context named [yellow]{k8s_context}[/yellow] found in KUBECONFIG.", bold=False)
-            raise typer.Exit(-1)
-        if not k8s_context:
-            self.logger.msg(":broken_heart: No valid k8s context found.")
-            raise typer.Exit(1)
+    def ingress_ip(self, service: str, namespace: str):
+        k8s_context = check_and_pick_k8s_context(
+            k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
+        )
         success, response = self.k8s_helper.get_namespaced_service(
             service=service, namespace=namespace, client=self.k8s_helper.core_clients[k8s_context]
         )
@@ -522,16 +429,10 @@ class TanzuApplicationPlatform:
             self.logger.msg(":broken_heart: No external Ingress IP found")
             self.logger.msg(f"\n{response}", bold=False) if self.state["verbose"] else None
 
-    def edit_tap_values(self, k8s_context: str, namespace: str, from_file: str, force: bool, show_current: bool):
-        if k8s_context is None:
-            k8s_context = self.k8s_helper.pick_context()
-        if k8s_context not in self.k8s_helper.contexts:
-            self.logger.msg(f":worried: No valid context named [yellow]{k8s_context}[/yellow] found in KUBECONFIG.", bold=False)
-            raise typer.Exit(-1)
-        if not k8s_context:
-            self.logger.msg(":broken_heart: No valid k8s context found.")
-            raise typer.Exit(1)
-
+    def edit_tap_values(self, namespace: str, from_file: str, force: bool, show_current: bool):
+        k8s_context = check_and_pick_k8s_context(
+            k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
+        )
         success, response = self.k8s_helper.get_namespaced_custom_objects(
             name="tap",
             group="packaging.carvel.dev",
@@ -617,10 +518,8 @@ class TanzuApplicationPlatform:
             self.logger.msg(f":broken_heart: {tap_values_secret_name} secret not found in the k8s cluster. is TAP installed properly?")
             self.logger.msg(f"\n{response}", bold=False) if self.state["verbose"] else None
 
-    def upgrade(self, version: str, k8s_context: str, wait: bool, namespace: str = "tap-install"):
-        check_and_pick_k8s_context(
-            k8s_context=k8s_context, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
-        )
+    def upgrade(self, version: str, wait: bool, namespace: str = "tap-install"):
+        check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
 
         install_registry_hostname = self.creds_helper.get("default_tap_install_registry", "INSTALL_REGISTRY_HOSTNAME")
 
@@ -650,10 +549,8 @@ class TanzuApplicationPlatform:
         else:
             self.logger.msg(":rocket: TAP upgrade started on the cluster")
 
-    def uninstall(self, package: str, k8s_context: str, namespace: str = "tap-install"):
-        check_and_pick_k8s_context(
-            k8s_context=k8s_context, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
-        )
+    def uninstall(self, package: str, namespace: str = "tap-install"):
+        check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
         self.sh_call(
             cmd=f"tanzu package installed delete {package} --namespace {namespace} --yes",
             msg=f":wine_glass: Uninstalling [yellow]TAP[/yellow]",
@@ -662,9 +559,9 @@ class TanzuApplicationPlatform:
         )
         self.logger.msg(":rocket: TAP is uninstalled")
 
-    def status(self, k8s_context: str, namespace: str = "tap-install"):
+    def status(self, namespace: str = "tap-install"):
         k8s_context = check_and_pick_k8s_context(
-            k8s_context=k8s_context, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
+            k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
         )
         success, response = self.k8s_helper.list_namespaced_custom_objects(
             group="packaging.carvel.dev",
@@ -711,9 +608,9 @@ def check_tanzu_cli(ui_helper, state):
         raise typer.Exit(-1)
 
 
-def check_and_pick_k8s_context(k8s_context: str, k8s_helper, logger, ui_helper, state):
+def check_and_pick_k8s_context(k8s_context, k8s_helper, logger, ui_helper, state):
     if k8s_context is None:
-        k8s_context = k8s_helper.pick_context()
+        k8s_context = k8s_helper.pick_context(context=state.get("context", None))
     if k8s_context not in k8s_helper.contexts:
         logger.msg(f":worried: No valid context named [yellow]{k8s_context}[/yellow] found in KUBECONFIG.", bold=False)
         raise typer.Exit(-1)
@@ -722,7 +619,7 @@ def check_and_pick_k8s_context(k8s_context: str, k8s_helper, logger, ui_helper, 
         raise typer.Exit(1)
     check_tanzu_cli(ui_helper=ui_helper, state=state)
     ui_helper.progress(cmd=f"kubectl config use-context {k8s_context}", message=":hourglass: Setting context", state=state)
-    logger.msg(f":file_folder: Using k8s context [yellow]{k8s_context}[/yellow] for installation", bold=False)
+    logger.msg(f":file_folder: Using k8s context [yellow]{k8s_context}[/yellow]", bold=False)
     return k8s_context
 
 
@@ -734,3 +631,12 @@ def print_smart_diff(old, new):
             rprint(f"[red]{line}[/red]")
         elif not line.startswith("   ") and not line.startswith("  -"):
             print(line)
+
+
+def get_ns_list(k8s_helper, client):
+    ns_list = list()
+    success, response = k8s_helper.list_namespaces(client=client)
+    if success and hasattr(response, "items"):
+        for item in response.items:
+            ns_list.append(item.metadata.name)
+    return ns_list
