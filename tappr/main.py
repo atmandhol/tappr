@@ -10,6 +10,7 @@ from tappr.modules.changelog.changelog import ChangeLog
 from tappr.modules.releasenotes.release_notes import ReleaseNotes
 from tappr.modules.test.test_framework import TestFramework
 from tappr.modules.tanzu.tap import TanzuApplicationPlatform
+from tappr.modules.tanzu.tapgui import TanzuApplicationPlatformGUI
 from tappr.modules.utils.helpers import PivnetHelpers, SubProcessHelpers
 from tappr.modules.utils.logger import TyperLogger
 from tappr.modules.utils.enums import PROFILE, OS
@@ -37,6 +38,16 @@ tap_helpers = TanzuApplicationPlatform(
     k8s_helper=k8s_helpers,
     console=console,
 )
+tap_gui_helpers = TanzuApplicationPlatformGUI(
+    subprocess_helper=subprocess_helpers,
+    pivnet_helper=pivnet_helpers,
+    logger=typer_logger,
+    creds_helper=creds_helpers,
+    state=state,
+    ui_helper=ui_helpers,
+    k8s_helper=k8s_helpers,
+    console=console,
+)
 
 # noinspection PyTypeChecker
 app = typer.Typer()
@@ -47,10 +58,12 @@ delete_cluster_app = typer.Typer(help="Delete k8s clusters.")
 registry_app = typer.Typer(help="Manage local docker registry.")
 tap_app = typer.Typer(help="Tanzu Application Platform management.")
 local_app = typer.Typer(help="Helpers to setup your local environment.")
+tap_gui_app = typer.Typer(help="Tanzu Application Platform GUI management.")
 
 app.add_typer(create_cluster_app, name="create")
 app.add_typer(delete_cluster_app, name="delete")
 app.add_typer(tap_app, name="tap")
+tap_app.add_typer(tap_gui_app, name="gui")
 app.add_typer(utils_app, name="utils")
 utils_app.add_typer(registry_app, name="registry")
 utils_app.add_typer(local_app, name="local")
@@ -535,7 +548,7 @@ def install(
 
 @tap_app.command()
 def setup(
-    namespace: str = "default",
+    namespace: str = typer.Option("default", help="Developer namespace to setup"),
 ):
     """
     Setup Dev Namespace with Git and Registry secrets.
@@ -546,7 +559,7 @@ def setup(
 
 @tap_app.command()
 def edit(
-    namespace: str = "tap-install",
+    namespace: str = typer.Option("tap-install", help="TAP installation namespace"),
     from_file: str = typer.Option(
         None,
         help="Yaml file path containing tap values to shallow merge (first level only) with the existing tap values on the cluster. "
@@ -565,7 +578,7 @@ def edit(
 
 
 @tap_app.command()
-def ingress_ip(service: str = "envoy", namespace: str = "tanzu-system-ingress"):
+def ingress_ip(service: str = "envoy", namespace: str = typer.Option("tanzu-system-ingress", help="Tanzu System Ingress installation namespace")):
     """
     Get the Tanzu System Ingress External IP of the TAP cluster.
 
@@ -576,7 +589,7 @@ def ingress_ip(service: str = "envoy", namespace: str = "tanzu-system-ingress"):
 @tap_app.command()
 def upgrade(
     version: str,
-    namespace: str = "tap-install",
+    namespace: str = typer.Option("tap-install", help="TAP installation namespace"),
     wait: bool = typer.Option(False, help="Wait for the TAP install to complete"),
 ):
     """
@@ -596,12 +609,48 @@ def uninstall(package: str = typer.Option("tap", help="Package name to uninstall
 
 
 @tap_app.command()
-def status(namespace: str = "tap-install"):
+def status(namespace: str = typer.Option("tap-install", help="TAP installation namespace")):
     """
     Get TAP installation status.
 
     """
     tap_helpers.status(namespace=namespace)
+
+
+@tap_gui_app.command()
+def server_ip(service: str = "server", namespace: str = "tap-gui"):
+    """
+    Get the TAP GUI server external IP.
+
+    """
+    tap_gui_helpers.server_ip(service=service, namespace=namespace)
+
+
+@tap_gui_app.command()
+def list_clusters(namespace: str = typer.Option("tap-install", help="TAP installation namespace")):
+    """
+    Get a list of Clusters tracked by TAP GUI.
+
+    """
+    pass
+
+
+@tap_gui_app.command()
+def track_clusters(namespace: str = typer.Option("tap-install", help="TAP installation namespace")):
+    """
+    Add cluster credential to TAP GUI for tracking resources on GUI.
+
+    """
+    pass
+
+
+@tap_gui_app.command()
+def untrack_clusters(namespace: str = typer.Option("tap-install", help="TAP installation namespace")):
+    """
+    Remove cluster credential from TAP GUI.
+
+    """
+    pass
 
 
 if __name__ == "__main__":
