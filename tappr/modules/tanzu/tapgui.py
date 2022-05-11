@@ -38,5 +38,3 @@ class TanzuApplicationPlatformGUI:
         else:
             self.logger.msg(":broken_heart: No external TAP GUI server IP found")
             self.logger.msg(f"\n{response}", bold=False) if self.state["verbose"] else None
-
-

@@ -512,7 +512,9 @@ class TanzuApplicationPlatform:
             self.logger.msg(f"\n{response}", bold=False) if self.state["verbose"] else None
 
     def upgrade(self, version: str, wait: bool, namespace: str = "tap-install"):
-        commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
+        commons.check_and_pick_k8s_context(
+            k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
+        )
 
         install_registry_hostname = self.creds_helper.get("default_tap_install_registry", "INSTALL_REGISTRY_HOSTNAME")
 
@@ -543,7 +545,9 @@ class TanzuApplicationPlatform:
             self.logger.msg(":rocket: TAP upgrade started on the cluster")
 
     def uninstall(self, package: str, namespace: str = "tap-install"):
-        commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
+        commons.check_and_pick_k8s_context(
+            k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
+        )
         self.sh_call(
             cmd=f"tanzu package installed delete {package} --namespace {namespace} --yes",
             msg=f":wine_glass: Uninstalling [yellow]TAP[/yellow]",

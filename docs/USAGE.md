@@ -175,6 +175,7 @@ $ tappr tap [OPTIONS] COMMAND [ARGS]...
 **Commands**:
 
 * `edit`: Edit tap-values yaml file.
+* `gui`: Tanzu Application Platform GUI management.
 * `ingress-ip`: Get the Tanzu System Ingress External IP of...
 * `install`: Install TAP.
 * `setup`: Setup Dev Namespace with Git and Registry...
@@ -194,10 +195,92 @@ $ tappr tap edit [OPTIONS]
 
 **Options**:
 
-* `--namespace TEXT`: [default: tap-install]
+* `--namespace TEXT`: TAP installation namespace  [default: tap-install]
 * `--from-file TEXT`: Yaml file path containing tap values to shallow merge (first level only) with the existing tap values on the cluster. Inline editor is not invoked if this option is used.
 * `--force / --no-force`: Force save the changes to the yaml file without any user prompt  [default: False]
 * `--show / --no-show`: Show the current content of the tap values file on the cluster in the inline editor. Defaults to false for security purposes.  [default: False]
+* `--help`: Show this message and exit.
+
+### `tappr tap gui`
+
+Tanzu Application Platform GUI management.
+
+**Usage**:
+
+```console
+$ tappr tap gui [OPTIONS] COMMAND [ARGS]...
+```
+
+**Options**:
+
+* `--help`: Show this message and exit.
+
+**Commands**:
+
+* `list-clusters`: Get a list of Clusters tracked by TAP GUI.
+* `server-ip`: Get the TAP GUI server external IP.
+* `track-clusters`: Add cluster credential to TAP GUI for...
+* `untrack-clusters`: Remove cluster credential from TAP GUI.
+
+#### `tappr tap gui list-clusters`
+
+Get a list of Clusters tracked by TAP GUI.
+
+**Usage**:
+
+```console
+$ tappr tap gui list-clusters [OPTIONS]
+```
+
+**Options**:
+
+* `--namespace TEXT`: TAP installation namespace  [default: tap-install]
+* `--help`: Show this message and exit.
+
+#### `tappr tap gui server-ip`
+
+Get the TAP GUI server external IP.
+
+**Usage**:
+
+```console
+$ tappr tap gui server-ip [OPTIONS]
+```
+
+**Options**:
+
+* `--service TEXT`: [default: server]
+* `--namespace TEXT`: [default: tap-gui]
+* `--help`: Show this message and exit.
+
+#### `tappr tap gui track-clusters`
+
+Add cluster credential to TAP GUI for tracking resources on GUI.
+
+**Usage**:
+
+```console
+$ tappr tap gui track-clusters [OPTIONS]
+```
+
+**Options**:
+
+* `--namespace TEXT`: TAP installation namespace  [default: tap-install]
+* `--help`: Show this message and exit.
+
+#### `tappr tap gui untrack-clusters`
+
+Remove cluster credential from TAP GUI.
+
+**Usage**:
+
+```console
+$ tappr tap gui untrack-clusters [OPTIONS]
+```
+
+**Options**:
+
+* `--namespace TEXT`: TAP installation namespace  [default: tap-install]
 * `--help`: Show this message and exit.
 
 ### `tappr tap ingress-ip`
@@ -213,7 +296,7 @@ $ tappr tap ingress-ip [OPTIONS]
 **Options**:
 
 * `--service TEXT`: [default: envoy]
-* `--namespace TEXT`: [default: tanzu-system-ingress]
+* `--namespace TEXT`: Tanzu System Ingress installation namespace  [default: tanzu-system-ingress]
 * `--help`: Show this message and exit.
 
 ### `tappr tap install`
@@ -251,7 +334,7 @@ $ tappr tap setup [OPTIONS]
 
 **Options**:
 
-* `--namespace TEXT`: [default: default]
+* `--namespace TEXT`: Developer namespace to setup  [default: default]
 * `--help`: Show this message and exit.
 
 ### `tappr tap status`
@@ -266,7 +349,7 @@ $ tappr tap status [OPTIONS]
 
 **Options**:
 
-* `--namespace TEXT`: [default: tap-install]
+* `--namespace TEXT`: TAP installation namespace  [default: tap-install]
 * `--help`: Show this message and exit.
 
 ### `tappr tap uninstall`
@@ -301,7 +384,7 @@ $ tappr tap upgrade [OPTIONS] VERSION
 
 **Options**:
 
-* `--namespace TEXT`: [default: tap-install]
+* `--namespace TEXT`: TAP installation namespace  [default: tap-install]
 * `--wait / --no-wait`: Wait for the TAP install to complete  [default: False]
 * `--help`: Show this message and exit.
 
