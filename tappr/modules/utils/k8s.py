@@ -140,7 +140,3 @@ class K8s:
             return True, response
         except ApiException as err:
             return False, err
-
-    def populate_plural_of(self):
-        # Stub for something I am thinking of doing
-        pass

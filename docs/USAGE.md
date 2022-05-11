@@ -179,7 +179,6 @@ $ tappr tap [OPTIONS] COMMAND [ARGS]...
 * `install`: Install TAP.
 * `setup`: Setup Dev Namespace with Git and Registry...
 * `status`: Get TAP installation status.
-* `tester`
 * `uninstall`: Uninstall TAP.
 * `upgrade`: Upgrade Tanzu Application Platform to a...
 
@@ -263,19 +262,6 @@ Get TAP installation status.
 
 ```console
 $ tappr tap status [OPTIONS]
-```
-
-**Options**:
-
-* `--namespace TEXT`: [default: tap-install]
-* `--help`: Show this message and exit.
-
-### `tappr tap tester`
-
-**Usage**:
-
-```console
-$ tappr tap tester [OPTIONS]
 ```
 
 **Options**:

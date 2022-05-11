@@ -77,6 +77,7 @@ def tappr(
         state["verbose"] = True
 
 
+# noinspection PyTypedDict
 @tap_app.callback()
 def tap(
     context: str = typer.Option(None, help="Kubernetes context to target from the KUBECONFIG"),
@@ -601,11 +602,6 @@ def status(namespace: str = "tap-install"):
 
     """
     tap_helpers.status(namespace=namespace)
-
-
-@tap_app.command()
-def tester(namespace: str = "tap-install"):
-    pass
 
 
 if __name__ == "__main__":

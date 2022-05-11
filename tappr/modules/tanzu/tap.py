@@ -365,26 +365,17 @@ class TanzuApplicationPlatform:
         )
         ns_list = get_ns_list(k8s_helper=self.k8s_helper, client=self.k8s_helper.core_clients[k8s_context])
         if namespace not in ns_list:
+            self.logger.msg(f":construction: Creating [yellow]{namespace}[/yellow] as it does not exist.")
             success, response = self.k8s_helper.create_namespace(namespace=namespace, client=self.k8s_helper.core_clients[k8s_context])
             if not success:
                 self.logger.msg(f"Error response {response}") if self.state["verbose"] else None
-                self.logger.msg(":broken_heart: Unable to create TAP install namespace. Use [bold]--verbose[/bold] flag for error details.")
+                self.logger.msg(
+                    ":broken_heart: Unable to create namespace [yellow]{namespace}[/yellow]. Use [bold]--verbose[/bold] flag for error details."
+                )
                 raise typer.Exit(-1)
-
-        ns_list = get_ns_list(k8s_helper=self.k8s_helper, client=self.k8s_helper.core_clients[k8s_context])
-        if namespace not in ns_list:
-            self.logger.msg(":broken_heart: Unable to find TAP install namespace. Use [bold]--verbose[/bold] flag for error details.")
-            raise typer.Exit(-1)
-
-        _, out, _ = self.sh.run_proc(cmd=f"kubectl get ns")
-        if namespace not in out.decode():
-            exit_code = self.sh_call(
-                cmd=f"kubectl create ns {namespace}",
-                msg=f":construction: Creating [yellow]{namespace}[/yellow] as it does not exist.",
-                spinner_msg="Creating",
-                error_msg=f":broken_heart: Unable to create namespace [yellow]{namespace}[/yellow]. Use [bold]--verbose[/bold] flag for error details.",
-            )
-            if exit_code != 0:
+            ns_list = get_ns_list(k8s_helper=self.k8s_helper, client=self.k8s_helper.core_clients[k8s_context])
+            if namespace not in ns_list:
+                self.logger.msg(f":broken_heart: Unable to create namespace {namespace}. Use [bold]--verbose[/bold] flag for error details.")
                 raise typer.Exit(-1)
 
         dev_yaml_path = os.path.dirname(os.path.abspath(__file__)).replace("/modules/tanzu", "") + f"/modules/artifacts/rbac/developer.yml"
