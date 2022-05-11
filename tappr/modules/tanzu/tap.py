@@ -8,7 +8,9 @@ import yaml
 import tappr.modules.utils.k8s
 
 from rich import print as rprint
-from difflib import Differ
+from tappr.modules.utils.commons import Commons
+
+commons = Commons()
 
 auto_complete_list = [
     "profile",
@@ -164,7 +166,7 @@ class TanzuApplicationPlatform:
         return self.ui_helper.sh_call(cmd=cmd, msg=msg, spinner_msg=spinner_msg, error_msg=error_msg, state=self.state)
 
     def tap_install(self, profile, version, host_os, tap_values_file, wait: bool, namespace: str = "tap-install"):
-        k8s_context = check_and_pick_k8s_context(
+        k8s_context = commons.check_and_pick_k8s_context(
             k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
         )
         hash_str = str(profile + version)
@@ -238,7 +240,7 @@ class TanzuApplicationPlatform:
         if exit_code != 0:
             raise typer.Exit(-1)
 
-        ns_list = get_ns_list(k8s_helper=self.k8s_helper, client=self.k8s_helper.core_clients[k8s_context])
+        ns_list = commons.get_ns_list(k8s_helper=self.k8s_helper, client=self.k8s_helper.core_clients[k8s_context])
         if namespace not in ns_list:
             success, response = self.k8s_helper.create_namespace(namespace=namespace, client=self.k8s_helper.core_clients[k8s_context])
             if not success:
@@ -246,7 +248,7 @@ class TanzuApplicationPlatform:
                 self.logger.msg(":broken_heart: Unable to create TAP install namespace. Use [bold]--verbose[/bold] flag for error details.")
                 raise typer.Exit(-1)
 
-        ns_list = get_ns_list(k8s_helper=self.k8s_helper, client=self.k8s_helper.core_clients[k8s_context])
+        ns_list = commons.get_ns_list(k8s_helper=self.k8s_helper, client=self.k8s_helper.core_clients[k8s_context])
         if namespace not in ns_list:
             self.logger.msg(":broken_heart: Unable to find TAP install namespace. Use [bold]--verbose[/bold] flag for error details.")
             raise typer.Exit(-1)
@@ -360,10 +362,10 @@ class TanzuApplicationPlatform:
         return
 
     def developer_ns_setup(self, namespace):
-        k8s_context = check_and_pick_k8s_context(
+        k8s_context = commons.check_and_pick_k8s_context(
             k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
         )
-        ns_list = get_ns_list(k8s_helper=self.k8s_helper, client=self.k8s_helper.core_clients[k8s_context])
+        ns_list = commons.get_ns_list(k8s_helper=self.k8s_helper, client=self.k8s_helper.core_clients[k8s_context])
         if namespace not in ns_list:
             self.logger.msg(f":construction: Creating [yellow]{namespace}[/yellow] as it does not exist.")
             success, response = self.k8s_helper.create_namespace(namespace=namespace, client=self.k8s_helper.core_clients[k8s_context])
@@ -373,7 +375,7 @@ class TanzuApplicationPlatform:
                     ":broken_heart: Unable to create namespace [yellow]{namespace}[/yellow]. Use [bold]--verbose[/bold] flag for error details."
                 )
                 raise typer.Exit(-1)
-            ns_list = get_ns_list(k8s_helper=self.k8s_helper, client=self.k8s_helper.core_clients[k8s_context])
+            ns_list = commons.get_ns_list(k8s_helper=self.k8s_helper, client=self.k8s_helper.core_clients[k8s_context])
             if namespace not in ns_list:
                 self.logger.msg(f":broken_heart: Unable to create namespace {namespace}. Use [bold]--verbose[/bold] flag for error details.")
                 raise typer.Exit(-1)
@@ -402,7 +404,7 @@ class TanzuApplicationPlatform:
             raise typer.Exit(-1)
 
     def ingress_ip(self, service: str, namespace: str):
-        k8s_context = check_and_pick_k8s_context(
+        k8s_context = commons.check_and_pick_k8s_context(
             k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
         )
         success, response = self.k8s_helper.get_namespaced_service(
@@ -421,7 +423,7 @@ class TanzuApplicationPlatform:
             self.logger.msg(f"\n{response}", bold=False) if self.state["verbose"] else None
 
     def edit_tap_values(self, namespace: str, from_file: str, force: bool, show_current: bool):
-        k8s_context = check_and_pick_k8s_context(
+        k8s_context = commons.check_and_pick_k8s_context(
             k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
         )
         success, response = self.k8s_helper.get_namespaced_custom_objects(
@@ -486,7 +488,7 @@ class TanzuApplicationPlatform:
                         new_cluster_tap_values = og_cluster_tap_values
 
             self.logger.msg(":notebook: Input recorded. Calculating diff with current file")
-            print_smart_diff(og_cluster_tap_values, new_cluster_tap_values)
+            commons.print_smart_diff(og_cluster_tap_values, new_cluster_tap_values)
 
             if not force:
                 save_it = self.logger.confirm(":question_mark: Do you want to make this edit?")
@@ -510,7 +512,7 @@ class TanzuApplicationPlatform:
             self.logger.msg(f"\n{response}", bold=False) if self.state["verbose"] else None
 
     def upgrade(self, version: str, wait: bool, namespace: str = "tap-install"):
-        check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
+        commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
 
         install_registry_hostname = self.creds_helper.get("default_tap_install_registry", "INSTALL_REGISTRY_HOSTNAME")
 
@@ -541,7 +543,7 @@ class TanzuApplicationPlatform:
             self.logger.msg(":rocket: TAP upgrade started on the cluster")
 
     def uninstall(self, package: str, namespace: str = "tap-install"):
-        check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
+        commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
         self.sh_call(
             cmd=f"tanzu package installed delete {package} --namespace {namespace} --yes",
             msg=f":wine_glass: Uninstalling [yellow]TAP[/yellow]",
@@ -551,7 +553,7 @@ class TanzuApplicationPlatform:
         self.logger.msg(":rocket: TAP is uninstalled")
 
     def status(self, namespace: str = "tap-install"):
-        k8s_context = check_and_pick_k8s_context(
+        k8s_context = commons.check_and_pick_k8s_context(
             k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
         )
         success, response = self.k8s_helper.list_namespaced_custom_objects(
@@ -585,49 +587,3 @@ class TanzuApplicationPlatform:
                 rprint(f":worried: {err[0]} [cyan]{err[1]}[/cyan] [bold][red]{err[2]}[/red][/bold]")
                 if "usefulErrorMessage" in err[3]:
                     rprint(f"[bold][red]Error:[/red][/bold] {err[3]['usefulErrorMessage']}")
-
-
-def check_tanzu_cli(ui_helper, state):
-    exit_code = ui_helper.sh_call(
-        cmd=f"tanzu package version",
-        msg=":magnifying_glass_tilted_left: Checking tanzu CLI",
-        spinner_msg="Checking",
-        error_msg=":broken_heart: tanzu cli checks failed. Use [bold]--verbose[/bold] flag for error details.",
-        state=state,
-    )
-    if exit_code != 0:
-        raise typer.Exit(-1)
-
-
-def check_and_pick_k8s_context(k8s_context, k8s_helper, logger, ui_helper, state):
-    if k8s_context is None:
-        k8s_context = k8s_helper.pick_context(context=state.get("context", None))
-    if k8s_context not in k8s_helper.contexts:
-        logger.msg(f":worried: No valid context named [yellow]{k8s_context}[/yellow] found in KUBECONFIG.", bold=False)
-        raise typer.Exit(-1)
-    if not k8s_context:
-        logger.msg(":broken_heart: No valid k8s context found.")
-        raise typer.Exit(1)
-    check_tanzu_cli(ui_helper=ui_helper, state=state)
-    ui_helper.progress(cmd=f"kubectl config use-context {k8s_context}", message=":hourglass: Setting context", state=state)
-    logger.msg(f":file_folder: Using k8s context [yellow]{k8s_context}[/yellow]", bold=False)
-    return k8s_context
-
-
-def print_smart_diff(old, new):
-    for line in Differ().compare(yaml.safe_dump(old).split("\n"), yaml.safe_dump(new).split("\n")):
-        if line.startswith("+"):
-            rprint(f"[green]{line}[/green]")
-        elif line.startswith("-"):
-            rprint(f"[red]{line}[/red]")
-        elif not line.startswith("   ") and not line.startswith("  -"):
-            print(line)
-
-
-def get_ns_list(k8s_helper, client):
-    ns_list = list()
-    success, response = k8s_helper.list_namespaces(client=client)
-    if success and hasattr(response, "items"):
-        for item in response.items:
-            ns_list.append(item.metadata.name)
-    return ns_list
