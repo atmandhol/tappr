@@ -426,18 +426,18 @@ class TanzuApplicationPlatform:
         k8s_context = commons.check_and_pick_k8s_context(
             k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
         )
-        success, response = self.k8s_helper.get_namespaced_custom_objects(
+
+        success, response = commons.get_custom_object_data(
+            k8s_helper=self.k8s_helper,
+            namespace=namespace,
             name="tap",
             group="packaging.carvel.dev",
             version="v1alpha1",
-            namespace=namespace,
             plural="packageinstalls",
             client=self.k8s_helper.custom_clients[k8s_context],
+            logger=self.logger,
+            state=self.state,
         )
-        if not success:
-            self.logger.msg(":broken_heart: Cannot find tap package on the cluster. is it installed?")
-            self.logger.msg(f"\n{response}", bold=False) if self.state["verbose"] else None
-            raise typer.Exit(1)
 
         # hack TODO: switch this to use a decent jsonpath lib
         # tap_version_installed = response["spec"]["packageRef"]["versionSelection"]["constraints"]

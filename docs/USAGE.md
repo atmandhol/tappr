@@ -234,7 +234,7 @@ $ tappr tap gui list-clusters [OPTIONS]
 
 **Options**:
 
-* `--namespace TEXT`: TAP installation namespace  [default: tap-install]
+* `--namespace TEXT`: TAP installation namespace on the cluster where TAP GUI is located  [default: tap-install]
 * `--help`: Show this message and exit.
 
 #### `tappr tap gui server-ip`
@@ -265,7 +265,7 @@ $ tappr tap gui track-clusters [OPTIONS]
 
 **Options**:
 
-* `--namespace TEXT`: TAP installation namespace  [default: tap-install]
+* `--namespace TEXT`: TAP installation namespace on the cluster where TAP GUI is located  [default: tap-install]
 * `--help`: Show this message and exit.
 
 #### `tappr tap gui untrack-clusters`
@@ -280,7 +280,7 @@ $ tappr tap gui untrack-clusters [OPTIONS]
 
 **Options**:
 
-* `--namespace TEXT`: TAP installation namespace  [default: tap-install]
+* `--namespace TEXT`: TAP installation namespace on the cluster where TAP GUI is located  [default: tap-install]
 * `--help`: Show this message and exit.
 
 ### `tappr tap ingress-ip`

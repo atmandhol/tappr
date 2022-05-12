@@ -627,7 +627,7 @@ def server_ip(service: str = "server", namespace: str = "tap-gui"):
 
 
 @tap_gui_app.command()
-def list_clusters(namespace: str = typer.Option("tap-install", help="TAP installation namespace")):
+def list_clusters(namespace: str = typer.Option("tap-install", help="TAP installation namespace on the cluster where TAP GUI is located")):
     """
     Get a list of Clusters tracked by TAP GUI.
 
@@ -636,16 +636,16 @@ def list_clusters(namespace: str = typer.Option("tap-install", help="TAP install
 
 
 @tap_gui_app.command()
-def track_clusters(namespace: str = typer.Option("tap-install", help="TAP installation namespace")):
+def track_clusters(namespace: str = typer.Option("tap-install", help="TAP installation namespace on the cluster where TAP GUI is located")):
     """
     Add cluster credential to TAP GUI for tracking resources on GUI.
 
     """
-    pass
+    tap_gui_helpers.track_cluster(namespace=namespace)
 
 
 @tap_gui_app.command()
-def untrack_clusters(namespace: str = typer.Option("tap-install", help="TAP installation namespace")):
+def untrack_clusters(namespace: str = typer.Option("tap-install", help="TAP installation namespace on the cluster where TAP GUI is located")):
     """
     Remove cluster credential from TAP GUI.
 

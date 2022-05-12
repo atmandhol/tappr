@@ -68,6 +68,14 @@ class K8s:
             return False, err
 
     @staticmethod
+    def get_namespaced_service_account(client: k8s.client.CoreV1Api, service_account, namespace):
+        try:
+            response = client.read_namespaced_service_account(name=service_account, namespace=namespace)
+            return True, response
+        except ApiException as err:
+            return False, err
+
+    @staticmethod
     def patch_namespaced_secret(client: k8s.client.CoreV1Api, secret, namespace, body):
         try:
             response = client.patch_namespaced_secret(name=secret, namespace=namespace, body=body)
@@ -83,7 +91,7 @@ class K8s:
         except ApiException as err:
             return False, err
 
-    def pick_context(self, context=None):
+    def pick_context(self, context=None, message=None):
         self.load_contexts_and_clients()
         options = self.contexts
         if context in self.contexts:
@@ -91,18 +99,18 @@ class K8s:
         if len(options) == 0:
             return ""
         if len(options) > 1:
-            option, _ = Picker(options, "Pick Kubernetes Context:").start()
+            option, _ = Picker(options, "Pick Kubernetes Context:" if not message else message).start()
         else:
             return options[0]
         return option
 
-    def pick_multiple_contexts(self):
+    def pick_multiple_contexts(self, message=None):
         self.load_contexts_and_clients()
         options = self.contexts
         if len(options) == 0:
             return []
         if len(options) > 1:
-            selected = Picker(options, "Pick Kubernetes Context:", multiselect=True, min_selection_count=1).start()
+            selected = Picker(options, "Pick Kubernetes Context:" if not message else message, multiselect=True, min_selection_count=1).start()
         else:
             return [options[0]]
         return selected
