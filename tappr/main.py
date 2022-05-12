@@ -632,7 +632,7 @@ def list_clusters(namespace: str = typer.Option("tap-install", help="TAP install
     Get a list of Clusters tracked by TAP GUI.
 
     """
-    pass
+    tap_gui_helpers.list_clusters(namespace=namespace)
 
 
 @tap_gui_app.command()

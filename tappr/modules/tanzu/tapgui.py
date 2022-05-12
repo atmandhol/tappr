@@ -2,9 +2,11 @@ import os
 import base64
 import typer
 import yaml
-
 import tappr.modules.utils.k8s
+
 from tappr.modules.utils.commons import Commons
+from rich.console import Console
+from rich.table import Table
 
 commons = Commons()
 
@@ -164,6 +166,68 @@ class TanzuApplicationPlatformGUI:
                 self.logger.msg(":broken_heart: Unable to edit the configuration secret on TAP cluster. Try again later.")
                 self.logger.msg(f"\n{response}", bold=False) if self.state["verbose"] else None
                 raise typer.Exit(-1)
+
+        else:
+            self.logger.msg(f":broken_heart: {tap_values_secret_name} secret not found in the k8s cluster. is TAP installed properly?")
+            self.logger.msg(f"\n{response}", bold=False) if self.state["verbose"] else None
+
+    def list_clusters(self, namespace):
+        k8s_context = commons.check_and_pick_k8s_context(
+            k8s_context=None,
+            k8s_helper=self.k8s_helper,
+            logger=self.logger,
+            ui_helper=self.ui_helper,
+            state=self.state,
+            pick_message="Select a TAP cluster with TAP GUI installed:",
+        )
+
+        success, response = commons.get_custom_object_data(
+            k8s_helper=self.k8s_helper,
+            namespace=namespace,
+            name="tap",
+            group="packaging.carvel.dev",
+            version="v1alpha1",
+            plural="packageinstalls",
+            client=self.k8s_helper.custom_clients[k8s_context],
+            logger=self.logger,
+            state=self.state,
+        )
+
+        # hack TODO: switch this to use a decent jsonpath lib
+        # tap_version_installed = response["spec"]["packageRef"]["versionSelection"]["constraints"]
+        tap_values_secret_name = response["spec"]["values"][0]["secretRef"]["name"]
+
+        success, response = self.k8s_helper.get_namespaced_secret(
+            secret=tap_values_secret_name, namespace=namespace, client=self.k8s_helper.core_clients[k8s_context]
+        )
+
+        if not success:
+            # TODO: Throw error, be nice to user etc
+            raise typer.Exit(-1)
+
+        if success:
+            try:
+                tap_values = yaml.safe_load(base64.b64decode(list(response.data.values())[0]).decode())
+            except Exception:
+                self.logger.msg(f":cry: {tap_values_secret_name} secret was not proper yaml")
+                raise typer.Exit(1)
+
+            try:
+                _ = tap_values["tap_gui"] and tap_values["tap_gui"]["app_config"] and tap_values["tap_gui"]["app_config"]["kubernetes"]
+            except KeyError:
+                self.logger.msg(f":cry: tap_gui or app_config not found in TAP values file")
+                raise typer.Exit(-1)
+
+            table = Table(title="TAP GUI Tracked Clusters")
+            table.add_column("Name")
+            table.add_column("URL", style="green")
+            table.add_column("Auth Provider")
+
+            for entry in tap_values["tap_gui"]["app_config"]["kubernetes"]["clusterLocatorMethods"][0]["clusters"]:
+                table.add_row(f"{entry.get('name')}", f"{entry.get('url')}", f"{entry.get('authProvider')}")
+            console = Console()
+            console.print("")
+            console.print(table)
 
         else:
             self.logger.msg(f":broken_heart: {tap_values_secret_name} secret not found in the k8s cluster. is TAP installed properly?")
