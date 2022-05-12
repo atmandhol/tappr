@@ -266,6 +266,7 @@ $ tappr tap gui track-clusters [OPTIONS]
 **Options**:
 
 * `--namespace TEXT`: TAP installation namespace on the cluster where TAP GUI is located  [default: tap-install]
+* `--tap-viewer-sa TEXT`: TAP Viewer service account in the cluster and namespace to be tracked  [default: tap-gui-viewer]
 * `--help`: Show this message and exit.
 
 #### `tappr tap gui untrack-clusters`
