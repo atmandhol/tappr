@@ -636,12 +636,15 @@ def list_clusters(namespace: str = typer.Option("tap-install", help="TAP install
 
 
 @tap_gui_app.command()
-def track_clusters(namespace: str = typer.Option("tap-install", help="TAP installation namespace on the cluster where TAP GUI is located")):
+def track_clusters(
+    namespace: str = typer.Option("tap-install", help="TAP installation namespace on the cluster where TAP GUI is located"),
+    tap_viewer_sa: str = typer.Option("tap-gui-viewer", help="TAP Viewer service account in the cluster and namespace to be tracked"),
+):
     """
     Add cluster credential to TAP GUI for tracking resources on GUI.
 
     """
-    tap_gui_helpers.track_cluster(namespace=namespace)
+    tap_gui_helpers.track_cluster(tap_install_namespace=namespace, tap_viewer_service_account=tap_viewer_sa)
 
 
 @tap_gui_app.command()
@@ -650,7 +653,7 @@ def untrack_clusters(namespace: str = typer.Option("tap-install", help="TAP inst
     Remove cluster credential from TAP GUI.
 
     """
-    pass
+    tap_gui_helpers.untrack_cluster(tap_install_namespace=namespace)
 
 
 if __name__ == "__main__":

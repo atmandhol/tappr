@@ -1,5 +1,6 @@
 import typer
 import yaml
+import base64
 
 from tappr.modules.utils.ui import Picker
 from rich import print as rprint
@@ -75,3 +76,49 @@ class Commons:
         else:
             return options[0]
         return option
+
+    @staticmethod
+    def get_tap_values(k8s_helper, k8s_context, namespace, logger, state):
+        success, response = Commons.get_custom_object_data(
+            k8s_helper=k8s_helper,
+            namespace=namespace,
+            name="tap",
+            group="packaging.carvel.dev",
+            version="v1alpha1",
+            plural="packageinstalls",
+            client=k8s_helper.custom_clients[k8s_context],
+            logger=logger,
+            state=state,
+        )
+
+        # hack TODO: switch this to use a decent jsonpath lib
+        # tap_version_installed = response["spec"]["packageRef"]["versionSelection"]["constraints"]
+        tap_values_secret_name = response["spec"]["values"][0]["secretRef"]["name"]
+
+        success, response = k8s_helper.get_namespaced_secret(
+            secret=tap_values_secret_name, namespace=namespace, client=k8s_helper.core_clients[k8s_context]
+        )
+
+        if not success:
+            logger.msg(f":cry: Unable to get {tap_values_secret_name} from namespace {namespace}")
+            raise typer.Exit(-1)
+        return success, response
+
+    @staticmethod
+    def get_tap_gui_cluster_from_tap_values(tap_values_secret_response, logger):
+        try:
+            tap_values = yaml.safe_load(base64.b64decode(list(tap_values_secret_response.data.values())[0]).decode())
+        except Exception:
+            logger.msg(f":cry: TAP Values file secret was not proper yaml")
+            raise typer.Exit(1)
+
+        try:
+            _ = tap_values["tap_gui"] and tap_values["tap_gui"]["app_config"] and tap_values["tap_gui"]["app_config"]["kubernetes"]
+        except KeyError:
+            logger.msg(f":cry: tap_gui or app_config not found in TAP values file")
+            raise typer.Exit(-1)
+
+        clusters = list()
+        for entry in tap_values["tap_gui"]["app_config"]["kubernetes"]["clusterLocatorMethods"][0]["clusters"]:
+            clusters.append({"name": entry.get("name"), "url": entry.get("url"), "authProvider": entry.get("authProvider")})
+        return clusters
