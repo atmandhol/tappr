@@ -47,12 +47,14 @@ class TanzuApplicationPlatformGUI:
             self.logger.msg(f"\n{response}", bold=False) if self.state["verbose"] else None
 
     def track_cluster(self, tap_install_namespace, tap_viewer_service_account="tap-gui-viewer"):
+        mod_state = self.state
+        mod_state["context"] = None
         k8s_context = commons.check_and_pick_k8s_context(
             k8s_context=None,
             k8s_helper=self.k8s_helper,
             logger=self.logger,
             ui_helper=self.ui_helper,
-            state=self.state,
+            state=mod_state,
             pick_message="Select a TAP cluster to add to TAP GUI",
         )
         source_cluster_name = self.logger.question("What do want to call this cluster on TAP GUI", default=k8s_context)
@@ -93,7 +95,7 @@ class TanzuApplicationPlatformGUI:
             k8s_helper=self.k8s_helper,
             logger=self.logger,
             ui_helper=self.ui_helper,
-            state=self.state,
+            state=mod_state,
             pick_message="Select a TAP cluster with TAP GUI installed where you would like to track:",
         )
 
@@ -181,12 +183,14 @@ class TanzuApplicationPlatformGUI:
             self.logger.msg(f"\n{response}", bold=False) if self.state["verbose"] else None
 
     def untrack_cluster(self, tap_install_namespace):
+        mod_state = self.state
+        mod_state["context"] = None
         k8s_context = commons.check_and_pick_k8s_context(
             k8s_context=None,
             k8s_helper=self.k8s_helper,
             logger=self.logger,
             ui_helper=self.ui_helper,
-            state=self.state,
+            state=mod_state,
             pick_message="Select a TAP cluster where TAP GUI is installed",
         )
 

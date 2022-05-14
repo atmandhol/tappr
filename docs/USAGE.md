@@ -8,7 +8,8 @@ $ tappr [OPTIONS] COMMAND [ARGS]...
 
 **Options**:
 
-* `--verbose / --no-verbose`: Logger verbose flag.  [default: False]
+* `--verbose / --no-verbose`: Logger verbose flag, Set env_var TAPPR_VERBOSE=true to change default to true.  [default: False]
+* `--context TEXT`: Kubernetes context to target from the KUBECONFIG, set env_var TAPPR_K8S_CONTEXT to set default
 * `--install-completion`: Install completion for the current shell.
 * `--show-completion`: Show completion for the current shell, to copy it or customize the installation.
 * `--help`: Show this message and exit.
@@ -169,7 +170,8 @@ $ tappr tap [OPTIONS] COMMAND [ARGS]...
 
 **Options**:
 
-* `--context TEXT`: Kubernetes context to target from the KUBECONFIG
+* `--verbose / --no-verbose`: Logger verbose flag, Set env_var TAPPR_VERBOSE=true to change default to true.  [default: False]
+* `--context TEXT`: Kubernetes context to target from the KUBECONFIG, set env_var TAPPR_K8S_CONTEXT to set default
 * `--help`: Show this message and exit.
 
 **Commands**:

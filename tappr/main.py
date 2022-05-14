@@ -82,21 +82,36 @@ def local_install(interactive, tool, cmd):
         typer_logger.msg(f":broken_heart: Unable to Install [yellow]{tool}[/yellow]. Use [bold]--verbose[/bold] flag for error details.")
 
 
+# noinspection PyTypedDict
 @app.callback()
 def tappr(
-    verbose: bool = typer.Option(False, help="Logger verbose flag."),
+    verbose: bool = typer.Option(False, help="Logger verbose flag, Set env_var TAPPR_VERBOSE=true to change default to true."),
+    context: str = typer.Option(None, help="Kubernetes context to target from the KUBECONFIG, set env_var TAPPR_K8S_CONTEXT to set default"),
 ):
     if verbose:
         state["verbose"] = True
+    elif os.environ.get("TAPPR_VERBOSE", "").lower() == "true":
+        state["verbose"] = True
+    if context:
+        state["context"] = context
+    elif os.environ.get("TAPPR_K8S_CONTEXT", None):
+        state["context"] = os.environ.get("TAPPR_K8S_CONTEXT")
 
 
 # noinspection PyTypedDict
 @tap_app.callback()
 def tap(
-    context: str = typer.Option(None, help="Kubernetes context to target from the KUBECONFIG"),
+    verbose: bool = typer.Option(False, help="Logger verbose flag, Set env_var TAPPR_VERBOSE=true to change default to true."),
+    context: str = typer.Option(None, help="Kubernetes context to target from the KUBECONFIG, set env_var TAPPR_K8S_CONTEXT to set default"),
 ):
+    if verbose:
+        state["verbose"] = True
+    elif os.environ.get("TAPPR_VERBOSE", "").lower() == "true":
+        state["verbose"] = True
     if context:
         state["context"] = context
+    elif os.environ.get("TAPPR_K8S_CONTEXT", None):
+        state["context"] = os.environ.get("TAPPR_K8S_CONTEXT")
 
 
 @app.command()

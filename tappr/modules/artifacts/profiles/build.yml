@@ -27,4 +27,4 @@ scanning:
     url: ""
 
 grype:
-  targetImagePullSecret: tap-registry
+  targetImagePullSecret: tanzunet-registry-creds
