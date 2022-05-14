@@ -50,20 +50,22 @@ tap_gui_helpers = TanzuApplicationPlatformGUI(
 )
 
 # noinspection PyTypeChecker
-app = typer.Typer()
+app = typer.Typer(help="CLI for Tanzu Application Platform")
 
 utils_app = typer.Typer(help="Random utils for making life easier.")
-create_cluster_app = typer.Typer(help="Create k8s clusters.")
-delete_cluster_app = typer.Typer(help="Delete k8s clusters.")
+cluster_app = typer.Typer(help="Kubernetes cluster CRUD commands")
+create_cluster_app = typer.Typer(help="Create Kubernetes clusters.")
+delete_cluster_app = typer.Typer(help="Delete Kubernetes clusters.")
 registry_app = typer.Typer(help="Manage local docker registry.")
 tap_app = typer.Typer(help="Tanzu Application Platform management.")
 local_app = typer.Typer(help="Helpers to setup your local environment.")
 tap_gui_app = typer.Typer(help="Tanzu Application Platform GUI management.")
 
-app.add_typer(create_cluster_app, name="create")
-app.add_typer(delete_cluster_app, name="delete")
+cluster_app.add_typer(create_cluster_app, name="create")
+cluster_app.add_typer(delete_cluster_app, name="delete")
+app.add_typer(cluster_app, name="cluster")
 app.add_typer(tap_app, name="tap")
-tap_app.add_typer(tap_gui_app, name="gui")
+app.add_typer(tap_gui_app, name="gui")
 app.add_typer(utils_app, name="utils")
 utils_app.add_typer(registry_app, name="registry")
 utils_app.add_typer(local_app, name="local")
@@ -132,7 +134,7 @@ def init(
     vmware_password: str = typer.Option(None, help="VMWare password"),
 ):
     """
-    Initialize the tappr cli with required creds.
+    Initialize the tappr cli with required configuration.
     """
     creds_helpers.set_config(
         tanzunet_username=tanzunet_username,
@@ -219,7 +221,7 @@ def release(
     )
 
 
-@app.command()
+@utils_app.command()
 def test(
     test_file: str,
     output: str = "stdout",
@@ -566,7 +568,7 @@ def setup(
     namespace: str = typer.Option("default", help="Developer namespace to setup"),
 ):
     """
-    Setup Dev Namespace with Git and Registry secrets.
+    Setup Developer Namespace.
 
     """
     tap_helpers.developer_ns_setup(namespace=namespace)
@@ -586,7 +588,7 @@ def edit(
     ),
 ):
     """
-    Edit tap-values yaml file. Using inline editor or file input.
+    Modify TAP Installation.
 
     """
     tap_helpers.edit_tap_values(namespace=namespace, from_file=from_file, force=force, show_current=show)
@@ -608,7 +610,7 @@ def upgrade(
     wait: bool = typer.Option(False, help="Wait for the TAP install to complete"),
 ):
     """
-    Upgrade Tanzu Application Platform to a higher version.
+    Upgrade TAP to a higher version.
 
     """
     tap_helpers.upgrade(version=version, wait=wait, namespace=namespace)
@@ -642,7 +644,7 @@ def server_ip(service: str = "server", namespace: str = "tap-gui"):
 
 
 @tap_gui_app.command()
-def list_clusters(namespace: str = typer.Option("tap-install", help="TAP installation namespace on the cluster where TAP GUI is located")):
+def list(namespace: str = typer.Option("tap-install", help="TAP installation namespace on the cluster where TAP GUI is located")):
     """
     Get a list of Clusters tracked by TAP GUI.
 
@@ -651,7 +653,7 @@ def list_clusters(namespace: str = typer.Option("tap-install", help="TAP install
 
 
 @tap_gui_app.command()
-def track_clusters(
+def track(
     namespace: str = typer.Option("tap-install", help="TAP installation namespace on the cluster where TAP GUI is located"),
     tap_viewer_sa: str = typer.Option("tap-gui-viewer", help="TAP Viewer service account in the cluster and namespace to be tracked"),
 ):
@@ -663,7 +665,7 @@ def track_clusters(
 
 
 @tap_gui_app.command()
-def untrack_clusters(namespace: str = typer.Option("tap-install", help="TAP installation namespace on the cluster where TAP GUI is located")):
+def untrack(namespace: str = typer.Option("tap-install", help="TAP installation namespace on the cluster where TAP GUI is located")):
     """
     Remove cluster credential from TAP GUI.
 

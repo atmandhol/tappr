@@ -1,5 +1,7 @@
 # `tappr`
 
+CLI for Tanzu Application Platform
+
 **Usage**:
 
 ```console
@@ -16,21 +18,39 @@ $ tappr [OPTIONS] COMMAND [ARGS]...
 
 **Commands**:
 
-* `create`: Create k8s clusters.
-* `delete`: Delete k8s clusters.
-* `init`: Initialize the tappr cli with required creds.
+* `cluster`: Kubernetes cluster CRUD commands
+* `gui`: Tanzu Application Platform GUI management.
+* `init`: Initialize the tappr cli with required...
 * `tap`: Tanzu Application Platform management.
-* `test`: Run pre-defined test on the tappr test...
 * `utils`: Random utils for making life easier.
 
-## `tappr create`
+## `tappr cluster`
 
-Create k8s clusters.
+Kubernetes cluster CRUD commands
 
 **Usage**:
 
 ```console
-$ tappr create [OPTIONS] COMMAND [ARGS]...
+$ tappr cluster [OPTIONS] COMMAND [ARGS]...
+```
+
+**Options**:
+
+* `--help`: Show this message and exit.
+
+**Commands**:
+
+* `create`: Create Kubernetes clusters.
+* `delete`: Delete Kubernetes clusters.
+
+### `tappr cluster create`
+
+Create Kubernetes clusters.
+
+**Usage**:
+
+```console
+$ tappr cluster create [OPTIONS] COMMAND [ARGS]...
 ```
 
 **Options**:
@@ -42,14 +62,14 @@ $ tappr create [OPTIONS] COMMAND [ARGS]...
 * `gke`: Create a GKE cluster.
 * `kind`: Create a multi-node kind cluster.
 
-### `tappr create gke`
+#### `tappr cluster create gke`
 
 Create a GKE cluster. Assumes gcloud is set to create clusters.
 
 **Usage**:
 
 ```console
-$ tappr create gke [OPTIONS]
+$ tappr cluster create gke [OPTIONS]
 ```
 
 **Options**:
@@ -59,14 +79,14 @@ $ tappr create gke [OPTIONS]
 * `--customize / --no-customize`: Customize the default values  [default: False]
 * `--help`: Show this message and exit.
 
-### `tappr create kind`
+#### `tappr cluster create kind`
 
 Create a multi-node kind cluster.
 
 **Usage**:
 
 ```console
-$ tappr create kind [OPTIONS] CLUSTER_NAME
+$ tappr cluster create kind [OPTIONS] CLUSTER_NAME
 ```
 
 **Arguments**:
@@ -78,14 +98,14 @@ $ tappr create kind [OPTIONS] CLUSTER_NAME
 * `--customize / --no-customize`: Customize the default config file  [default: False]
 * `--help`: Show this message and exit.
 
-## `tappr delete`
+### `tappr cluster delete`
 
-Delete k8s clusters.
+Delete Kubernetes clusters.
 
 **Usage**:
 
 ```console
-$ tappr delete [OPTIONS] COMMAND [ARGS]...
+$ tappr cluster delete [OPTIONS] COMMAND [ARGS]...
 ```
 
 **Options**:
@@ -97,14 +117,14 @@ $ tappr delete [OPTIONS] COMMAND [ARGS]...
 * `gke`: Delete a GKE cluster.
 * `kind`: Delete a kind cluster.
 
-### `tappr delete gke`
+#### `tappr cluster delete gke`
 
 Delete a GKE cluster.
 
 **Usage**:
 
 ```console
-$ tappr delete gke [OPTIONS] CLUSTER_NAME
+$ tappr cluster delete gke [OPTIONS] CLUSTER_NAME
 ```
 
 **Arguments**:
@@ -116,14 +136,14 @@ $ tappr delete gke [OPTIONS] CLUSTER_NAME
 * `--region TEXT`: [default: us-east4]
 * `--help`: Show this message and exit.
 
-### `tappr delete kind`
+#### `tappr cluster delete kind`
 
 Delete a kind cluster.
 
 **Usage**:
 
 ```console
-$ tappr delete kind [OPTIONS] CLUSTER_NAME
+$ tappr cluster delete kind [OPTIONS] CLUSTER_NAME
 ```
 
 **Arguments**:
@@ -134,9 +154,92 @@ $ tappr delete kind [OPTIONS] CLUSTER_NAME
 
 * `--help`: Show this message and exit.
 
+## `tappr gui`
+
+Tanzu Application Platform GUI management.
+
+**Usage**:
+
+```console
+$ tappr gui [OPTIONS] COMMAND [ARGS]...
+```
+
+**Options**:
+
+* `--help`: Show this message and exit.
+
+**Commands**:
+
+* `list`: Get a list of Clusters tracked by TAP GUI.
+* `server-ip`: Get the TAP GUI server external IP.
+* `track`: Add cluster credential to TAP GUI for...
+* `untrack`: Remove cluster credential from TAP GUI.
+
+### `tappr gui list`
+
+Get a list of Clusters tracked by TAP GUI.
+
+**Usage**:
+
+```console
+$ tappr gui list [OPTIONS]
+```
+
+**Options**:
+
+* `--namespace TEXT`: TAP installation namespace on the cluster where TAP GUI is located  [default: tap-install]
+* `--help`: Show this message and exit.
+
+### `tappr gui server-ip`
+
+Get the TAP GUI server external IP.
+
+**Usage**:
+
+```console
+$ tappr gui server-ip [OPTIONS]
+```
+
+**Options**:
+
+* `--service TEXT`: [default: server]
+* `--namespace TEXT`: [default: tap-gui]
+* `--help`: Show this message and exit.
+
+### `tappr gui track`
+
+Add cluster credential to TAP GUI for tracking resources on GUI.
+
+**Usage**:
+
+```console
+$ tappr gui track [OPTIONS]
+```
+
+**Options**:
+
+* `--namespace TEXT`: TAP installation namespace on the cluster where TAP GUI is located  [default: tap-install]
+* `--tap-viewer-sa TEXT`: TAP Viewer service account in the cluster and namespace to be tracked  [default: tap-gui-viewer]
+* `--help`: Show this message and exit.
+
+### `tappr gui untrack`
+
+Remove cluster credential from TAP GUI.
+
+**Usage**:
+
+```console
+$ tappr gui untrack [OPTIONS]
+```
+
+**Options**:
+
+* `--namespace TEXT`: TAP installation namespace on the cluster where TAP GUI is located  [default: tap-install]
+* `--help`: Show this message and exit.
+
 ## `tappr init`
 
-Initialize the tappr cli with required creds.
+Initialize the tappr cli with required configuration.
 
 **Usage**:
 
@@ -176,18 +279,17 @@ $ tappr tap [OPTIONS] COMMAND [ARGS]...
 
 **Commands**:
 
-* `edit`: Edit tap-values yaml file.
-* `gui`: Tanzu Application Platform GUI management.
+* `edit`: Modify TAP Installation.
 * `ingress-ip`: Get the Tanzu System Ingress External IP of...
 * `install`: Install TAP.
-* `setup`: Setup Dev Namespace with Git and Registry...
+* `setup`: Setup Developer Namespace.
 * `status`: Get TAP installation status.
 * `uninstall`: Uninstall TAP.
-* `upgrade`: Upgrade Tanzu Application Platform to a...
+* `upgrade`: Upgrade TAP to a higher version.
 
 ### `tappr tap edit`
 
-Edit tap-values yaml file. Using inline editor or file input.
+Modify TAP Installation.
 
 **Usage**:
 
@@ -201,89 +303,6 @@ $ tappr tap edit [OPTIONS]
 * `--from-file TEXT`: Yaml file path containing tap values to shallow merge (first level only) with the existing tap values on the cluster. Inline editor is not invoked if this option is used.
 * `--force / --no-force`: Force save the changes to the yaml file without any user prompt  [default: False]
 * `--show / --no-show`: Show the current content of the tap values file on the cluster in the inline editor. Defaults to false for security purposes.  [default: False]
-* `--help`: Show this message and exit.
-
-### `tappr tap gui`
-
-Tanzu Application Platform GUI management.
-
-**Usage**:
-
-```console
-$ tappr tap gui [OPTIONS] COMMAND [ARGS]...
-```
-
-**Options**:
-
-* `--help`: Show this message and exit.
-
-**Commands**:
-
-* `list-clusters`: Get a list of Clusters tracked by TAP GUI.
-* `server-ip`: Get the TAP GUI server external IP.
-* `track-clusters`: Add cluster credential to TAP GUI for...
-* `untrack-clusters`: Remove cluster credential from TAP GUI.
-
-#### `tappr tap gui list-clusters`
-
-Get a list of Clusters tracked by TAP GUI.
-
-**Usage**:
-
-```console
-$ tappr tap gui list-clusters [OPTIONS]
-```
-
-**Options**:
-
-* `--namespace TEXT`: TAP installation namespace on the cluster where TAP GUI is located  [default: tap-install]
-* `--help`: Show this message and exit.
-
-#### `tappr tap gui server-ip`
-
-Get the TAP GUI server external IP.
-
-**Usage**:
-
-```console
-$ tappr tap gui server-ip [OPTIONS]
-```
-
-**Options**:
-
-* `--service TEXT`: [default: server]
-* `--namespace TEXT`: [default: tap-gui]
-* `--help`: Show this message and exit.
-
-#### `tappr tap gui track-clusters`
-
-Add cluster credential to TAP GUI for tracking resources on GUI.
-
-**Usage**:
-
-```console
-$ tappr tap gui track-clusters [OPTIONS]
-```
-
-**Options**:
-
-* `--namespace TEXT`: TAP installation namespace on the cluster where TAP GUI is located  [default: tap-install]
-* `--tap-viewer-sa TEXT`: TAP Viewer service account in the cluster and namespace to be tracked  [default: tap-gui-viewer]
-* `--help`: Show this message and exit.
-
-#### `tappr tap gui untrack-clusters`
-
-Remove cluster credential from TAP GUI.
-
-**Usage**:
-
-```console
-$ tappr tap gui untrack-clusters [OPTIONS]
-```
-
-**Options**:
-
-* `--namespace TEXT`: TAP installation namespace on the cluster where TAP GUI is located  [default: tap-install]
 * `--help`: Show this message and exit.
 
 ### `tappr tap ingress-ip`
@@ -327,7 +346,7 @@ $ tappr tap install [OPTIONS] PROFILE:[iterate-local|iterate-slim|iterate|build|
 
 ### `tappr tap setup`
 
-Setup Dev Namespace with Git and Registry secrets.
+Setup Developer Namespace.
 
 **Usage**:
 
@@ -373,7 +392,7 @@ $ tappr tap uninstall [OPTIONS]
 
 ### `tappr tap upgrade`
 
-Upgrade Tanzu Application Platform to a higher version.
+Upgrade TAP to a higher version.
 
 **Usage**:
 
@@ -389,29 +408,6 @@ $ tappr tap upgrade [OPTIONS] VERSION
 
 * `--namespace TEXT`: TAP installation namespace  [default: tap-install]
 * `--wait / --no-wait`: Wait for the TAP install to complete  [default: False]
-* `--help`: Show this message and exit.
-
-## `tappr test`
-
-Run pre-defined test on the tappr test framework.
-
-- test_file: test yaml file that defines the tests to run and context
-
-output: Defaults to stdout. Change to something else for a file output
-
-**Usage**:
-
-```console
-$ tappr test [OPTIONS] TEST_FILE
-```
-
-**Arguments**:
-
-* `TEST_FILE`: [required]
-
-**Options**:
-
-* `--output TEXT`: [default: stdout]
 * `--help`: Show this message and exit.
 
 ## `tappr utils`
@@ -434,6 +430,7 @@ $ tappr utils [OPTIONS] COMMAND [ARGS]...
 * `local`: Helpers to setup your local environment.
 * `registry`: Manage local docker registry.
 * `release`: Generate GitHub/Gitlab release notes from git...
+* `test`: Run pre-defined test on the tappr test...
 
 ### `tappr utils changelog`
 
@@ -605,5 +602,28 @@ $ tappr utils release [OPTIONS] SINCE_VER RELEASE_VER TEMPLATE_FILE PR_PATH
 * `--ignore-dependabot-commits / --no-ignore-dependabot-commits`: Dependabot commits will be ignored from the release notes  [default: True]
 * `--ignore-docs-commits / --no-ignore-docs-commits`: Docs commits will be ignored from the release notes  [default: True]
 * `--output TEXT`: Filename where the release notes output will be stored  [default: stdout]
+* `--help`: Show this message and exit.
+
+### `tappr utils test`
+
+Run pre-defined test on the tappr test framework.
+
+- test_file: test yaml file that defines the tests to run and context
+
+output: Defaults to stdout. Change to something else for a file output
+
+**Usage**:
+
+```console
+$ tappr utils test [OPTIONS] TEST_FILE
+```
+
+**Arguments**:
+
+* `TEST_FILE`: [required]
+
+**Options**:
+
+* `--output TEXT`: [default: stdout]
 * `--help`: Show this message and exit.
 
