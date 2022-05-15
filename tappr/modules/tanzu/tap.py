@@ -470,7 +470,7 @@ class TanzuApplicationPlatform:
                 else:
                     default = ""
                 data = self.ui_helper.yaml_prompt(
-                    message="Enter tap-values.yaml file updates. Press [ESC] and then [ENTER] when you are done\n",
+                    message="Update TAP Values YAML File",
                     auto_complete_list=auto_complete_list,
                     default=default,
                 )

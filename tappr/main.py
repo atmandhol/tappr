@@ -350,7 +350,7 @@ def kind(cluster_name, customize: bool = typer.Option(False, help="Customize the
 
     if customize:
         kind_config = ui_helpers.yaml_prompt(
-            message="Press [ESC] and then [ENTER] when you are done\n",
+            message="KinD Configuration YAML",
             auto_complete_list=[],
             default=kind_config,
         )
@@ -428,7 +428,7 @@ def gke(
     cco = dict()
     if customize:
         data = ui_helpers.yaml_prompt(
-            message="Press [ESC] and then [ENTER] when you are done\n",
+            message="GKE Configuration JSON",
             auto_complete_list=auto_complete_list,
             default=json.dumps(ccd, indent=2, sort_keys=True),
         )

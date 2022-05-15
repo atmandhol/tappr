@@ -3,12 +3,12 @@ import curses
 from dataclasses import dataclass, field
 from typing import List, Optional, Callable, Dict
 from rich.progress import Progress, SpinnerColumn, TimeElapsedColumn, TextColumn
-
+from rich.console import Console
 from pygments.lexers import YamlLexer
 from pygments.styles import get_style_by_name
 from prompt_toolkit.styles.pygments import style_from_pygments_cls
 from prompt_toolkit.lexers import PygmentsLexer
-from prompt_toolkit import prompt
+from prompt_toolkit import prompt, HTML
 from prompt_toolkit.completion import WordCompleter
 
 
@@ -16,6 +16,8 @@ KEYS_ENTER = (curses.KEY_ENTER, ord("\n"), ord("\r"))
 KEYS_UP = (curses.KEY_UP, ord("k"))
 KEYS_DOWN = (curses.KEY_DOWN, ord("j"))
 KEYS_SELECT = (curses.KEY_RIGHT, ord(" "))
+
+console = Console()
 
 
 # noinspection PyTypeChecker,PyBroadException
@@ -185,13 +187,14 @@ class UI:
     # noinspection PyTypeChecker
     @staticmethod
     def yaml_prompt(message, auto_complete_list=None, default=""):
-        style = style_from_pygments_cls(get_style_by_name("monokai"))
+        console.rule(f"{message}")
+        style = style_from_pygments_cls(get_style_by_name("native"))
         if auto_complete_list:
             auto_complete_list = WordCompleter(auto_complete_list)
         else:
             auto_complete_list = list()
         return prompt(
-            message=message,
+            bottom_toolbar=HTML('Press <b><style bg="ansired">[ESC]</style></b> and <b><style bg="ansired">[ENTER]</style></b> when you are done'),
             lexer=PygmentsLexer(YamlLexer),
             style=style,
             include_default_pygments_style=False,
