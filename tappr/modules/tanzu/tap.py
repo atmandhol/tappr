@@ -515,8 +515,8 @@ class TanzuApplicationPlatform:
         commons.check_and_pick_k8s_context(
             k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
         )
-
-        install_registry_hostname = self.creds_helper.get("default_tap_install_registry", "INSTALL_REGISTRY_HOSTNAME")
+        # TODO: Make this configurable from tappr init
+        install_registry_hostname = "registry.tanzu.vmware.com"
 
         cmd = f"tanzu package installed list --namespace {namespace}"
         _, out, _ = self.sh.run_proc(cmd=cmd)
