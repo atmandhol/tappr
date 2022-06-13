@@ -49,6 +49,7 @@ rules:
 - apiGroups: ['source.apps.tanzu.vmware.com']
   resources:
   - imagerepositories
+  - mavenartifacts
   verbs: ['get', 'watch', 'list']
 - apiGroups: ['conventions.apps.tanzu.vmware.com']
   resources:
@@ -85,7 +86,7 @@ rules:
   resources: [gitrepositories]
   verbs: ['*']
 - apiGroups: [source.apps.tanzu.vmware.com]
-  resources: [imagerepositories]
+  resources: [imagerepositories, mavenartifacts]
   verbs: ['*']
 - apiGroups: [carto.run]
   resources: [deliverables, runnables]
