@@ -18,7 +18,8 @@ buildservice:
   tanzunet_secret:
     name: tanzunet-registry-creds-tbs
     namespace: $INSTALL_NS
-  enable_automatic_dependency_updates: false
+  enable_automatic_dependency_updates: true
+  descriptor_name: full
 
 excluded_packages:
 - build.appliveview.tanzu.vmware.com
