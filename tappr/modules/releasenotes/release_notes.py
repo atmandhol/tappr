@@ -90,9 +90,7 @@ class ReleaseNotes:
         else:
             open(output, "w").write(rl_format)
 
-    def generate_feature_release_description(
-        self, added_list, changes_list, deprecated_list, removed_list, fixes_list, docs_list, unknown_list, dependabot_list
-    ):
+    def generate_feature_release_description(self, added_list, changes_list, deprecated_list, removed_list, fixes_list, docs_list, unknown_list, dependabot_list):
         # TODO: Add support for Docs changes and Dependency changes in release notes
         features_str = str()
         bug_str = str()

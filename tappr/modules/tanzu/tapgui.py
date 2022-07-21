@@ -28,12 +28,8 @@ class TanzuApplicationPlatformGUI:
         return self.ui_helper.sh_call(cmd=cmd, msg=msg, spinner_msg=spinner_msg, error_msg=error_msg, state=self.state)
 
     def server_ip(self, service: str, namespace: str):
-        k8s_context = commons.check_and_pick_k8s_context(
-            k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
-        )
-        success, response = self.k8s_helper.get_namespaced_service(
-            service=service, namespace=namespace, client=self.k8s_helper.core_clients[k8s_context]
-        )
+        k8s_context = commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
+        success, response = self.k8s_helper.get_namespaced_service(service=service, namespace=namespace, client=self.k8s_helper.core_clients[k8s_context])
         if success:
             try:
                 # This fails when you try to get a public ip when contour is not installed as load balancer,
@@ -73,9 +69,7 @@ class TanzuApplicationPlatformGUI:
             self.logger.msg(f":cry: Unable to get secret name for the service account." + f"Error: {err}" if self.state["verbose"] else "")
             raise typer.Exit(-1)
 
-        success, secret = self.k8s_helper.get_namespaced_secret(
-            client=self.k8s_helper.core_clients[k8s_context], secret=source_secret_name, namespace=source_namespace
-        )
+        success, secret = self.k8s_helper.get_namespaced_secret(client=self.k8s_helper.core_clients[k8s_context], secret=source_secret_name, namespace=source_namespace)
 
         if not success:
             self.logger.msg(f":cry: Unable to get secret {source_secret_name} from namespace {source_namespace}")
@@ -115,9 +109,7 @@ class TanzuApplicationPlatformGUI:
         # tap_version_installed = response["spec"]["packageRef"]["versionSelection"]["constraints"]
         tap_values_secret_name = response["spec"]["values"][0]["secretRef"]["name"]
 
-        success, response = self.k8s_helper.get_namespaced_secret(
-            secret=tap_values_secret_name, namespace=tap_install_namespace, client=self.k8s_helper.core_clients[k8s_context]
-        )
+        success, response = self.k8s_helper.get_namespaced_secret(secret=tap_values_secret_name, namespace=tap_install_namespace, client=self.k8s_helper.core_clients[k8s_context])
 
         if not success:
             self.logger.msg(f":cry: Unable to get secret {tap_values_secret_name} from namespace {tap_install_namespace}")
@@ -210,9 +202,7 @@ class TanzuApplicationPlatformGUI:
         # tap_version_installed = response["spec"]["packageRef"]["versionSelection"]["constraints"]
         tap_values_secret_name = response["spec"]["values"][0]["secretRef"]["name"]
 
-        success, response = self.k8s_helper.get_namespaced_secret(
-            secret=tap_values_secret_name, namespace=tap_install_namespace, client=self.k8s_helper.core_clients[k8s_context]
-        )
+        success, response = self.k8s_helper.get_namespaced_secret(secret=tap_values_secret_name, namespace=tap_install_namespace, client=self.k8s_helper.core_clients[k8s_context])
 
         if not success:
             self.logger.msg(f":cry: Unable to get secret {tap_values_secret_name} from namespace {tap_install_namespace}")
@@ -227,9 +217,7 @@ class TanzuApplicationPlatformGUI:
             raise typer.Exit(1)
 
         option, _ = Picker([c["name"] for c in clusters], "Pick a cluster to untrack:").start()
-        new_clusters_list = [
-            x for x in tap_values["tap_gui"]["app_config"]["kubernetes"]["clusterLocatorMethods"][0]["clusters"] if x["name"] != option
-        ]
+        new_clusters_list = [x for x in tap_values["tap_gui"]["app_config"]["kubernetes"]["clusterLocatorMethods"][0]["clusters"] if x["name"] != option]
 
         if not new_clusters_list:
             del tap_values["tap_gui"]["app_config"]["kubernetes"]
@@ -239,9 +227,7 @@ class TanzuApplicationPlatformGUI:
         # hack: TODO: if the data object structure changes, it will have to be adjusted here. currently I assume there is only 1 key
         data_key = list(response.data.keys())[0]
         body = {"data": {data_key: base64.b64encode(yaml.safe_dump(tap_values).encode()).decode()}}
-        success, response = self.k8s_helper.patch_namespaced_secret(
-            client=self.k8s_helper.core_clients[k8s_context], secret=tap_values_secret_name, namespace=tap_install_namespace, body=body
-        )
+        success, response = self.k8s_helper.patch_namespaced_secret(client=self.k8s_helper.core_clients[k8s_context], secret=tap_values_secret_name, namespace=tap_install_namespace, body=body)
 
         if not success:
             self.logger.msg(":broken_heart: Unable to edit the configuration secret on TAP cluster. Try again later.")
@@ -258,9 +244,7 @@ class TanzuApplicationPlatformGUI:
             pick_message="Select a TAP cluster with TAP GUI installed:",
         )
 
-        success, response = commons.get_tap_values(
-            k8s_helper=self.k8s_helper, k8s_context=k8s_context, namespace=namespace, logger=self.logger, state=self.state
-        )
+        success, response = commons.get_tap_values(k8s_helper=self.k8s_helper, k8s_context=k8s_context, namespace=namespace, logger=self.logger, state=self.state)
 
         if success:
             clusters = commons.get_tap_gui_cluster_from_tap_values(tap_values_secret_response=response, logger=self.logger)

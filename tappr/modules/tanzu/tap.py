@@ -166,9 +166,7 @@ class TanzuApplicationPlatform:
         return self.ui_helper.sh_call(cmd=cmd, msg=msg, spinner_msg=spinner_msg, error_msg=error_msg, state=self.state)
 
     def tap_install(self, profile, version, host_os, tap_values_file, wait: bool, namespace: str = "tap-install"):
-        k8s_context = commons.check_and_pick_k8s_context(
-            k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
-        )
+        k8s_context = commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
         hash_str = str(profile + version)
         tmp_dir = f"/tmp/{hashlib.md5(hash_str.encode()).hexdigest()}"
         self.logger.msg(f":file_folder: Staging Installation Dir is at [yellow]{tmp_dir}[/yellow]", bold=False)
@@ -362,18 +360,14 @@ class TanzuApplicationPlatform:
         return
 
     def developer_ns_setup(self, namespace):
-        k8s_context = commons.check_and_pick_k8s_context(
-            k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
-        )
+        k8s_context = commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
         ns_list = commons.get_ns_list(k8s_helper=self.k8s_helper, client=self.k8s_helper.core_clients[k8s_context])
         if namespace not in ns_list:
             self.logger.msg(f":construction: Creating [yellow]{namespace}[/yellow] as it does not exist.")
             success, response = self.k8s_helper.create_namespace(namespace=namespace, client=self.k8s_helper.core_clients[k8s_context])
             if not success:
                 self.logger.msg(f"Error response {response}") if self.state["verbose"] else None
-                self.logger.msg(
-                    ":broken_heart: Unable to create namespace [yellow]{namespace}[/yellow]. Use [bold]--verbose[/bold] flag for error details."
-                )
+                self.logger.msg(":broken_heart: Unable to create namespace [yellow]{namespace}[/yellow]. Use [bold]--verbose[/bold] flag for error details.")
                 raise typer.Exit(-1)
             ns_list = commons.get_ns_list(k8s_helper=self.k8s_helper, client=self.k8s_helper.core_clients[k8s_context])
             if namespace not in ns_list:
@@ -404,12 +398,8 @@ class TanzuApplicationPlatform:
             raise typer.Exit(-1)
 
     def ingress_ip(self, service: str, namespace: str):
-        k8s_context = commons.check_and_pick_k8s_context(
-            k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
-        )
-        success, response = self.k8s_helper.get_namespaced_service(
-            service=service, namespace=namespace, client=self.k8s_helper.core_clients[k8s_context]
-        )
+        k8s_context = commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
+        success, response = self.k8s_helper.get_namespaced_service(service=service, namespace=namespace, client=self.k8s_helper.core_clients[k8s_context])
         if success:
             try:
                 # This fails when you try to get a public ip when contour is not installed as load balancer,
@@ -423,9 +413,7 @@ class TanzuApplicationPlatform:
             self.logger.msg(f"\n{response}", bold=False) if self.state["verbose"] else None
 
     def edit_tap_values(self, namespace: str, from_file: str, force: bool, show_current: bool):
-        k8s_context = commons.check_and_pick_k8s_context(
-            k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
-        )
+        k8s_context = commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
 
         success, response = commons.get_custom_object_data(
             k8s_helper=self.k8s_helper,
@@ -443,9 +431,7 @@ class TanzuApplicationPlatform:
         # tap_version_installed = response["spec"]["packageRef"]["versionSelection"]["constraints"]
         tap_values_secret_name = response["spec"]["values"][0]["secretRef"]["name"]
 
-        success, response = self.k8s_helper.get_namespaced_secret(
-            secret=tap_values_secret_name, namespace=namespace, client=self.k8s_helper.core_clients[k8s_context]
-        )
+        success, response = self.k8s_helper.get_namespaced_secret(secret=tap_values_secret_name, namespace=namespace, client=self.k8s_helper.core_clients[k8s_context])
 
         if success:
             new_cluster_tap_values = str()
@@ -499,9 +485,7 @@ class TanzuApplicationPlatform:
             # hack: TODO: if the data object structure changes, it will have to be adjusted here. currently I assume there is only 1 key
             data_key = list(response.data.keys())[0]
             body = {"data": {data_key: base64.b64encode(yaml.safe_dump(new_cluster_tap_values).encode()).decode()}}
-            success, response = self.k8s_helper.patch_namespaced_secret(
-                client=self.k8s_helper.core_clients[k8s_context], secret=tap_values_secret_name, namespace=namespace, body=body
-            )
+            success, response = self.k8s_helper.patch_namespaced_secret(client=self.k8s_helper.core_clients[k8s_context], secret=tap_values_secret_name, namespace=namespace, body=body)
             if not success:
                 self.logger.msg(":broken_heart: Unable to edit the configuration secret on TAP cluster. Try again later.")
                 self.logger.msg(f"\n{response}", bold=False) if self.state["verbose"] else None
@@ -512,9 +496,7 @@ class TanzuApplicationPlatform:
             self.logger.msg(f"\n{response}", bold=False) if self.state["verbose"] else None
 
     def upgrade(self, version: str, wait: bool, namespace: str = "tap-install"):
-        commons.check_and_pick_k8s_context(
-            k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
-        )
+        commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
         # TODO: Make this configurable from tappr init
         install_registry_hostname = "registry.tanzu.vmware.com"
 
@@ -545,9 +527,7 @@ class TanzuApplicationPlatform:
             self.logger.msg(":rocket: TAP upgrade started on the cluster")
 
     def uninstall(self, package: str, namespace: str = "tap-install"):
-        commons.check_and_pick_k8s_context(
-            k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
-        )
+        commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
         self.sh_call(
             cmd=f"tanzu package installed delete {package} --namespace {namespace} --yes",
             msg=f":wine_glass: Uninstalling [yellow]TAP[/yellow]",
@@ -557,9 +537,7 @@ class TanzuApplicationPlatform:
         self.logger.msg(":rocket: TAP is uninstalled")
 
     def status(self, namespace: str = "tap-install"):
-        k8s_context = commons.check_and_pick_k8s_context(
-            k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
-        )
+        k8s_context = commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
         success, response = self.k8s_helper.list_namespaced_custom_objects(
             group="packaging.carvel.dev",
             version="v1alpha1",
@@ -572,17 +550,11 @@ class TanzuApplicationPlatform:
             for item in response["items"]:
                 if "status" in item:
                     if item["status"]["conditions"][0]["type"] == "ReconcileSucceeded":
-                        rprint(
-                            f":package: {item['metadata']['name']} [cyan]{item['status']['version']}[/cyan] has [bold][green]Reconciled[/green][/bold]"
-                        )
+                        rprint(f":package: {item['metadata']['name']} [cyan]{item['status']['version']}[/cyan] has [bold][green]Reconciled[/green][/bold]")
                     elif item["status"]["conditions"][0]["type"] == "Reconciling":
-                        rprint(
-                            f":package: {item['metadata']['name']} [cyan]{item['status']['version']}[/cyan] is [bold][yellow]Reconciling[/yellow][/bold]"
-                        )
+                        rprint(f":package: {item['metadata']['name']} [cyan]{item['status']['version']}[/cyan] is [bold][yellow]Reconciling[/yellow][/bold]")
                     elif item["status"]["conditions"][0]["type"] == "Deleting":
-                        rprint(
-                            f":package: {item['metadata']['name']} [cyan]{item['status']['version']}[/cyan] is [bold][yellow]Reconciling[/yellow][/bold]"
-                        )
+                        rprint(f":package: {item['metadata']['name']} [cyan]{item['status']['version']}[/cyan] is [bold][yellow]Reconciling[/yellow][/bold]")
                     else:
                         errs.append([item["metadata"]["name"], item["status"]["version"], item["status"]["conditions"][0]["type"], item["status"]])
             if len(errs) > 0:

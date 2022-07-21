@@ -21,8 +21,7 @@ class TestFramework:
             test_data = json.loads(open(test_file, "r").read())
         except Exception:
             self.logger.msg(
-                f":broken_heart: Invalid json test file structure in file {test_file}. Make sure it follows the following structure.\n"
-                '{"tests": [], "context": {}}',
+                f":broken_heart: Invalid json test file structure in file {test_file}. Make sure it follows the following structure.\n" '{"tests": [], "context": {}}',
                 bold=False,
             )
             raise typer.Exit(-1)
@@ -48,9 +47,7 @@ class TestFramework:
                 # check if return code is acceptable
                 acceptable_codes = test.get("acceptable_exit_code")
                 if acceptable_codes and proc.returncode not in acceptable_codes:
-                    self.logger.msg(
-                        f":cry: Command [yellow]{run_cmd}[/yellow] returned exit code [red]{proc.returncode}[/red] which is not in the allowed list {acceptable_codes}"
-                    )
+                    self.logger.msg(f":cry: Command [yellow]{run_cmd}[/yellow] returned exit code [red]{proc.returncode}[/red] which is not in the allowed list {acceptable_codes}")
                     raise typer.Exit(-1)
                 if test.get("fail_on_stderr", True) and err:
                     self.logger.msg(f":cry: Command failed. stderr: [red]{err}[/red]")

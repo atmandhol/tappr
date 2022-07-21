@@ -1,0 +1,64 @@
+appliveview:
+  ingressDomain: appliveview.127.0.0.1.nip.io
+  ingressEnabled: 'true'
+
+appliveview_connector:
+  backend:
+    host: 127.0.0.1.nip.io
+    sslDisabled: 'true'
+
+buildservice:
+  kp_default_repository: $REGISTRY_SERVER/$REGISTRY_TBS_REPO
+  kp_default_repository_secret:
+    name: registry-credentials-tbs
+    namespace: $INSTALL_NS
+  tanzunet_secret:
+    name: tanzunet-registry-creds-tbs
+    namespace: $INSTALL_NS
+  enable_automatic_dependency_updates: true
+  descriptor_name: full
+
+ceip_policy_disclosed: true
+
+cnrs:
+  domain_name: "127.0.0.1.nip.io"
+
+contour:
+  envoy:
+    service:
+      type: LoadBalancer
+
+learningcenter:
+  ingressDomain: learning.example.com
+
+metadata_store:
+  app_service_type: NodePort
+
+ootb_supply_chain_basic:
+  registry:
+    server: $REGISTRY_SERVER
+    repository: $REGISTRY_TBS_REPO
+  gitops:
+    ssh_secret: ""
+  # maven:
+    # repository:
+      # secret_name: maven-creds
+      # url:
+
+profile: full
+supply_chain: basic
+tap_gui:
+  app_config:
+    app:
+      baseUrl: http://tap-gui.127.0.0.1.nip.io
+    backend:
+      baseUrl: http://tap-gui.127.0.0.1.nip.io
+      cors:
+        origin: http://tap-gui.127.0.0.1.nip.io
+    catalog:
+      locations:
+      - target: https://github.com/atmandhol/tap-blank-catalog/blob/main/catalog-info.yaml
+        type: url
+  ingressDomain: 127.0.0.1.nip.io
+  ingressEnabled: 'true'
+  service_type: LoadBalancer

@@ -29,6 +29,7 @@ class OS(str, Enum):
 
 
 class PROFILE(str, Enum):
+    FULL = "full"
     ITERATE_LOCAL = "iterate-local"
     ITERATE_SLIM = "iterate-slim"
     ITERATE = "iterate"

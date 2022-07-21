@@ -27,9 +27,7 @@ class CredsHelper:
             configs = json.loads(open(f'{os.environ.get("HOME")}/.config/tappr/config', "r").read())
 
         if tanzunet_username is None:
-            tanzunet_username = str(
-                Prompt.ask(f":person_raising_hand: Tanzu Network Username", default=configs["tanzunet_username"] if configs else None)
-            )
+            tanzunet_username = str(Prompt.ask(f":person_raising_hand: Tanzu Network Username", default=configs["tanzunet_username"] if configs else None))
         if tanzunet_password is None:
             tanzunet_password = str(
                 Prompt.ask(
@@ -79,9 +77,7 @@ class CredsHelper:
                 )
             )
         if registry_tap_package_repo is None:
-            registry_tap_package_repo = str(
-                Prompt.ask(f":convenience_store: TAP package repo", default=configs["registry_tap_package_repo"] if configs else None)
-            )
+            registry_tap_package_repo = str(Prompt.ask(f":convenience_store: TAP package repo", default=configs["registry_tap_package_repo"] if configs else None))
         if vmware_username is None:
             vmware_username = str(
                 Prompt.ask(
