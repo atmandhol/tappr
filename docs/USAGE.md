@@ -61,6 +61,7 @@ $ tappr cluster create [OPTIONS] COMMAND [ARGS]...
 
 * `gke`: Create a GKE cluster.
 * `kind`: Create a multi-node kind cluster.
+* `minikube`: Create a minikube cluster.
 
 #### `tappr cluster create gke`
 
@@ -98,6 +99,30 @@ $ tappr cluster create kind [OPTIONS] CLUSTER_NAME
 * `--customize / --no-customize`: Customize the default config file  [default: False]
 * `--help`: Show this message and exit.
 
+#### `tappr cluster create minikube`
+
+Create a minikube cluster.
+
+**Usage**:
+
+```console
+$ tappr cluster create minikube [OPTIONS] CLUSTER_NAME
+```
+
+**Arguments**:
+
+* `CLUSTER_NAME`: [required]
+
+**Options**:
+
+* `--cpus TEXT`: Number of CPUs to allot for cluster  [default: max]
+* `--memory TEXT`: Amount of memory to allot for cluster  [default: max]
+* `--driver TEXT`: minikube driver to use to create clusters. Other options are virtualbox, parallels, vmwarefusion, hyperkit, vmware, docker  [default: docker]
+* `--embed-certs / --no-embed-certs`: if true, will embed the certs present at $HOME/.minikube/certs/ in kubeconfig  [default: False]
+* `--k8s-version TEXT`: Kubernetes version  [default: stable]
+* `--dns-domain TEXT`: The cluster dns domain name used in the Kubernetes cluster  [default: cluster.local]
+* `--help`: Show this message and exit.
+
 ### `tappr cluster delete`
 
 Delete Kubernetes clusters.
@@ -116,6 +141,7 @@ $ tappr cluster delete [OPTIONS] COMMAND [ARGS]...
 
 * `gke`: Delete a GKE cluster.
 * `kind`: Delete a kind cluster.
+* `minikube`: Delete a minikube cluster.
 
 #### `tappr cluster delete gke`
 
@@ -144,6 +170,24 @@ Delete a kind cluster.
 
 ```console
 $ tappr cluster delete kind [OPTIONS] CLUSTER_NAME
+```
+
+**Arguments**:
+
+* `CLUSTER_NAME`: [required]
+
+**Options**:
+
+* `--help`: Show this message and exit.
+
+#### `tappr cluster delete minikube`
+
+Delete a minikube cluster.
+
+**Usage**:
+
+```console
+$ tappr cluster delete minikube [OPTIONS] CLUSTER_NAME
 ```
 
 **Arguments**:
@@ -328,12 +372,12 @@ Install TAP. Make sure to run tappr init before installing TAP.
 **Usage**:
 
 ```console
-$ tappr tap install [OPTIONS] PROFILE:[iterate-local|iterate-slim|iterate|build|build-slim|build-essential|run|run-local|view] VERSION
+$ tappr tap install [OPTIONS] PROFILE:[full|iterate-local|iterate-slim|iterate|build|build-slim|build-essential|run|run-local|view] VERSION
 ```
 
 **Arguments**:
 
-* `PROFILE:[iterate-local|iterate-slim|iterate|build|build-slim|build-essential|run|run-local|view]`: [required]
+* `PROFILE:[full|iterate-local|iterate-slim|iterate|build|build-slim|build-essential|run|run-local|view]`: [required]
 * `VERSION`: [required]
 
 **Options**:
