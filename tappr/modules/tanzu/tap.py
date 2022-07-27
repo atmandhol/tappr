@@ -133,19 +133,18 @@ auto_complete_list = [
     "add_default_rw_service_account",
     "enable_automatic_dependency_updates",
 ]
-
 pivnet_products = {
     "darwin": {
-        "CLI_BUNDLE": "1178279",
-        "CLUSTER_ESSENTIALS_BUNDLE": "1191985",
-        "CLUSTER_ESSENTIALS_BUNDLE_SHA": "registry.tanzu.vmware.com/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:ab0a3539da241a6ea59c75c0743e9058511d7c56312ea3906178ec0f3491f51d",
-        "VERSION": "1.1.0",
+        "CLI_BUNDLE": "1246418",
+        "CLUSTER_ESSENTIALS_BUNDLE": "1263761",
+        "CLUSTER_ESSENTIALS_BUNDLE_SHA": "registry.tanzu.vmware.com/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:e00f33b92d418f49b1af79f42cb13d6765f1c8c731f4528dfff8343af042dc3e",
+        "VERSION": "1.2.0",
     },
     "linux": {
-        "CLI_BUNDLE": "1178280",
-        "CLUSTER_ESSENTIALS_BUNDLE": "1191987",
-        "CLUSTER_ESSENTIALS_BUNDLE_SHA": "registry.tanzu.vmware.com/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:ab0a3539da241a6ea59c75c0743e9058511d7c56312ea3906178ec0f3491f51d",
-        "VERSION": "1.1.0",
+        "CLI_BUNDLE": "1246421",
+        "CLUSTER_ESSENTIALS_BUNDLE": "1263760",
+        "CLUSTER_ESSENTIALS_BUNDLE_SHA": "registry.tanzu.vmware.com/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:e00f33b92d418f49b1af79f42cb13d6765f1c8c731f4528dfff8343af042dc3e",
+        "VERSION": "1.2.0",
     },
 }
 
