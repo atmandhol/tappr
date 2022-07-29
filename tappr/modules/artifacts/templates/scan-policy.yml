@@ -6,26 +6,36 @@ metadata:
     addons.tappr/scanpolicies: "true"
 spec:
   regoFile: |
-    package policies
-
-    default isCompliant = false
+    package main
 
     # Accepted Values: "Critical", "High", "Medium", "Low", "Negligible", "UnknownSeverity"
-    violatingSeverities := ["Critical"]
-    ignoreCVEs := []
+    notAllowedSeverities := ["Critical","High","UnknownSeverity"]
+    ignoreCves := []
 
     contains(array, elem) = true {
       array[_] = elem
     } else = false { true }
 
     isSafe(match) {
-      fails := contains(violatingSeverities, match.Ratings.Rating[_].Severity)
+      severities := { e | e := match.ratings.rating.severity } | { e | e := match.ratings.rating[_].severity }
+      some i
+      fails := contains(notAllowedSeverities, severities[i])
       not fails
     }
 
     isSafe(match) {
-      ignore := contains(ignoreCVEs, match.Id)
+      ignore := contains(ignoreCves, match.id)
       ignore
     }
 
-    isCompliant = isSafe(input.currentVulnerability)
+    deny[msg] {
+      comps := { e | e := input.bom.components.component } | { e | e := input.bom.components.component[_] }
+      some i
+      comp := comps[i]
+      vulns := { e | e := comp.vulnerabilities.vulnerability } | { e | e := comp.vulnerabilities.vulnerability[_] }
+      some j
+      vuln := vulns[j]
+      ratings := { e | e := vuln.ratings.rating.severity } | { e | e := vuln.ratings.rating[_].severity }
+      not isSafe(vuln)
+      msg = sprintf("CVE %s %s %s", [comp.name, vuln.id, ratings])
+    }
