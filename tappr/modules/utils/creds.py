@@ -21,6 +21,7 @@ class CredsHelper:
         registry_tap_package_repo,
         vmware_username,
         vmware_password,
+        install_registry_server="registry.tanzu.vmware.com",
     ):
         configs = None
         if os.path.isfile(f'{os.environ.get("HOME")}/.config/tappr/config'):
@@ -46,25 +47,33 @@ class CredsHelper:
                     password=True,
                 )
             )
+        if install_registry_server is None:
+            install_registry_server = str(
+                Prompt.ask(
+                    f":convenience_store: Install Registry Server (e.g. registry.tanzu.vmware.com)",
+                    default=configs["install_registry_server"] if "install_registry_server" in configs else None,
+                )
+            )
+
         if registry_server is None:
             registry_server = str(
                 Prompt.ask(
                     f":convenience_store: Default Registry Server (e.g. gcr.io, index.docker.com)",
-                    default=configs["registry_server"] if configs else None,
+                    default=configs["registry_server"] if "registry_server" in configs else None,
                 )
             )
         if registry_username is None:
             registry_username = str(
                 Prompt.ask(
                     f":convenience_store: Registry Username (use _json_key for gcr.io)",
-                    default=configs["registry_username"] if configs else None,
+                    default=configs["registry_username"] if "registry_username" in configs else None,
                 )
             )
         if registry_password is None:
             registry_password = str(
                 Prompt.ask(
                     f":speak-no-evil_monkey: Registry Password (Use absolute path to json key file path for gcr.io) [bold][cyan]({'**' + configs['registry_password'][-8:] if configs else None})[/cyan]",
-                    default=configs["registry_password"] if configs else None,
+                    default=configs["registry_password"] if "registry_password" in configs else None,
                     show_default=False,
                     password=True,
                 )
@@ -104,6 +113,7 @@ class CredsHelper:
                         "tanzunet_username": tanzunet_username,
                         "tanzunet_password": tanzunet_password,
                         "pivnet_uaa_token": pivnet_uaa_token,
+                        "install_registry_server": install_registry_server,
                         "registry_server": registry_server,
                         "registry_username": registry_username,
                         "registry_password": registry_password,

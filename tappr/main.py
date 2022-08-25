@@ -121,6 +121,7 @@ def init(
     tanzunet_username: str = typer.Option(None, help="Tanzu Network Username."),
     tanzunet_password: str = typer.Option(None, help="Tanzu Network Password."),
     pivnet_uaa_token: str = typer.Option(None, help="Pivnet UAA Login Token used to download artifacts."),
+    install_registry_server: str = typer.Option(None, help="Registry where the TAP packages are"),
     registry_server: str = typer.Option(None, help="Default registry server to use while installing tap. e.g. gcr.io, index.docker.io etc."),
     registry_tap_package_repo: str = typer.Option(None, help="Default registry repo on the registry server to use for relocating TAP packages to."),
     registry_tbs_repo: str = typer.Option(None, help="Default registry repo on the registry server to use for build service. Don't include the registry server or starting /."),
@@ -135,6 +136,7 @@ def init(
     creds_helpers.set_config(
         tanzunet_username=tanzunet_username,
         tanzunet_password=tanzunet_password,
+        install_registry_server=install_registry_server,
         pivnet_uaa_token=pivnet_uaa_token,
         registry_server=registry_server,
         registry_username=registry_username,

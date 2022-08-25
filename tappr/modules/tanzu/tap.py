@@ -133,20 +133,6 @@ auto_complete_list = [
     "add_default_rw_service_account",
     "enable_automatic_dependency_updates",
 ]
-pivnet_products = {
-    "darwin": {
-        "CLI_BUNDLE": "1246418",
-        "CLUSTER_ESSENTIALS_BUNDLE": "1263761",
-        "CLUSTER_ESSENTIALS_BUNDLE_SHA": "registry.tanzu.vmware.com/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:e00f33b92d418f49b1af79f42cb13d6765f1c8c731f4528dfff8343af042dc3e",
-        "VERSION": "1.2.0",
-    },
-    "linux": {
-        "CLI_BUNDLE": "1246421",
-        "CLUSTER_ESSENTIALS_BUNDLE": "1263760",
-        "CLUSTER_ESSENTIALS_BUNDLE_SHA": "registry.tanzu.vmware.com/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:e00f33b92d418f49b1af79f42cb13d6765f1c8c731f4528dfff8343af042dc3e",
-        "VERSION": "1.2.0",
-    },
-}
 
 
 # noinspection PyBroadException
@@ -154,6 +140,21 @@ class TanzuApplicationPlatform:
     def __init__(self, subprocess_helper, pivnet_helper, logger, creds_helper, state, ui_helper, k8s_helper, console):
         self.console = console
         self.creds_helper = creds_helper
+        self.install_registry_server = self.creds_helper.get("install_registry_server", "INSTALL_REGISTRY_SERVER")
+        self.pivnet_products = {
+            "darwin": {
+                "CLI_BUNDLE": "1246418",
+                "CLUSTER_ESSENTIALS_BUNDLE": "1263761",
+                "CLUSTER_ESSENTIALS_BUNDLE_SHA": f"{self.install_registry_server}/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:e00f33b92d418f49b1af79f42cb13d6765f1c8c731f4528dfff8343af042dc3e",
+                "VERSION": "1.2.0",
+            },
+            "linux": {
+                "CLI_BUNDLE": "1246421",
+                "CLUSTER_ESSENTIALS_BUNDLE": "1263760",
+                "CLUSTER_ESSENTIALS_BUNDLE_SHA": f"{self.install_registry_server}/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:e00f33b92d418f49b1af79f42cb13d6765f1c8c731f4528dfff8343af042dc3e",
+                "VERSION": "1.2.0",
+            },
+        }
         self.logger = logger
         self.sh = subprocess_helper
         self.pivnet_helpers = pivnet_helper
@@ -195,8 +196,8 @@ class TanzuApplicationPlatform:
             registry_password = open(registry_password, "r").read()
 
         os.environ["TAP_VERSION"] = version
-        os.environ["INSTALL_BUNDLE"] = pivnet_products[host_os]["CLUSTER_ESSENTIALS_BUNDLE_SHA"]
-        os.environ["INSTALL_REGISTRY_HOSTNAME"] = "registry.tanzu.vmware.com"
+        os.environ["INSTALL_BUNDLE"] = self.pivnet_products[host_os]["CLUSTER_ESSENTIALS_BUNDLE_SHA"]
+        os.environ["INSTALL_REGISTRY_HOSTNAME"] = self.install_registry_server
         os.environ["INSTALL_REGISTRY_USERNAME"] = tanzunet_username
         os.environ["INSTALL_REGISTRY_PASSWORD"] = tanzunet_password
 
@@ -205,12 +206,12 @@ class TanzuApplicationPlatform:
         if exit_code != 0:
             raise typer.Exit(-1)
 
-        cluster_essential_tar = f"{tmp_dir}/tanzu-cluster-essentials-{host_os}-amd64-{pivnet_products[host_os]['VERSION']}.tgz"
+        cluster_essential_tar = f"{tmp_dir}/tanzu-cluster-essentials-{host_os}-amd64-{self.pivnet_products[host_os]['VERSION']}.tgz"
         if not os.path.isfile(cluster_essential_tar):
             exit_code = self.pivnet_helpers.download(
                 product_slug="tanzu-cluster-essentials",
-                release_version=pivnet_products[host_os]["VERSION"],
-                product_file_id=pivnet_products[host_os]["CLUSTER_ESSENTIALS_BUNDLE"],
+                release_version=self.pivnet_products[host_os]["VERSION"],
+                product_file_id=self.pivnet_products[host_os]["CLUSTER_ESSENTIALS_BUNDLE"],
                 download_dir=tmp_dir,
                 state=self.state,
             )
@@ -256,12 +257,12 @@ class TanzuApplicationPlatform:
 
         self.sh_call(
             cmd=(
-                f"tanzu secret registry update tanzunet-registry-creds --username '{tanzunet_username}' --password '{tanzunet_password}' --server registry.tanzu.vmware.com "
+                f"tanzu secret registry update tanzunet-registry-creds --username '{tanzunet_username}' --password '{tanzunet_password}' --server {self.install_registry_server} "
                 f"--export-to-all-namespaces --yes --namespace {namespace}"
             )
             if "tanzunet-registry-creds" in out.decode()
             else (
-                f"tanzu secret registry add tanzunet-registry-creds --username '{tanzunet_username}' --password '{tanzunet_password}' --server registry.tanzu.vmware.com "
+                f"tanzu secret registry add tanzunet-registry-creds --username '{tanzunet_username}' --password '{tanzunet_password}' --server {self.install_registry_server} "
                 f"--export-to-all-namespaces --yes --namespace {namespace}"
             ),
             msg=":key: Setting up TAP Install Registry secret",
@@ -271,12 +272,12 @@ class TanzuApplicationPlatform:
 
         self.sh_call(
             cmd=(
-                f"tanzu secret registry update tanzunet-registry-creds-tbs --username '{tanzunet_username}' --password '{tanzunet_password}' --server registry.tanzu.vmware.com "
+                f"tanzu secret registry update tanzunet-registry-creds-tbs --username '{tanzunet_username}' --password '{tanzunet_password}' --server {self.install_registry_server} "
                 f"--export-to-all-namespaces --yes --namespace {namespace}"
             )
             if "tanzunet-registry-creds-tbs" in out.decode()
             else (
-                f"tanzu secret registry add tanzunet-registry-creds-tbs --username '{tanzunet_username}' --password '{tanzunet_password}' --server registry.tanzu.vmware.com "
+                f"tanzu secret registry add tanzunet-registry-creds-tbs --username '{tanzunet_username}' --password '{tanzunet_password}' --server {self.install_registry_server} "
                 f"--export-to-all-namespaces --yes --namespace {namespace}"
             ),
             msg=":key: Setting up TAP Install Registry secret for TBS",
@@ -319,9 +320,9 @@ class TanzuApplicationPlatform:
         _, out, _ = self.sh.run_proc(cmd=cmd)
 
         self.sh_call(
-            cmd=f"tanzu package repository update tanzu-tap-repository --url registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:{version} --namespace {namespace}"
+            cmd=f"tanzu package repository update tanzu-tap-repository --url {self.install_registry_server}/tanzu-application-platform/tap-packages:{version} --namespace {namespace}"
             if "tanzu-tap-repository" in out.decode()
-            else f"tanzu package repository add tanzu-tap-repository --url registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:{version} --namespace {namespace}",
+            else f"tanzu package repository add tanzu-tap-repository --url {self.install_registry_server}/tanzu-application-platform/tap-packages:{version} --namespace {namespace}",
             msg=":key: Setting up [yellow]tanzu-tap-repository[/yellow] package repo",
             spinner_msg="Setting up",
             error_msg=None,
@@ -497,8 +498,6 @@ class TanzuApplicationPlatform:
     def upgrade(self, version: str, wait: bool, namespace: str = "tap-install"):
         commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
         # TODO: Make this configurable from tappr init
-        install_registry_hostname = "registry.tanzu.vmware.com"
-
         cmd = f"tanzu package installed list --namespace {namespace}"
         _, out, _ = self.sh.run_proc(cmd=cmd)
         if "tap.tanzu.vmware.com" not in out.decode():
@@ -506,7 +505,7 @@ class TanzuApplicationPlatform:
             raise typer.Exit(1)
 
         self.sh_call(
-            cmd=f"tanzu package repository update tanzu-tap-repository --url {install_registry_hostname}/tanzu-application-platform/tap-packages:{version} --namespace {namespace}",
+            cmd=f"tanzu package repository update tanzu-tap-repository --url {self.install_registry_server}/tanzu-application-platform/tap-packages:{version} --namespace {namespace}",
             msg=":key: Setting up [yellow]tanzu-tap-repository[/yellow] package repo",
             spinner_msg="Setting up",
             error_msg=None,
