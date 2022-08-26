@@ -23,9 +23,8 @@ ootb_supply_chain_testing_scanning:
   gitops:
     ssh_secret: ""
 
-scanning:
-  metadataStore:
-    url: ""
-
 grype:
-  targetImagePullSecret: tanzunet-registry-creds
+  targetImagePullSecret: registry-credentials
+
+metadata_store:
+  ns_for_export_app_cert: '*'
