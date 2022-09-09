@@ -1,2 +1,0 @@
-namespace: $DEV_NS
-targetImagePullSecret: tanzunet-registry-creds

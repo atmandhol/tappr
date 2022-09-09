@@ -1,13 +1,14 @@
-import os
+import base64
 import hashlib
+import json
+import os
 import time
 
 import typer
-import base64
 import yaml
-import tappr.modules.utils.k8s
-
 from rich import print as rprint
+
+import tappr.modules.utils.k8s
 from tappr.modules.utils.commons import Commons
 
 commons = Commons()
@@ -396,6 +397,51 @@ class TanzuApplicationPlatform:
         )
         if exit_code != 0:
             raise typer.Exit(-1)
+
+        if_add_test_template = self.logger.confirm(":test_tube: Do you want to add a test pipeline?", default=False)
+        if if_add_test_template:
+            # {$$testTaskImage}
+            test_image = self.logger.question(":test_tube: What base image do you want to use for test task? (e.g. gradle, golang, python etc.)", default="gradle")
+            # {$$testTaskCmd}
+            test_cmd = self.logger.question(":test_tube: Enter test command for running your tests (e.g. [cyan]./mvnw test[/cyan], [cyan]go test -v ./...[/cyan] etc.)", default="./mvnw test")
+
+            template_base_path = os.path.dirname(os.path.abspath(__file__)).replace("/modules/tanzu", "") + f"/modules/artifacts/templates/test-pipeline.yml"
+            hash_str = str(time.time())
+            tmp_dir = f"/tmp/{hashlib.md5(hash_str.encode()).hexdigest()}"
+            open(tmp_dir, "w").write(open(template_base_path, "r").read().replace("{$$testTaskImage}", test_image).replace("{$$testTaskCmd}", test_cmd))
+            exit_code = self.sh_call(
+                cmd=f"kubectl -n {namespace} apply -f {tmp_dir}",
+                msg=f":sunglasses: Setting up test pipeline in namespace {namespace}",
+                spinner_msg="Finalizing",
+                error_msg=":broken_heart: Unable to add tekton test pipeline to namespace. Use [bold]--verbose[/bold] flag for error details.",
+            )
+            if exit_code != 0:
+                raise typer.Exit(-1)
+
+        if_add_scan_template = self.logger.confirm(":magnifying_glass_tilted_left: Do you want to add a scan policy?", default=False)
+        if if_add_scan_template:
+            # {$$notAllowedSeverities}
+            not_allowed_levels = self.logger.question(
+                ':magnifying_glass_tilted_left: What vuln levels are not allowed? (Comma separated list e.g. [cyan]["Critical", "High"][/cyan] etc.)', default="[]"
+            )
+            try:
+                json.loads(not_allowed_levels)
+            except Exception:
+                self.logger.msg(f":broken_heart: Unable to parse the input. Make sure it's a comma separated list.")
+                raise typer.Exit(-1)
+
+            template_base_path = os.path.dirname(os.path.abspath(__file__)).replace("/modules/tanzu", "") + f"/modules/artifacts/templates/scan-policy.yml"
+            hash_str = str(time.time())
+            tmp_dir = f"/tmp/{hashlib.md5(hash_str.encode()).hexdigest()}"
+            open(tmp_dir, "w").write(open(template_base_path, "r").read().replace("{$$notAllowedSeverities}", f" notAllowedSeverities := {not_allowed_levels}"))
+            exit_code = self.sh_call(
+                cmd=f"kubectl -n {namespace} apply -f {tmp_dir}",
+                msg=f":sunglasses: Setting up scan policy in namespace {namespace}",
+                spinner_msg="Finalizing",
+                error_msg=":broken_heart: Unable to add scan policy to namespace. Use [bold]--verbose[/bold] flag for error details.",
+            )
+            if exit_code != 0:
+                raise typer.Exit(-1)
 
     def ingress_ip(self, service: str, namespace: str):
         k8s_context = commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)

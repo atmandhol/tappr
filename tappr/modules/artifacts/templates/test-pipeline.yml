@@ -2,10 +2,9 @@
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
-  name: tappr-tekton-gradle-test
+  name: tappr-tekton-test-pipeline
   labels:
     apps.tanzu.vmware.com/pipeline: test
-    addons.tappr/pipelines: "true"
 spec:
   params:
     - name: source-url
@@ -23,8 +22,8 @@ spec:
           - name: source-revision
         steps:
           - name: test
-            image: gradle
+            image: {$$testTaskImage}
             script: |-
               cd `mktemp -d`
               wget -qO- $(params.source-url) | tar xvz -m
-              ./mvnw test
+              {$$testTaskCmd}
