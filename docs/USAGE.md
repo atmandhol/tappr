@@ -296,6 +296,7 @@ $ tappr init [OPTIONS]
 * `--tanzunet-username TEXT`: Tanzu Network Username.
 * `--tanzunet-password TEXT`: Tanzu Network Password.
 * `--pivnet-uaa-token TEXT`: Pivnet UAA Login Token used to download artifacts.
+* `--install-registry-server TEXT`: Registry where the TAP packages are
 * `--registry-server TEXT`: Default registry server to use while installing tap. e.g. gcr.io, index.docker.io etc.
 * `--registry-tap-package-repo TEXT`: Default registry repo on the registry server to use for relocating TAP packages to.
 * `--registry-tbs-repo TEXT`: Default registry repo on the registry server to use for build service. Don't include the registry server or starting /.
@@ -372,12 +373,12 @@ Install TAP. Make sure to run tappr init before installing TAP.
 **Usage**:
 
 ```console
-$ tappr tap install [OPTIONS] PROFILE:[full|iterate-local|iterate-slim|iterate|build|build-slim|build-essential|run|run-local|view] VERSION
+$ tappr tap install [OPTIONS] PROFILE:[full|full-scan|iterate-local|iterate-slim|iterate-essentials|iterate|build|build-slim|build-essential|run|run-local|view] VERSION
 ```
 
 **Arguments**:
 
-* `PROFILE:[full|iterate-local|iterate-slim|iterate|build|build-slim|build-essential|run|run-local|view]`: [required]
+* `PROFILE:[full|full-scan|iterate-local|iterate-slim|iterate-essentials|iterate|build|build-slim|build-essential|run|run-local|view]`: [required]
 * `VERSION`: [required]
 
 **Options**:
