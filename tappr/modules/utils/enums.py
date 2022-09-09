@@ -33,6 +33,7 @@ class PROFILE(str, Enum):
     FULL_SCAN = "full-scan"
     ITERATE_LOCAL = "iterate-local"
     ITERATE_SLIM = "iterate-slim"
+    ITERATE_ESSENTIALS = "iterate-essentials"
     ITERATE = "iterate"
     BUILD = "build"
     BUILD_SLIM = "build-slim"
