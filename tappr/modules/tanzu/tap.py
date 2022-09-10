@@ -360,7 +360,7 @@ class TanzuApplicationPlatform:
 
         return
 
-    def developer_ns_setup(self, namespace):
+    def developer_ns_setup(self, namespace, install_ns="tap-install"):
         k8s_context = commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
         ns_list = commons.get_ns_list(k8s_helper=self.k8s_helper, client=self.k8s_helper.core_clients[k8s_context])
         if namespace not in ns_list:
@@ -442,6 +442,35 @@ class TanzuApplicationPlatform:
             )
             if exit_code != 0:
                 raise typer.Exit(-1)
+
+            # Check if grype is installed
+            k8s_context = commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
+            success, response = self.k8s_helper.list_namespaced_custom_objects(
+                group="packaging.carvel.dev",
+                version="v1alpha1",
+                namespace=install_ns,
+                plural="packageinstalls",
+                client=self.k8s_helper.custom_clients[k8s_context],
+            )
+            for item in response["items"]:
+                if "status" in item:
+                    if item["status"]["conditions"][0]["type"] == "ReconcileSucceeded" and item["metadata"]["name"] == "grype":
+                        grype_version = item["status"]["version"]
+                        self.logger.debug(f":package: Grype {grype_version} package detected. Installing grype in namespace {namespace}")
+
+                        hash_str = str(time.time())
+                        tmp_dir = f"/tmp/{hashlib.md5(hash_str.encode()).hexdigest()}"
+                        # TODO: replace registry-credentials with the secret that was in the values file for grype.
+                        # TODO: This might not work for people using custom tap-values.yaml file.
+                        open(tmp_dir, "w").write(f"namespace: {namespace}\ntargetImagePullSecret: registry-credentials")
+                        exit_code = self.sh_call(
+                            cmd=f"tanzu package install grype-scanner --package-name grype.scanning.apps.tanzu.vmware.com --version {grype_version} --namespace {install_ns} --values-file {tmp_dir} ",
+                            msg=f":sunglasses: Installing grype scanner in namespace {namespace}",
+                            spinner_msg="Finalizing",
+                            error_msg=":broken_heart: Unable to install grype scanner. Use [bold]--verbose[/bold] flag for error details.",
+                        )
+                        if exit_code != 0:
+                            raise typer.Exit(-1)
 
     def ingress_ip(self, service: str, namespace: str):
         k8s_context = commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
