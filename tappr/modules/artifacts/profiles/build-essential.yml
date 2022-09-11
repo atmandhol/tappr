@@ -30,3 +30,5 @@ excluded_packages:
 - spring-boot-conventions.tanzu.vmware.com
 - ootb-templates.tanzu.vmware.com
 - ootb-supply-chain-basic.tanzu.vmware.com
+- apis.apps.tanzu.vmware.com
+- eventing.tanzu.vmware.com

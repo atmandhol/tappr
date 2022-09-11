@@ -13,9 +13,6 @@ buildservice:
 
 supply_chain: basic
 
-cnrs:
-  domain_name: "127.0.0.1.nip.io"
-
 ootb_supply_chain_basic:
   registry:
     server: $REGISTRY_SERVER
@@ -26,12 +23,19 @@ ootb_supply_chain_basic:
 contour:
   envoy:
     service:
-      type: LoadBalancer
+      type: NodePort
+      nodePorts:
+        http: 31080
+        https: 31090
+
+cnrs:
+  provider: local
+  domain_name: "127.0.0.1.nip.io"
 
 ceip_policy_disclosed: true
 
 metadata_store:
-  app_service_type: 'NodePort'
+  app_service_type: "NodePort"
 
 excluded_packages:
 - run.appliveview.tanzu.vmware.com
