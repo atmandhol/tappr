@@ -464,7 +464,7 @@ class TanzuApplicationPlatform:
                         # TODO: This might not work for people using custom tap-values.yaml file.
                         open(tmp_dir, "w").write(f"namespace: {namespace}\ntargetImagePullSecret: registry-credentials")
                         exit_code = self.sh_call(
-                            cmd=f"tanzu package install grype-scanner --package-name grype.scanning.apps.tanzu.vmware.com --version {grype_version} --namespace {install_ns} --values-file {tmp_dir} ",
+                            cmd=f"tanzu package install grype-scanner-{namespace} --package-name grype.scanning.apps.tanzu.vmware.com --version {grype_version} --namespace {install_ns} --values-file {tmp_dir} ",
                             msg=f":sunglasses: Installing grype scanner in namespace {namespace}",
                             spinner_msg="Finalizing",
                             error_msg=":broken_heart: Unable to install grype scanner. Use [bold]--verbose[/bold] flag for error details.",
