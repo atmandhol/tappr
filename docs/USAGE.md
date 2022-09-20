@@ -373,12 +373,12 @@ Install TAP. Make sure to run tappr init before installing TAP.
 **Usage**:
 
 ```console
-$ tappr tap install [OPTIONS] PROFILE:[full|full-scan|iterate-local|iterate-slim|iterate-essentials|iterate-local-essentials|iterate|build|build-slim|build-essential|run|run-local|view] VERSION
+$ tappr tap install [OPTIONS] PROFILE:[full|full-scan|iterate-local|iterate-slim|iterate-scan|iterate-essentials|iterate-local-essentials|iterate|build|build-slim|build-essential|run|run-local|view] VERSION
 ```
 
 **Arguments**:
 
-* `PROFILE:[full|full-scan|iterate-local|iterate-slim|iterate-essentials|iterate-local-essentials|iterate|build|build-slim|build-essential|run|run-local|view]`: [required]
+* `PROFILE:[full|full-scan|iterate-local|iterate-slim|iterate-scan|iterate-essentials|iterate-local-essentials|iterate|build|build-slim|build-essential|run|run-local|view]`: [required]
 * `VERSION`: [required]
 
 **Options**:

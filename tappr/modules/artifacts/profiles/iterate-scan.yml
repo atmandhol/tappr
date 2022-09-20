@@ -1,0 +1,42 @@
+profile: iterate
+
+buildservice:
+  kp_default_repository: $REGISTRY_SERVER/$REGISTRY_TBS_REPO
+  kp_default_repository_secret:
+    name: registry-credentials-tbs
+    namespace: $INSTALL_NS
+  tanzunet_secret:
+    name: tanzunet-registry-creds-tbs
+    namespace: $INSTALL_NS
+  enable_automatic_dependency_updates: true
+  descriptor_name: full
+
+cnrs:
+  domain_name: 127.0.0.1.nip.io
+
+contour:
+  envoy:
+    service:
+      type: LoadBalancer
+
+ceip_policy_disclosed: true
+
+appliveview_connector:
+  backend:
+    sslDisabled: "true"
+    host: appliveview.127.0.0.1.nip.io
+
+supply_chain: testing_scanning
+
+ootb_supply_chain_testing_scanning:
+  registry:
+    server: $REGISTRY_SERVER
+    repository: $REGISTRY_TBS_REPO
+  gitops:
+    ssh_secret: ""
+
+grype:
+  targetImagePullSecret: registry-credentials
+
+metadata_store:
+  ns_for_export_app_cert: '*'
