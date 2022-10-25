@@ -145,15 +145,15 @@ class TanzuApplicationPlatform:
         self.pivnet_products = {
             "darwin": {
                 "CLI_BUNDLE": "1246418",
-                "CLUSTER_ESSENTIALS_BUNDLE": "1263761",
-                "CLUSTER_ESSENTIALS_BUNDLE_SHA": f"{self.install_registry_server}/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:e00f33b92d418f49b1af79f42cb13d6765f1c8c731f4528dfff8343af042dc3e",
-                "VERSION": "1.2.0",
+                "CLUSTER_ESSENTIALS_BUNDLE": "1330472",
+                "CLUSTER_ESSENTIALS_BUNDLE_SHA": f"{self.install_registry_server}/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:54bf611711923dccd7c7f10603c846782b90644d48f1cb570b43a082d18e23b9",
+                "VERSION": "1.3.0",
             },
             "linux": {
                 "CLI_BUNDLE": "1246421",
-                "CLUSTER_ESSENTIALS_BUNDLE": "1263760",
-                "CLUSTER_ESSENTIALS_BUNDLE_SHA": f"{self.install_registry_server}/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:e00f33b92d418f49b1af79f42cb13d6765f1c8c731f4528dfff8343af042dc3e",
-                "VERSION": "1.2.0",
+                "CLUSTER_ESSENTIALS_BUNDLE": "1330470",
+                "CLUSTER_ESSENTIALS_BUNDLE_SHA": f"{self.install_registry_server}/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:54bf611711923dccd7c7f10603c846782b90644d48f1cb570b43a082d18e23b9",
+                "VERSION": "1.3.0",
             },
         }
         self.logger = logger
