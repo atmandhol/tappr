@@ -304,8 +304,6 @@ $ tappr init [OPTIONS]
 * `--registry-tbs-repo TEXT`: Default registry repo on the registry server to use for build service. Don't include the registry server or starting /.
 * `--registry-username TEXT`: Registry username to use while installing tap
 * `--registry-password TEXT`: Registry password to use while installing tap. If using GCR set this as path to jsonkey file.
-* `--vmware-username TEXT`: VMWare username
-* `--vmware-password TEXT`: VMWare password
 * `--help`: Show this message and exit.
 
 ## `tappr tap`

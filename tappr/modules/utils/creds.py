@@ -19,8 +19,6 @@ class CredsHelper:
         registry_password,
         registry_tbs_repo,
         registry_tap_package_repo,
-        vmware_username,
-        vmware_password,
         install_registry_server="registry.tanzu.vmware.com",
     ):
         configs = None
@@ -125,22 +123,6 @@ class CredsHelper:
                 "[red]NOTE: Do not put your registry server name in the prefix[/red][/yellow][/bold]"
             )
             registry_tap_package_repo = str(Prompt.ask(f":convenience_store: TAP package repo", default=configs["registry_tap_package_repo"] if configs else None))
-        if vmware_username is None:
-            vmware_username = str(
-                Prompt.ask(
-                    f":person_raising_hand: VMWare Username",
-                    default=configs["vmware_username"] if configs else None,
-                )
-            )
-        if vmware_password is None:
-            vmware_password = str(
-                Prompt.ask(
-                    f":see-no-evil_monkey: VMWare Password [bold][cyan]({'**' + configs['vmware_password'][-4:] if configs else None})[/cyan]",
-                    default=configs["vmware_password"] if configs else None,
-                    show_default=False,
-                    password=True,
-                )
-            )
 
         try:
             self.sh.run_proc("mkdir -p ~/.config")
@@ -157,8 +139,6 @@ class CredsHelper:
                         "registry_password": registry_password,
                         "registry_tbs_repo": registry_tbs_repo,
                         "registry_tap_package_repo": registry_tap_package_repo,
-                        "vmware_username": vmware_username,
-                        "vmware_password": vmware_password,
                     }
                 )
             )

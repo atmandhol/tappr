@@ -127,8 +127,6 @@ def init(
     registry_tbs_repo: str = typer.Option(None, help="Default registry repo on the registry server to use for build service. Don't include the registry server or starting /."),
     registry_username: str = typer.Option(None, help="Registry username to use while installing tap"),
     registry_password: str = typer.Option(None, help="Registry password to use while installing tap. If using GCR set this as path to jsonkey file."),
-    vmware_username: str = typer.Option(None, help="VMWare username"),
-    vmware_password: str = typer.Option(None, help="VMWare password"),
 ):
     """
     Initialize the tappr cli with required configuration.
@@ -143,8 +141,6 @@ def init(
         registry_password=registry_password,
         registry_tbs_repo=registry_tbs_repo,
         registry_tap_package_repo=registry_tap_package_repo,
-        vmware_username=vmware_username,
-        vmware_password=vmware_password,
     )
 
 
