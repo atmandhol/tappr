@@ -13,7 +13,7 @@ from tappr.modules.tanzu.tap import TanzuApplicationPlatform
 from tappr.modules.tanzu.tapgui import TanzuApplicationPlatformGUI
 from tappr.modules.utils.helpers import PivnetHelpers, SubProcessHelpers
 from tappr.modules.utils.logger import TyperLogger
-from tappr.modules.utils.enums import PROFILE, OS
+from tappr.modules.utils.enums import PROFILE, OS, GKE_RELEASE_CHANNELS
 from tappr.modules.utils.creds import CredsHelper
 from tappr.modules.utils.ui import UI
 from tappr.modules.utils.k8s import K8s
@@ -403,9 +403,30 @@ def kind(cluster_name, customize: bool = typer.Option(False, help="Customize the
         typer_logger.msg(":broken_heart: Unable to create KinD cluster. Use [bold]--verbose[/bold] flag for error details.")
 
 
+def get_latest_gke_version_by_channel(region, channel):
+    # Get all supported server configs
+    proc, out, _ = ui_helpers.progress(
+        cmd=f"gcloud container get-server-config --region={region} --format=json", message=":magnifying_glass_tilted_left: Checking gcloud installation", state=state
+    )
+    if proc.returncode != 0:
+        raise typer.Exit(-1)
+
+    # Get the default project
+    server_config = json.loads(out.decode())
+    if channel == channel.NONE:
+        return server_config["defaultClusterVersion"]
+
+    channels = server_config["channels"]
+    for c in channels:
+        if c["channel"] == channel:
+            return c["defaultVersion"]
+
+
 @create_cluster_app.command()
 def gke(
     cluster_name: str = typer.Option(None, help="Name of the GKE cluster"),
+    channel: GKE_RELEASE_CHANNELS = typer.Option(GKE_RELEASE_CHANNELS.NONE, help="GKE Release Channel"),
+    cluster_version: str = typer.Option("auto", help="auto takes the latest in the channel. You can specify a fixed version as well."),
     project: str = typer.Option(None, help="Name of the GCP project. If gcloud is pointing to a specific project, it will be automatically picked up"),
     customize: bool = typer.Option(False, help="Customize the default values"),
 ):
@@ -432,6 +453,7 @@ def gke(
         cluster_name = "".join(random.choice(letters) for _ in range(10))
 
     check_if_cluster_name_valid(cluster_name)
+
     # Get cluster config defaults. referred to as ccd variable. which is then overridden by cco variable.
     file_path = os.path.dirname(os.path.abspath(__file__)) + "/modules/artifacts/clusters/gke_defaults.json"
     try:
@@ -442,8 +464,6 @@ def gke(
 
     auto_complete_list = [
         "region",
-        "cluster_version",
-        "release_channel",
         "machine_type",
         "image_type",
         "disk_type",
@@ -467,11 +487,15 @@ def gke(
             typer_logger.msg(":broken_heart: Customized output was not a proper json")
             raise typer.Exit(-1)
 
+    if cluster_version == "auto":
+        cluster_version = get_latest_gke_version_by_channel(region=ccd.get("region") if "region" not in cco else cco.get("region"), channel=channel)
+    if channel != GKE_RELEASE_CHANNELS.NONE:
+        channel = channel.lower()
     subprocess_helpers.run_proc("gcloud components install beta -q")
     cmd = (
         f"gcloud beta container --project \"{gcp_project}\" clusters create \"{cluster_name}\" --region \"{ccd.get('region') if 'region' not in cco else cco.get('region')}\" "
-        f"--no-enable-basic-auth --cluster-version \"{ccd.get('cluster_version') if 'cluster_version' not in cco else cco.get('cluster_version')}\" "
-        f"--release-channel \"{ccd.get('release_channel') if 'release_channel' not in cco else cco.get('release_channel')}\" "
+        f'--no-enable-basic-auth --cluster-version "{cluster_version}" '
+        f'--release-channel "{channel}" '
         f"--machine-type \"{ccd.get('machine_type') if 'machine_type' not in cco else cco.get('machine_type')}\" "
         f"--image-type \"{ccd.get('image_type') if 'image_type' not in cco else cco.get('image_type')}\" "
         f"--disk-type \"{ccd.get('disk_type') if 'disk_type' not in cco else cco.get('disk_type')}\" "
@@ -484,8 +508,8 @@ def gke(
         f"--network \"{ccd.get('network') if 'network' not in cco else cco.get('network')}\" "
         f"--subnetwork \"{ccd.get('sub_network') if 'sub_network' not in cco else cco.get('sub_network')}\" "
         f"--no-enable-intra-node-visibility --default-max-pods-per-node \"{ccd.get('max_pods_per_node') if 'max_pods_per_node' not in cco else cco.get('max_pods_per_node')}\" "
-        f"--no-enable-master-authorized-networks --addons HorizontalPodAutoscaling,HttpLoadBalancing,GcePersistentDiskCsiDriver --no-enable-autoupgrade "
-        f"--no-enable-autorepair --max-surge-upgrade 1 --max-unavailable-upgrade 0 --enable-shielded-nodes"
+        f"--no-enable-master-authorized-networks --addons HorizontalPodAutoscaling,HttpLoadBalancing,GcePersistentDiskCsiDriver"
+        f"{' --no-enable-autoupgrade --no-enable-autorepair' if channel not in ['rapid', 'regular', 'stable'] else ''} --max-surge-upgrade 1 --max-unavailable-upgrade 0 --enable-shielded-nodes"
     )
 
     cmd = cmd.replace("{project}", gcp_project).replace("{region}", ccd.get("region") if "region" not in cco else cco.get("region"))

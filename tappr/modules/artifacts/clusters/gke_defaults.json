@@ -1,7 +1,5 @@
 {
   "region": "us-east4",
-  "cluster_version": "1.23.12-gke.100",
-  "release_channel": "None",
   "machine_type": "e2-standard-4",
   "image_type": "COS_CONTAINERD",
   "disk_type": "pd-standard",

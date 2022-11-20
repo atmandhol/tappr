@@ -48,3 +48,10 @@ class PROFILE(str, Enum):
 class TEMPLATE(str, Enum):
     TEKTON_GRADLE_TEST = "tekton-gradle-test-pipeline"
     SCAN_POLICY = "scan-policy"
+
+
+class GKE_RELEASE_CHANNELS(str, Enum):
+    RAPID = "RAPID"
+    REGULAR = "REGULAR"
+    STABLE = "STABLE"
+    NONE = "None"

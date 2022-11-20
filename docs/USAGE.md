@@ -76,6 +76,8 @@ $ tappr cluster create gke [OPTIONS]
 **Options**:
 
 * `--cluster-name TEXT`: Name of the GKE cluster
+* `--channel [RAPID|REGULAR|STABLE|None]`: GKE Release Channel  [default: None]
+* `--cluster-version TEXT`: auto takes the latest in the channel. You can specify a fixed version as well.  [default: auto]
 * `--project TEXT`: Name of the GCP project. If gcloud is pointing to a specific project, it will be automatically picked up
 * `--customize / --no-customize`: Customize the default values  [default: False]
 * `--help`: Show this message and exit.
