@@ -588,6 +588,17 @@ def stop():
 # TAP commands
 # =============================================================================================
 @tap_app.command()
+def install_cluster_essentials(
+    host_os: OS = OS.MAC,
+):
+    """
+    Install only Cluster Essentials.
+
+    """
+    tap_helpers.cluster_essentials_install(host_os=host_os)
+
+
+@tap_app.command()
 def install(
     profile: PROFILE,
     version,
@@ -597,7 +608,7 @@ def install(
     wait: bool = typer.Option(False, help="Wait for the TAP install to complete"),
 ):
     """
-    Install TAP. Make sure to run tappr init before installing TAP.
+    Install TAP including Cluster Essentials. Make sure to run tappr init before installing TAP.
 
     """
     tap_helpers.tap_install(profile=profile, version=version, host_os=host_os, tap_values_file=tap_values_file, wait=wait, namespace=namespace)

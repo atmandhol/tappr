@@ -326,7 +326,8 @@ $ tappr tap [OPTIONS] COMMAND [ARGS]...
 
 * `edit`: Modify TAP Installation.
 * `ingress-ip`: Get the Tanzu System Ingress External IP of...
-* `install`: Install TAP.
+* `install`: Install TAP including Cluster Essentials.
+* `install-cluster-essentials`: Install only Cluster Essentials.
 * `setup`: Setup Developer Namespace.
 * `status`: Get TAP installation status.
 * `uninstall`: Uninstall TAP.
@@ -368,7 +369,7 @@ $ tappr tap ingress-ip [OPTIONS]
 
 ### `tappr tap install`
 
-Install TAP. Make sure to run tappr init before installing TAP.
+Install TAP including Cluster Essentials. Make sure to run tappr init before installing TAP.
 
 **Usage**:
 
@@ -387,6 +388,21 @@ $ tappr tap install [OPTIONS] PROFILE:[full|full-scan|iterate-local|iterate-slim
 * `--namespace TEXT`: Namespace where TAP should be installed  [default: tap-install]
 * `--tap-values-file TEXT`
 * `--wait / --no-wait`: Wait for the TAP install to complete  [default: False]
+* `--help`: Show this message and exit.
+
+### `tappr tap install-cluster-essentials`
+
+Install only Cluster Essentials.
+
+**Usage**:
+
+```console
+$ tappr tap install-cluster-essentials [OPTIONS]
+```
+
+**Options**:
+
+* `--host-os [darwin|linux|windows]`: [default: darwin]
 * `--help`: Show this message and exit.
 
 ### `tappr tap setup`

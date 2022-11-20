@@ -166,6 +166,68 @@ class TanzuApplicationPlatform:
     def sh_call(self, cmd, msg, spinner_msg, error_msg):
         return self.ui_helper.sh_call(cmd=cmd, msg=msg, spinner_msg=spinner_msg, error_msg=error_msg, state=self.state)
 
+    # TODO: Install a specific version of cluster essentials
+    def cluster_essentials_install(self, host_os):
+        commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
+        hash_str = str(time.time())
+        tmp_dir = f"/tmp/{hashlib.md5(hash_str.encode()).hexdigest()}"
+        self.logger.msg(f":file_folder: Staging Installation Dir is at [yellow]{tmp_dir}[/yellow]", bold=False)
+
+        if not os.path.isdir(tmp_dir):
+            self.sh_call(
+                cmd=f"mkdir -p {tmp_dir}",
+                msg=":file_folder: Creating Staging Dir",
+                spinner_msg="Creating dir",
+                error_msg=":broken_heart: Unable to create staging directory. Use [bold]--verbose[/bold] flag for error details.",
+            )
+
+        tanzunet_username = self.creds_helper.get("tanzunet_username", "INSTALL_REGISTRY_USERNAME")
+        tanzunet_password = self.creds_helper.get("tanzunet_password", "INSTALL_REGISTRY_PASSWORD")
+        pivnet_uaa_token = self.creds_helper.get("pivnet_uaa_token", "PIVNET_TOKEN")
+
+        os.environ["INSTALL_BUNDLE"] = self.pivnet_products[host_os]["CLUSTER_ESSENTIALS_BUNDLE_SHA"]
+        os.environ["INSTALL_REGISTRY_HOSTNAME"] = self.install_registry_server
+        os.environ["INSTALL_REGISTRY_USERNAME"] = tanzunet_username
+        os.environ["INSTALL_REGISTRY_PASSWORD"] = tanzunet_password
+
+        # Cluster essentials
+        exit_code = self.pivnet_helpers.login(api_token=pivnet_uaa_token, state=self.state)
+        if exit_code != 0:
+            raise typer.Exit(-1)
+
+        cluster_essential_tar = f"{tmp_dir}/tanzu-cluster-essentials-{host_os}-amd64-{self.pivnet_products[host_os]['VERSION']}.tgz"
+        if not os.path.isfile(cluster_essential_tar):
+            exit_code = self.pivnet_helpers.download(
+                product_slug="tanzu-cluster-essentials",
+                release_version=self.pivnet_products[host_os]["VERSION"],
+                product_file_id=self.pivnet_products[host_os]["CLUSTER_ESSENTIALS_BUNDLE"],
+                download_dir=tmp_dir,
+                state=self.state,
+            )
+            if exit_code != 0:
+                raise typer.Exit(-1)
+
+        if not os.path.isfile(f"{tmp_dir}/cluster-essentials/install.sh"):
+            exit_code = self.sh_call(
+                cmd=f"mkdir -p {tmp_dir}/cluster-essentials && tar xvf {cluster_essential_tar} -C {tmp_dir}/cluster-essentials",
+                msg=":compression:  Extracting Cluster essentials",
+                spinner_msg="Extracting",
+                error_msg=":broken_heart: Unable to extract cluster essentials. Use [bold]--verbose[/bold] flag for error details.",
+            )
+            if exit_code != 0:
+                raise typer.Exit(-1)
+
+        os.chdir(tmp_dir + "/cluster-essentials")
+        exit_code = self.sh_call(
+            cmd=f"bash {tmp_dir}/cluster-essentials/install.sh --yes",
+            msg=":hourglass: Install Cluster Essentials",
+            spinner_msg="Installing",
+            error_msg=":broken_heart: Unable to Install cluster essentials. Use [bold]--verbose[/bold] flag for error details.",
+        )
+        if exit_code != 0:
+            raise typer.Exit(-1)
+        return
+
     def tap_install(self, profile, version, host_os, tap_values_file, wait: bool, namespace: str = "tap-install"):
         k8s_context = commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
         hash_str = str(profile + version)
