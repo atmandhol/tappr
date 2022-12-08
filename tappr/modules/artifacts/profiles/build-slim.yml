@@ -36,3 +36,6 @@ excluded_packages:
 - conventions.appliveview.tanzu.vmware.com
 - grype.scanning.apps.tanzu.vmware.com
 - spring-boot-conventions.tanzu.vmware.com
+
+tap_telemetry:
+   installed_for_vmware_internal_use: "true"

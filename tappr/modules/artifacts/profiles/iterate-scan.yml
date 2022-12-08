@@ -40,3 +40,6 @@ grype:
 
 metadata_store:
   ns_for_export_app_cert: '*'
+
+tap_telemetry:
+   installed_for_vmware_internal_use: "true"

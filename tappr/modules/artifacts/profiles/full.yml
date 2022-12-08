@@ -66,3 +66,6 @@ tap_gui:
 excluded_packages:
 - learningcenter.tanzu.vmware.com
 - workshops.learningcenter.tanzu.vmware.com
+
+tap_telemetry:
+   installed_for_vmware_internal_use: "true"

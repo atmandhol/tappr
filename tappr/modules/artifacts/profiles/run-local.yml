@@ -18,3 +18,6 @@ appliveview_connector:
   backend:
     sslDisabled: "true"
     host: appliveview.127.0.0.1.nip.io
+
+tap_telemetry:
+   installed_for_vmware_internal_use: "true"

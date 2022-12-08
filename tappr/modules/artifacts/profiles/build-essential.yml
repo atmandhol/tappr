@@ -32,3 +32,6 @@ excluded_packages:
 - ootb-supply-chain-basic.tanzu.vmware.com
 - apis.apps.tanzu.vmware.com
 - eventing.tanzu.vmware.com
+
+tap_telemetry:
+   installed_for_vmware_internal_use: "true"

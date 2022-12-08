@@ -44,3 +44,6 @@ excluded_packages:
   - tap-auth.tanzu.vmware.com
   - developer-conventions.tanzu.vmware.com
   - spring-boot-conventions.tanzu.vmware.com
+
+tap_telemetry:
+   installed_for_vmware_internal_use: "true"
