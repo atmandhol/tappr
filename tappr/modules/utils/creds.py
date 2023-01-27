@@ -50,7 +50,7 @@ class CredsHelper:
             pivnet_uaa_token = str(
                 Prompt.ask(
                     f":speak-no-evil_monkey: Pivnet UAA Token [bold][cyan]({'**' + configs['pivnet_uaa_token'][-4:] if configs else None})[/cyan]",
-                    default=configs["pivnet_uaa_token"] if configs else None,
+                    default=configs.get("pivnet_uaa_token") if configs else None,
                     show_default=False,
                     password=True,
                 )
@@ -60,7 +60,7 @@ class CredsHelper:
             install_registry_server = str(
                 Prompt.ask(
                     f":convenience_store: Install Registry Server (e.g. registry.tanzu.vmware.com)",
-                    default=configs["install_registry_server"] if "install_registry_server" in configs else None,
+                    default=configs.get("install_registry_server") if configs and "install_registry_server" in configs else None,
                 )
             )
 
