@@ -75,7 +75,7 @@ class CredsHelper:
             registry_server = str(
                 Prompt.ask(
                     f":convenience_store: Default Registry Server (e.g. gcr.io, index.docker.com)",
-                    default=configs["registry_server"] if "registry_server" in configs else None,
+                    default=configs["registry_server"] if configs and "registry_server" in configs else None,
                 )
             )
         if registry_username is None:
@@ -83,7 +83,7 @@ class CredsHelper:
             registry_username = str(
                 Prompt.ask(
                     f":convenience_store: Registry Username",
-                    default=configs["registry_username"] if "registry_username" in configs else None,
+                    default=configs["registry_username"] if configs and "registry_username" in configs else None,
                 )
             )
         if registry_password is None:
@@ -95,7 +95,7 @@ class CredsHelper:
             registry_password = str(
                 Prompt.ask(
                     f":speak-no-evil_monkey: Registry Password (Use absolute path to json key file path for gcr.io) [bold][cyan]({'**' + configs['registry_password'][-8:] if configs else None})[/cyan]",
-                    default=configs["registry_password"] if "registry_password" in configs else None,
+                    default=configs["registry_password"] if configs and "registry_password" in configs else None,
                     show_default=False,
                     password=True,
                 )
