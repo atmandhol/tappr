@@ -141,7 +141,10 @@ class TanzuApplicationPlatform:
     def __init__(self, subprocess_helper, pivnet_helper, logger, creds_helper, state, ui_helper, k8s_helper, console):
         self.console = console
         self.creds_helper = creds_helper
-        self.install_registry_server = self.creds_helper.get("install_registry_server", "INSTALL_REGISTRY_SERVER")
+        try:
+            self.install_registry_server = self.creds_helper.get("install_registry_server", "INSTALL_REGISTRY_SERVER")
+        except Exception:
+            self.install_registry_server = "registry.tanzu.vmware.com"
         self.pivnet_products = {
             "darwin": {
                 "CLI_BUNDLE": "1246418",
