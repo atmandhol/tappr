@@ -532,6 +532,7 @@ def kind(cluster_name):
         typer_logger.msg(":rocket: KinD cluster deleted [green]successfully[/green]")
     else:
         typer_logger.msg(":broken_heart: Unable to delete KinD cluster. Use [bold]--verbose[/bold] flag for error details.")
+        raise typer.Exit(-1)
 
 
 @delete_cluster_app.command()
@@ -546,6 +547,7 @@ def minikube(cluster_name):
         typer_logger.msg(":rocket: minikube cluster deleted [green]successfully[/green]")
     else:
         typer_logger.msg(":broken_heart: Unable to delete minikube cluster. Use [bold]--verbose[/bold] flag for error details.")
+        raise typer.Exit(-1)
 
 
 @delete_cluster_app.command()
@@ -560,6 +562,7 @@ def gke(cluster_name, region: str = "us-east4"):
         typer_logger.msg(":rocket: GKE Cluster deleted [green]successfully[/green]")
     else:
         typer_logger.msg(":broken_heart: Unable to delete GKE cluster. Use [bold]--verbose[/bold] flag for error details.")
+        raise typer.Exit(-1)
 
 
 # =============================================================================================
