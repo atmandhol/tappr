@@ -28,6 +28,11 @@ brew install pipx
 pipx ensurepath
 ```
 
+- Install pivnet-cli
+```
+brew install pivotal/tap/pivnet-cli
+```
+
 To Install latest:
 ```
 pipx install git+https://github.com/atmandhol/tappr.git
