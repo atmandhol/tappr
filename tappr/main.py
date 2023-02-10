@@ -238,26 +238,34 @@ def check():
     Run pre-checks for running tappr on the local environment.
     """
     checks_passed = True
+    checks_passed = subprocess_helpers.run_pre_req(cmd='gcloud version | grep "Google Cloud SDK"', tool="gcloud") and checks_passed
     checks_passed = subprocess_helpers.run_pre_req(cmd="docker --version", tool="Docker") and checks_passed
     checks_passed = subprocess_helpers.run_pre_req(cmd="kind --version", tool="Kind") and checks_passed
     checks_passed = subprocess_helpers.run_pre_req(cmd="minikube version", tool="minikube") and checks_passed
-    checks_passed = subprocess_helpers.run_pre_req(cmd="kapp --version", tool="kapp") and checks_passed
-    checks_passed = subprocess_helpers.run_pre_req(cmd="ytt --version", tool="ytt") and checks_passed
-    checks_passed = subprocess_helpers.run_pre_req(cmd="kbld --version", tool="kbld") and checks_passed
-    checks_passed = subprocess_helpers.run_pre_req(cmd="imgpkg --version", tool="imgpkg") and checks_passed
-    checks_passed = subprocess_helpers.run_pre_req(cmd="curl --version", tool="curl") and checks_passed
-    checks_passed = subprocess_helpers.run_pre_req(cmd="go version", tool="golang") and checks_passed
     checks_passed = subprocess_helpers.run_pre_req(cmd="kubectl version --client", tool="kubectl") and checks_passed
-    checks_passed = subprocess_helpers.run_pre_req(cmd="flux --version", tool="flux CLI") and checks_passed
-    checks_passed = subprocess_helpers.run_pre_req(cmd="kp version", tool="kpack CLI") and checks_passed
     checks_passed = subprocess_helpers.run_pre_req(cmd="tanzu version", tool="tanzu CLI") and checks_passed
+    checks_passed = subprocess_helpers.run_pre_req(cmd="rosa version", tool="rosa CLI") and checks_passed
     checks_passed = subprocess_helpers.run_pre_req(cmd="pivnet version", tool="pivnet CLI") and checks_passed
-    checks_passed = subprocess_helpers.run_pre_req(cmd="ko version", tool="ko") and checks_passed
+    checks_passed = subprocess_helpers.run_pre_req(cmd="ytt --version", tool="ytt") and checks_passed
 
     if not checks_passed:
-        typer_logger.msg("Run [green]tappr local setup[/green] to install missing tools.")
+        typer_logger.msg("Run [green]tappr utils local setup[/green] to install missing tools.")
         raise typer.Exit(-1)
     typer_logger.success("All checks passed!")
+
+    typer_logger.msg("\nChecking other tools that are not needed for using [bold][green]tappr[/green][/bold] but nice to have ...")
+    subprocess_helpers.run_pre_req(cmd="kapp --version", tool="kapp") and checks_passed
+    subprocess_helpers.run_pre_req(cmd="kbld --version", tool="kbld") and checks_passed
+    subprocess_helpers.run_pre_req(cmd="imgpkg --version", tool="imgpkg") and checks_passed
+    subprocess_helpers.run_pre_req(cmd="kctrl --version", tool="kctrl") and checks_passed
+    subprocess_helpers.run_pre_req(cmd="vendir --version", tool="vendir") and checks_passed
+    subprocess_helpers.run_pre_req(cmd="ko version", tool="ko") and checks_passed
+    subprocess_helpers.run_pre_req(cmd="curl --version", tool="curl") and checks_passed
+    subprocess_helpers.run_pre_req(cmd="crane version", tool="crane") and checks_passed
+    subprocess_helpers.run_pre_req(cmd="go version", tool="golang") and checks_passed
+    subprocess_helpers.run_pre_req(cmd="kp version", tool="kpack CLI") and checks_passed
+    subprocess_helpers.run_pre_req(cmd="jq --version", tool="jq") and checks_passed
+    subprocess_helpers.run_pre_req(cmd="yq --version", tool="yq") and checks_passed
 
 
 # noinspection PyBroadException
@@ -276,19 +284,19 @@ def setup(interactive: bool = True):
         if err:
             typer_logger.msg(":broken_heart: Unable to install brew. Please manually install brew and try again.")
 
+    local_install(interactive=interactive, tool="docker", cmd="brew install --cask docker")
+    local_install(interactive=interactive, tool="kind", cmd="brew install kind")
+    local_install(interactive=interactive, tool="minikube", cmd="brew install minikube")
+    local_install(interactive=interactive, tool="kubectl", cmd="brew install kubectl")
+    local_install(interactive=interactive, tool="rosa CLI", cmd="brew install rosa-cli")
+    local_install(interactive=interactive, tool="pivnet CLI", cmd="brew install pivotal/tap/pivnet-cli")
+    local_install(interactive=interactive, tool="ytt", cmd="brew install ytt")
     local_install(interactive=interactive, tool="kapp", cmd="brew install kapp")
     local_install(interactive=interactive, tool="kbld", cmd="brew install kbld")
     local_install(interactive=interactive, tool="imgpkg", cmd="brew install imgpkg")
+    local_install(interactive=interactive, tool="kctrl", cmd="brew install kctrl")
     local_install(interactive=interactive, tool="vendir", cmd="brew install vendir")
-    local_install(interactive=interactive, tool="ytt", cmd="brew install ytt")
     local_install(interactive=interactive, tool="ko", cmd="brew install ko")
-
-    local_install(interactive=interactive, tool="minikube", cmd="brew install minikube")
-    local_install(interactive=interactive, tool="kind", cmd="brew install kind")
-    local_install(interactive=interactive, tool="kubectl", cmd="brew install kubectl")
-
-    local_install(interactive=interactive, tool="docker", cmd="brew install --cask docker")
-
     local_install(interactive=interactive, tool="curl", cmd="brew install curl")
     local_install(interactive=interactive, tool="crane", cmd="brew install crane")
     local_install(interactive=interactive, tool="kubectx", cmd="brew install kubectx")
@@ -296,9 +304,6 @@ def setup(interactive: bool = True):
     local_install(interactive=interactive, tool="jq", cmd="brew install jq")
     local_install(interactive=interactive, tool="yq", cmd="brew install yq")
     local_install(interactive=interactive, tool="kpack-cli", cmd="brew tap vmware-tanzu/kpack-cli && brew install kp")
-
-    local_install(interactive=interactive, tool="Flux CLI", cmd="curl -s https://fluxcd.io/install.sh | bash")
-    local_install(interactive=interactive, tool="pivnet CLI", cmd="brew install pivotal/tap/pivnet-cli")
 
 
 @local_app.command()

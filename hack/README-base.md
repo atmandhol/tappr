@@ -1,6 +1,6 @@
 # tappr
 
-`tappr` is the unofficial CLI for managing and working with Tanzu Application Platform installs.
+`tappr` makes it easy to create Kubernetes clusters on your local machine and some cloud providers as well as install/manage Tanzu Application Platform installs on it. The CLI can be used by developers to do local development as well as in the CI to run end-2-end tests on a Kubernetes cluster with TAP installed.
 
 ## Features
 
@@ -27,11 +27,6 @@ You can `brew` install `pipx` as follows:
 brew install pipx
 pipx ensurepath
 ```
-- Install pivnet-cli as it is used to download artifacts from Tanzu Network.
-```
-brew install pivotal/tap/pivnet-cli
-```
-
 To Install latest:
 ```
 pipx install git+https://github.com/atmandhol/tappr.git
@@ -44,12 +39,19 @@ pipx install git+https://github.com/atmandhol/tappr.git@version
 
 - Run `tappr` on your command line to confirm if its installed
 
-## Usage Flow
+### Setup Environment to run tappr
+- Run `tappr utils local check` command to see if all the required tools to use `tappr` are installed or not.
+- Run `tappr utils local setup` command and install the missing tools. 
+All prompts defaults to `No` you can keep hitting enter till you get to the tool that is missing.
 - Run `tappr init` to setup credentials once.
-- Run `tappr cluster create/delete` commands to create K8s clusters on different providers
-- Run `tappr tap install` command to install TAP on it
-- Run `tappr tap setup` to setup the developer namespace
+
+## Usage
+- Run `tappr cluster create/delete` commands to create K8s clusters on different providers.
+- Run `tappr tap install {profile} {version}` command to install TAP on it.
 - Run `tappr tap edit --show` to update your TAP install with your custom settings.
+- Run `tappr tap upgrade {version}` command to install TAP on it.
+
+Use the `--help` global flag to see the options and possible values you can provide.
 
 ## Utils
 
@@ -79,6 +81,12 @@ Run the following poetry command
 $ poetry build
 ```
 This will generate a dist folder with a whl file and a tar.gz file.
+
+### Upgrade dependencies
+Run the following poetry command
+```bash
+$ poetry update
+```
 
 ### Auto Generate Docs
 Generate the usage docs automatically using the `generate_paparwork` script in the hack folder.
