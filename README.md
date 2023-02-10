@@ -46,8 +46,10 @@ All prompts defaults to `No` you can keep hitting enter till you get to the tool
 - Run `tappr init` to setup credentials once.
 
 ## Usage
+Check the [Full CLI Usage documentation](docs/USAGE.md) for everything that is possible.
 - Run `tappr cluster create/delete` commands to create K8s clusters on different providers.
-- Run `tappr tap install {profile} {version}` command to install TAP on it.
+- Run `tappr tap install {profile} {version}` command to install TAP on it along with Cluster Essentials. You can skip the Cluster essential install using the `--skip-cluster-essentials` flag.
+You can also install only Cluster Essentials using `tappr tap install-cluster-essentials` command.
 - Run `tappr tap edit --show` to update your TAP install with your custom settings.
 - Run `tappr tap upgrade {version}` command to install TAP on it.
 
@@ -59,9 +61,6 @@ Use the `--help` global flag to see the options and possible values you can prov
 - Auto generate `changelog` on a project using conventional commits standard using `tappr utils changelog`.
 - Auto generate `release` notes on any Git project using `tappr utils release`
 - Check/Set up your local environment for useful tools in life of a k8s developer/operator using `tappr utils local` commands.
-
-## Usage Documentation
-[CLI Usage documentation](docs/USAGE.md) is auto generated and is located in the `docs` folder.
 
 ## Setup for Local build
 

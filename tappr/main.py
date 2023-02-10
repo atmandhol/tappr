@@ -640,13 +640,14 @@ def install(
     host_os: OS = OS.MAC,
     namespace: str = typer.Option("tap-install", help="Namespace where TAP should be installed"),
     tap_values_file: str = None,
+    skip_cluster_essentials: bool = typer.Option(False, help="Skip Cluster Essentials installation as its already installed or the user is using TKG or some flavor that already has it."),
     wait: bool = typer.Option(False, help="Wait for the TAP install to complete"),
 ):
     """
-    Install TAP including Cluster Essentials. Make sure to run tappr init before installing TAP.
+    Install TAP. Make sure to run tappr init before installing TAP.
 
     """
-    tap_helpers.tap_install(profile=profile, version=version, host_os=host_os, tap_values_file=tap_values_file, wait=wait, namespace=namespace)
+    tap_helpers.tap_install(profile=profile, version=version, host_os=host_os, tap_values_file=tap_values_file, wait=wait, namespace=namespace, skip_cluster_essentials=skip_cluster_essentials)
 
 
 @tap_app.command()

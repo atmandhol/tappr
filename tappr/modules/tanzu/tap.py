@@ -231,7 +231,7 @@ class TanzuApplicationPlatform:
             raise typer.Exit(-1)
         return
 
-    def tap_install(self, profile, version, host_os, tap_values_file, wait: bool, namespace: str = "tap-install"):
+    def tap_install(self, profile, version, host_os, tap_values_file, wait: bool, skip_cluster_essentials, namespace: str = "tap-install"):
         k8s_context = commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
         hash_str = str(profile + version)
         tmp_dir = f"/tmp/{hashlib.md5(hash_str.encode()).hexdigest()}"
@@ -268,41 +268,42 @@ class TanzuApplicationPlatform:
         os.environ["INSTALL_REGISTRY_PASSWORD"] = tanzunet_password
 
         # Cluster essentials
-        exit_code = self.pivnet_helpers.login(api_token=pivnet_uaa_token, state=self.state)
-        if exit_code != 0:
-            raise typer.Exit(-1)
-
-        cluster_essential_tar = f"{tmp_dir}/tanzu-cluster-essentials-{host_os}-amd64-{self.pivnet_products[host_os]['VERSION']}.tgz"
-        if not os.path.isfile(cluster_essential_tar):
-            exit_code = self.pivnet_helpers.download(
-                product_slug="tanzu-cluster-essentials",
-                release_version=self.pivnet_products[host_os]["VERSION"],
-                product_file_id=self.pivnet_products[host_os]["CLUSTER_ESSENTIALS_BUNDLE"],
-                download_dir=tmp_dir,
-                state=self.state,
-            )
+        if not skip_cluster_essentials:
+            exit_code = self.pivnet_helpers.login(api_token=pivnet_uaa_token, state=self.state)
             if exit_code != 0:
                 raise typer.Exit(-1)
 
-        if not os.path.isfile(f"{tmp_dir}/cluster-essentials/install.sh"):
+            cluster_essential_tar = f"{tmp_dir}/tanzu-cluster-essentials-{host_os}-amd64-{self.pivnet_products[host_os]['VERSION']}.tgz"
+            if not os.path.isfile(cluster_essential_tar):
+                exit_code = self.pivnet_helpers.download(
+                    product_slug="tanzu-cluster-essentials",
+                    release_version=self.pivnet_products[host_os]["VERSION"],
+                    product_file_id=self.pivnet_products[host_os]["CLUSTER_ESSENTIALS_BUNDLE"],
+                    download_dir=tmp_dir,
+                    state=self.state,
+                )
+                if exit_code != 0:
+                    raise typer.Exit(-1)
+
+            if not os.path.isfile(f"{tmp_dir}/cluster-essentials/install.sh"):
+                exit_code = self.sh_call(
+                    cmd=f"mkdir -p {tmp_dir}/cluster-essentials && tar xvf {cluster_essential_tar} -C {tmp_dir}/cluster-essentials",
+                    msg=":compression:  Extracting Cluster essentials",
+                    spinner_msg="Extracting",
+                    error_msg=":broken_heart: Unable to extract cluster essentials. Use [bold]--verbose[/bold] flag for error details.",
+                )
+                if exit_code != 0:
+                    raise typer.Exit(-1)
+
+            os.chdir(tmp_dir + "/cluster-essentials")
             exit_code = self.sh_call(
-                cmd=f"mkdir -p {tmp_dir}/cluster-essentials && tar xvf {cluster_essential_tar} -C {tmp_dir}/cluster-essentials",
-                msg=":compression:  Extracting Cluster essentials",
-                spinner_msg="Extracting",
-                error_msg=":broken_heart: Unable to extract cluster essentials. Use [bold]--verbose[/bold] flag for error details.",
+                cmd=f"bash {tmp_dir}/cluster-essentials/install.sh --yes",
+                msg=":hourglass: Install Cluster Essentials",
+                spinner_msg="Installing",
+                error_msg=":broken_heart: Unable to Install cluster essentials. Use [bold]--verbose[/bold] flag for error details.",
             )
             if exit_code != 0:
                 raise typer.Exit(-1)
-
-        os.chdir(tmp_dir + "/cluster-essentials")
-        exit_code = self.sh_call(
-            cmd=f"bash {tmp_dir}/cluster-essentials/install.sh --yes",
-            msg=":hourglass: Install Cluster Essentials",
-            spinner_msg="Installing",
-            error_msg=":broken_heart: Unable to Install cluster essentials. Use [bold]--verbose[/bold] flag for error details.",
-        )
-        if exit_code != 0:
-            raise typer.Exit(-1)
 
         ns_list = commons.get_ns_list(k8s_helper=self.k8s_helper, client=self.k8s_helper.core_clients[k8s_context])
         if namespace not in ns_list:
