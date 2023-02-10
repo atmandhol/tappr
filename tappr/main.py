@@ -425,6 +425,8 @@ def gke(
     cluster_version: str = typer.Option("auto", help="auto takes the latest in the channel. You can specify a fixed version as well."),
     project: str = typer.Option(None, help="Name of the GCP project. If gcloud is pointing to a specific project, it will be automatically picked up"),
     customize: bool = typer.Option(False, help="Customize the default values"),
+    region: str = typer.Option(None, help="GKE cluster region"),
+    num_nodes_per_zone: int = typer.Option(None, help="Number of worker nodes in NodePool per zone"),
 ):
     """
     Create a GKE cluster. Assumes gcloud is set to create clusters.
@@ -482,14 +484,17 @@ def gke(
         except Exception:
             typer_logger.msg(":broken_heart: Customized output was not a proper json")
             raise typer.Exit(-1)
-
+    if not region:
+        region = ccd.get("region") if "region" not in cco else cco.get("region")
+    if not num_nodes_per_zone:
+        num_nodes_per_zone = ccd.get("num_nodes") if "num_nodes" not in cco else cco.get("num_nodes")
     if cluster_version == "auto":
-        cluster_version = get_latest_gke_version_by_channel(region=ccd.get("region") if "region" not in cco else cco.get("region"), channel=channel)
+        cluster_version = get_latest_gke_version_by_channel(region=region, channel=channel)
     if channel != GKE_RELEASE_CHANNELS.NONE:
         channel = channel.lower()
     subprocess_helpers.run_proc("gcloud components install beta -q")
     cmd = (
-        f"gcloud beta container --project \"{gcp_project}\" clusters create \"{cluster_name}\" --region \"{ccd.get('region') if 'region' not in cco else cco.get('region')}\" "
+        f'gcloud beta container --project "{gcp_project}" clusters create "{cluster_name}" --region "{region}" '
         f'--no-enable-basic-auth --cluster-version "{cluster_version}" '
         f'--release-channel "{channel}" '
         f"--machine-type \"{ccd.get('machine_type') if 'machine_type' not in cco else cco.get('machine_type')}\" "
@@ -499,22 +504,24 @@ def gke(
         f'--scopes "https://www.googleapis.com/auth/devstorage.read_only","https://www.googleapis.com/auth/logging.write","https://www.googleapis.com/auth/monitoring",'
         f'"https://www.googleapis.com/auth/servicecontrol","https://www.googleapis.com/auth/service.management.readonly","https://www.googleapis.com/auth/trace.append" '
         f"--max-pods-per-node \"{ccd.get('max_pods_per_node') if 'max_pods_per_node' not in cco else cco.get('max_pods_per_node')}\" "
-        f"--num-nodes \"{ccd.get('num_nodes') if 'num_nodes' not in cco else cco.get('num_nodes')}\" "
+        f'--num-nodes "{num_nodes_per_zone}" '
         f"--logging=SYSTEM,WORKLOAD --monitoring=SYSTEM --enable-ip-alias "
         f"--network \"{ccd.get('network') if 'network' not in cco else cco.get('network')}\" "
         f"--subnetwork \"{ccd.get('sub_network') if 'sub_network' not in cco else cco.get('sub_network')}\" "
         f"--no-enable-intra-node-visibility --default-max-pods-per-node \"{ccd.get('max_pods_per_node') if 'max_pods_per_node' not in cco else cco.get('max_pods_per_node')}\" "
         f"--no-enable-master-authorized-networks --addons HorizontalPodAutoscaling,HttpLoadBalancing,GcePersistentDiskCsiDriver"
-        f"{' --no-enable-autoupgrade --no-enable-autorepair' if channel not in ['rapid', 'regular', 'stable'] else ''} --max-surge-upgrade 1 --max-unavailable-upgrade 0 --enable-shielded-nodes"
+        f"{' --no-enable-autoupgrade' if channel not in ['rapid', 'regular', 'stable'] else ''} --no-enable-managed-prometheus --no-enable-autorepair "
+        f"--max-surge-upgrade 1 --max-unavailable-upgrade 0 --enable-shielded-nodes"
     )
 
-    cmd = cmd.replace("{project}", gcp_project).replace("{region}", ccd.get("region") if "region" not in cco else cco.get("region"))
+    cmd = cmd.replace("{project}", gcp_project).replace("{region}", region)
     typer_logger.msg(f":package: Creating a GKE cluster named [yellow]{cluster_name}[/yellow] in project [yellow]{gcp_project}[/yellow]", bold=False)
     proc, out, err = ui_helpers.progress(cmd=cmd, state=state, message="Spinning up a GKE cluster")
     if proc.returncode == 0:
         typer_logger.msg(":rocket: GKE Cluster created [green]successfully[/green]")
     else:
         typer_logger.msg(":broken_heart: Unable to create GKE cluster. Use [bold]--verbose[/bold] flag for error details.")
+        raise typer.Exit(-1)
 
 
 # =============================================================================================

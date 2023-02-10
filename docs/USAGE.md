@@ -80,6 +80,8 @@ $ tappr cluster create gke [OPTIONS]
 * `--cluster-version TEXT`: auto takes the latest in the channel. You can specify a fixed version as well.  [default: auto]
 * `--project TEXT`: Name of the GCP project. If gcloud is pointing to a specific project, it will be automatically picked up
 * `--customize / --no-customize`: Customize the default values  [default: False]
+* `--region TEXT`: GKE cluster region
+* `--num-nodes-per-zone INTEGER`: Number of worker nodes in NodePool per zone
 * `--help`: Show this message and exit.
 
 #### `tappr cluster create kind`

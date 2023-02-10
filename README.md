@@ -27,8 +27,7 @@ You can `brew` install `pipx` as follows:
 brew install pipx
 pipx ensurepath
 ```
-
-- Install pivnet-cli
+- Install pivnet-cli as it is used to download artifacts from Tanzu Network.
 ```
 brew install pivotal/tap/pivnet-cli
 ```
