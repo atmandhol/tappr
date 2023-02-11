@@ -14,12 +14,11 @@ commons = Commons()
 
 # noinspection PyBroadException
 class TanzuApplicationPlatformGUI:
-    def __init__(self, subprocess_helper, pivnet_helper, logger, creds_helper, state, ui_helper, k8s_helper, console):
+    def __init__(self, subprocess_helper, logger, creds_helper, state, ui_helper, k8s_helper, console):
         self.console = console
         self.creds_helper = creds_helper
         self.logger = logger
         self.sh = subprocess_helper
-        self.pivnet_helpers = pivnet_helper
         self.state = state
         self.ui_helper = ui_helper
         self.k8s_helper: tappr.modules.utils.k8s.K8s = k8s_helper

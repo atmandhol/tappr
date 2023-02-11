@@ -138,98 +138,17 @@ auto_complete_list = [
 
 # noinspection PyBroadException
 class TanzuApplicationPlatform:
-    def __init__(self, subprocess_helper, pivnet_helper, logger, creds_helper, state, ui_helper, k8s_helper, console):
+    def __init__(self, subprocess_helper, logger, creds_helper, state, ui_helper, k8s_helper, console):
         self.console = console
         self.creds_helper = creds_helper
-        try:
-            self.install_registry_server = self.creds_helper.get("install_registry_server", "INSTALL_REGISTRY_SERVER")
-        except Exception:
-            self.install_registry_server = "registry.tanzu.vmware.com"
-        self.pivnet_products = {
-            "darwin": {
-                "CLI_BUNDLE": "1246418",
-                "CLUSTER_ESSENTIALS_BUNDLE": "1330472",
-                "CLUSTER_ESSENTIALS_BUNDLE_SHA": f"{self.install_registry_server}/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:54bf611711923dccd7c7f10603c846782b90644d48f1cb570b43a082d18e23b9",
-                "VERSION": "1.3.0",
-            },
-            "linux": {
-                "CLI_BUNDLE": "1246421",
-                "CLUSTER_ESSENTIALS_BUNDLE": "1330470",
-                "CLUSTER_ESSENTIALS_BUNDLE_SHA": f"{self.install_registry_server}/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:54bf611711923dccd7c7f10603c846782b90644d48f1cb570b43a082d18e23b9",
-                "VERSION": "1.3.0",
-            },
-        }
         self.logger = logger
         self.sh = subprocess_helper
-        self.pivnet_helpers = pivnet_helper
         self.state = state
         self.ui_helper = ui_helper
         self.k8s_helper: tappr.modules.utils.k8s.K8s = k8s_helper
 
     def sh_call(self, cmd, msg, spinner_msg, error_msg):
         return self.ui_helper.sh_call(cmd=cmd, msg=msg, spinner_msg=spinner_msg, error_msg=error_msg, state=self.state)
-
-    # TODO: Install a specific version of cluster essentials
-    def cluster_essentials_install(self, host_os):
-        commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
-        hash_str = str(time.time())
-        tmp_dir = f"/tmp/{hashlib.md5(hash_str.encode()).hexdigest()}"
-        self.logger.msg(f":file_folder: Staging Installation Dir is at [yellow]{tmp_dir}[/yellow]", bold=False)
-
-        if not os.path.isdir(tmp_dir):
-            self.sh_call(
-                cmd=f"mkdir -p {tmp_dir}",
-                msg=":file_folder: Creating Staging Dir",
-                spinner_msg="Creating dir",
-                error_msg=":broken_heart: Unable to create staging directory. Use [bold]--verbose[/bold] flag for error details.",
-            )
-
-        tanzunet_username = self.creds_helper.get("tanzunet_username", "INSTALL_REGISTRY_USERNAME")
-        tanzunet_password = self.creds_helper.get("tanzunet_password", "INSTALL_REGISTRY_PASSWORD")
-        pivnet_uaa_token = self.creds_helper.get("pivnet_uaa_token", "PIVNET_TOKEN")
-
-        os.environ["INSTALL_BUNDLE"] = self.pivnet_products[host_os]["CLUSTER_ESSENTIALS_BUNDLE_SHA"]
-        os.environ["INSTALL_REGISTRY_HOSTNAME"] = self.install_registry_server
-        os.environ["INSTALL_REGISTRY_USERNAME"] = tanzunet_username
-        os.environ["INSTALL_REGISTRY_PASSWORD"] = tanzunet_password
-
-        # Cluster essentials
-        exit_code = self.pivnet_helpers.login(api_token=pivnet_uaa_token, state=self.state)
-        if exit_code != 0:
-            raise typer.Exit(-1)
-
-        cluster_essential_tar = f"{tmp_dir}/tanzu-cluster-essentials-{host_os}-amd64-{self.pivnet_products[host_os]['VERSION']}.tgz"
-        if not os.path.isfile(cluster_essential_tar):
-            exit_code = self.pivnet_helpers.download(
-                product_slug="tanzu-cluster-essentials",
-                release_version=self.pivnet_products[host_os]["VERSION"],
-                product_file_id=self.pivnet_products[host_os]["CLUSTER_ESSENTIALS_BUNDLE"],
-                download_dir=tmp_dir,
-                state=self.state,
-            )
-            if exit_code != 0:
-                raise typer.Exit(-1)
-
-        if not os.path.isfile(f"{tmp_dir}/cluster-essentials/install.sh"):
-            exit_code = self.sh_call(
-                cmd=f"mkdir -p {tmp_dir}/cluster-essentials && tar xvf {cluster_essential_tar} -C {tmp_dir}/cluster-essentials",
-                msg=":compression:  Extracting Cluster essentials",
-                spinner_msg="Extracting",
-                error_msg=":broken_heart: Unable to extract cluster essentials. Use [bold]--verbose[/bold] flag for error details.",
-            )
-            if exit_code != 0:
-                raise typer.Exit(-1)
-
-        os.chdir(tmp_dir + "/cluster-essentials")
-        exit_code = self.sh_call(
-            cmd=f"bash {tmp_dir}/cluster-essentials/install.sh --yes",
-            msg=":hourglass: Install Cluster Essentials",
-            spinner_msg="Installing",
-            error_msg=":broken_heart: Unable to Install cluster essentials. Use [bold]--verbose[/bold] flag for error details.",
-        )
-        if exit_code != 0:
-            raise typer.Exit(-1)
-        return
 
     def tap_install(self, profile, version, host_os, tap_values_file, wait: bool, skip_cluster_essentials, namespace: str = "tap-install"):
         k8s_context = commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
@@ -245,9 +164,9 @@ class TanzuApplicationPlatform:
                 error_msg=":broken_heart: Unable to create staging directory. Use [bold]--verbose[/bold] flag for error details.",
             )
 
+        install_registry_server = self.creds_helper.get("install_registry_server", "INSTALL_REGISTRY_SERVER")
         tanzunet_username = self.creds_helper.get("tanzunet_username", "INSTALL_REGISTRY_USERNAME")
         tanzunet_password = self.creds_helper.get("tanzunet_password", "INSTALL_REGISTRY_PASSWORD")
-        pivnet_uaa_token = self.creds_helper.get("pivnet_uaa_token", "PIVNET_TOKEN")
 
         registry_server = self.creds_helper.get("registry_server", "REGISTRY_SERVER")
         registry_username = self.creds_helper.get("registry_username", "REGISTRY_USERNAME")
@@ -262,48 +181,13 @@ class TanzuApplicationPlatform:
             registry_password = open(registry_password, "r").read()
 
         os.environ["TAP_VERSION"] = version
-        os.environ["INSTALL_BUNDLE"] = self.pivnet_products[host_os]["CLUSTER_ESSENTIALS_BUNDLE_SHA"]
-        os.environ["INSTALL_REGISTRY_HOSTNAME"] = self.install_registry_server
+        os.environ["INSTALL_REGISTRY_HOSTNAME"] = install_registry_server
         os.environ["INSTALL_REGISTRY_USERNAME"] = tanzunet_username
         os.environ["INSTALL_REGISTRY_PASSWORD"] = tanzunet_password
 
         # Cluster essentials
         if not skip_cluster_essentials:
-            exit_code = self.pivnet_helpers.login(api_token=pivnet_uaa_token, state=self.state)
-            if exit_code != 0:
-                raise typer.Exit(-1)
-
-            cluster_essential_tar = f"{tmp_dir}/tanzu-cluster-essentials-{host_os}-amd64-{self.pivnet_products[host_os]['VERSION']}.tgz"
-            if not os.path.isfile(cluster_essential_tar):
-                exit_code = self.pivnet_helpers.download(
-                    product_slug="tanzu-cluster-essentials",
-                    release_version=self.pivnet_products[host_os]["VERSION"],
-                    product_file_id=self.pivnet_products[host_os]["CLUSTER_ESSENTIALS_BUNDLE"],
-                    download_dir=tmp_dir,
-                    state=self.state,
-                )
-                if exit_code != 0:
-                    raise typer.Exit(-1)
-
-            if not os.path.isfile(f"{tmp_dir}/cluster-essentials/install.sh"):
-                exit_code = self.sh_call(
-                    cmd=f"mkdir -p {tmp_dir}/cluster-essentials && tar xvf {cluster_essential_tar} -C {tmp_dir}/cluster-essentials",
-                    msg=":compression:  Extracting Cluster essentials",
-                    spinner_msg="Extracting",
-                    error_msg=":broken_heart: Unable to extract cluster essentials. Use [bold]--verbose[/bold] flag for error details.",
-                )
-                if exit_code != 0:
-                    raise typer.Exit(-1)
-
-            os.chdir(tmp_dir + "/cluster-essentials")
-            exit_code = self.sh_call(
-                cmd=f"bash {tmp_dir}/cluster-essentials/install.sh --yes",
-                msg=":hourglass: Install Cluster Essentials",
-                spinner_msg="Installing",
-                error_msg=":broken_heart: Unable to Install cluster essentials. Use [bold]--verbose[/bold] flag for error details.",
-            )
-            if exit_code != 0:
-                raise typer.Exit(-1)
+            commons.install_cluster_essentials(ui_helper=self.ui_helper, state=self.state)
 
         ns_list = commons.get_ns_list(k8s_helper=self.k8s_helper, client=self.k8s_helper.core_clients[k8s_context])
         if namespace not in ns_list:
@@ -324,12 +208,12 @@ class TanzuApplicationPlatform:
 
         self.sh_call(
             cmd=(
-                f"tanzu secret registry update tanzunet-registry-creds --username '{tanzunet_username}' --password '{tanzunet_password}' --server {self.install_registry_server} "
+                f"tanzu secret registry update tanzunet-registry-creds --username '{tanzunet_username}' --password '{tanzunet_password}' --server {install_registry_server} "
                 f"--export-to-all-namespaces --yes --namespace {namespace}"
             )
             if "tanzunet-registry-creds" in out.decode()
             else (
-                f"tanzu secret registry add tanzunet-registry-creds --username '{tanzunet_username}' --password '{tanzunet_password}' --server {self.install_registry_server} "
+                f"tanzu secret registry add tanzunet-registry-creds --username '{tanzunet_username}' --password '{tanzunet_password}' --server {install_registry_server} "
                 f"--export-to-all-namespaces --yes --namespace {namespace}"
             ),
             msg=":key: Setting up TAP Install Registry secret",
@@ -339,12 +223,12 @@ class TanzuApplicationPlatform:
 
         self.sh_call(
             cmd=(
-                f"tanzu secret registry update tanzunet-registry-creds-tbs --username '{tanzunet_username}' --password '{tanzunet_password}' --server {self.install_registry_server} "
+                f"tanzu secret registry update tanzunet-registry-creds-tbs --username '{tanzunet_username}' --password '{tanzunet_password}' --server {install_registry_server} "
                 f"--export-to-all-namespaces --yes --namespace {namespace}"
             )
             if "tanzunet-registry-creds-tbs" in out.decode()
             else (
-                f"tanzu secret registry add tanzunet-registry-creds-tbs --username '{tanzunet_username}' --password '{tanzunet_password}' --server {self.install_registry_server} "
+                f"tanzu secret registry add tanzunet-registry-creds-tbs --username '{tanzunet_username}' --password '{tanzunet_password}' --server {install_registry_server} "
                 f"--export-to-all-namespaces --yes --namespace {namespace}"
             ),
             msg=":key: Setting up TAP Install Registry secret for TBS",
@@ -387,9 +271,9 @@ class TanzuApplicationPlatform:
         _, out, _ = self.sh.run_proc(cmd=cmd)
 
         self.sh_call(
-            cmd=f"tanzu package repository update tanzu-tap-repository --url {self.install_registry_server}/tanzu-application-platform/tap-packages:{version} --namespace {namespace}"
+            cmd=f"tanzu package repository update tanzu-tap-repository --url {install_registry_server}/tanzu-application-platform/tap-packages:{version} --namespace {namespace}"
             if "tanzu-tap-repository" in out.decode()
-            else f"tanzu package repository add tanzu-tap-repository --url {self.install_registry_server}/tanzu-application-platform/tap-packages:{version} --namespace {namespace}",
+            else f"tanzu package repository add tanzu-tap-repository --url {install_registry_server}/tanzu-application-platform/tap-packages:{version} --namespace {namespace}",
             msg=":key: Setting up [yellow]tanzu-tap-repository[/yellow] package repo",
             spinner_msg="Setting up",
             error_msg=None,
@@ -638,15 +522,15 @@ class TanzuApplicationPlatform:
 
     def upgrade(self, version: str, wait: bool, namespace: str = "tap-install"):
         commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
-        # TODO: Make this configurable from tappr init
         cmd = f"tanzu package installed list --namespace {namespace}"
         _, out, _ = self.sh.run_proc(cmd=cmd)
         if "tap.tanzu.vmware.com" not in out.decode():
             self.logger.msg(":broken_heart: TAP package not found. Nothing to upgrade. Please check if TAP is installed")
             raise typer.Exit(1)
 
+        install_registry_server = self.creds_helper.get("install_registry_server", "INSTALL_REGISTRY_SERVER")
         self.sh_call(
-            cmd=f"tanzu package repository update tanzu-tap-repository --url {self.install_registry_server}/tanzu-application-platform/tap-packages:{version} --namespace {namespace}",
+            cmd=f"tanzu package repository update tanzu-tap-repository --url {install_registry_server}/tanzu-application-platform/tap-packages:{version} --namespace {namespace}",
             msg=":key: Setting up [yellow]tanzu-tap-repository[/yellow] package repo",
             spinner_msg="Setting up",
             error_msg=None,

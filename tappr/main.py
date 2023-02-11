@@ -11,7 +11,8 @@ from tappr.modules.releasenotes.release_notes import ReleaseNotes
 from tappr.modules.test.test_framework import TestFramework
 from tappr.modules.tanzu.tap import TanzuApplicationPlatform
 from tappr.modules.tanzu.tapgui import TanzuApplicationPlatformGUI
-from tappr.modules.utils.helpers import PivnetHelpers, SubProcessHelpers
+from tappr.modules.utils.commons import Commons
+from tappr.modules.utils.helpers import SubProcessHelpers
 from tappr.modules.utils.logger import TyperLogger
 from tappr.modules.utils.enums import PROFILE, OS, GKE_RELEASE_CHANNELS
 from tappr.modules.utils.creds import CredsHelper
@@ -21,16 +22,15 @@ from tappr.modules.utils.k8s import K8s
 state = {"verbose": False, "context": None}
 
 typer_logger = TyperLogger()
+commons = Commons()
 console = Console(color_system="truecolor")
 subprocess_helpers = SubProcessHelpers()
-pivnet_helpers = PivnetHelpers()
 creds_helpers = CredsHelper(logger=typer_logger, subprocess_helper=subprocess_helpers)
 ui_helpers = UI(subprocess_helper=subprocess_helpers, logger=typer_logger)
 test_framework = TestFramework(logger=typer_logger, subprocess_helper=subprocess_helpers, ui_helper=ui_helpers)
 k8s_helpers = K8s(state=state, logger=typer_logger)
 tap_helpers = TanzuApplicationPlatform(
     subprocess_helper=subprocess_helpers,
-    pivnet_helper=pivnet_helpers,
     logger=typer_logger,
     creds_helper=creds_helpers,
     state=state,
@@ -40,7 +40,6 @@ tap_helpers = TanzuApplicationPlatform(
 )
 tap_gui_helpers = TanzuApplicationPlatformGUI(
     subprocess_helper=subprocess_helpers,
-    pivnet_helper=pivnet_helpers,
     logger=typer_logger,
     creds_helper=creds_helpers,
     state=state,
@@ -120,10 +119,8 @@ def tap(
 def init(
     tanzunet_username: str = typer.Option(None, help="Tanzu Network Username."),
     tanzunet_password: str = typer.Option(None, help="Tanzu Network Password."),
-    pivnet_uaa_token: str = typer.Option(None, help="Pivnet UAA Login Token used to download artifacts."),
     install_registry_server: str = typer.Option(None, help="Registry where the TAP packages are"),
     registry_server: str = typer.Option(None, help="Default registry server to use while installing tap. e.g. gcr.io, index.docker.io etc."),
-    registry_tap_package_repo: str = typer.Option(None, help="Default registry repo on the registry server to use for relocating TAP packages to."),
     registry_tbs_repo: str = typer.Option(None, help="Default registry repo on the registry server to use for build service. Don't include the registry server or starting /."),
     registry_username: str = typer.Option(None, help="Registry username to use while installing tap"),
     registry_password: str = typer.Option(None, help="Registry password to use while installing tap. If using GCR set this as path to jsonkey file."),
@@ -135,12 +132,10 @@ def init(
         tanzunet_username=tanzunet_username,
         tanzunet_password=tanzunet_password,
         install_registry_server=install_registry_server,
-        pivnet_uaa_token=pivnet_uaa_token,
         registry_server=registry_server,
         registry_username=registry_username,
         registry_password=registry_password,
         registry_tbs_repo=registry_tbs_repo,
-        registry_tap_package_repo=registry_tap_package_repo,
     )
 
 
@@ -245,7 +240,6 @@ def check():
     checks_passed = subprocess_helpers.run_pre_req(cmd="kubectl version --client", tool="kubectl") and checks_passed
     checks_passed = subprocess_helpers.run_pre_req(cmd="tanzu version", tool="tanzu CLI") and checks_passed
     checks_passed = subprocess_helpers.run_pre_req(cmd="rosa version", tool="rosa CLI") and checks_passed
-    checks_passed = subprocess_helpers.run_pre_req(cmd="pivnet version", tool="pivnet CLI") and checks_passed
     checks_passed = subprocess_helpers.run_pre_req(cmd="ytt --version", tool="ytt") and checks_passed
 
     if not checks_passed:
@@ -289,7 +283,6 @@ def setup(interactive: bool = True):
     local_install(interactive=interactive, tool="minikube", cmd="brew install minikube")
     local_install(interactive=interactive, tool="kubectl", cmd="brew install kubectl")
     local_install(interactive=interactive, tool="rosa CLI", cmd="brew install rosa-cli")
-    local_install(interactive=interactive, tool="pivnet CLI", cmd="brew install pivotal/tap/pivnet-cli")
     local_install(interactive=interactive, tool="ytt", cmd="brew install ytt")
     local_install(interactive=interactive, tool="kapp", cmd="brew install kapp")
     local_install(interactive=interactive, tool="kbld", cmd="brew install kbld")
@@ -630,7 +623,7 @@ def install_cluster_essentials(
     Install only Cluster Essentials.
 
     """
-    tap_helpers.cluster_essentials_install(host_os=host_os)
+    commons.install_cluster_essentials(ui_helper=ui_helpers, state=state)
 
 
 @tap_app.command()

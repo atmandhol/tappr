@@ -9,6 +9,29 @@ from difflib import Differ
 
 class Commons:
     @staticmethod
+    def install_cluster_essentials(ui_helper, state):
+        exit_code = ui_helper.sh_call(
+            cmd=f"kapp deploy -a kapp-controller -n kube-system -f https://github.com/vmware-tanzu/carvel-kapp-controller/releases/latest/download/release.yml -y",
+            msg=":hourglass: Install Kapp Controller",
+            spinner_msg="Installing",
+            error_msg=":broken_heart: Unable to Install Kapp Controller. Use [bold]--verbose[/bold] flag for error details.",
+            state=state,
+        )
+        if exit_code != 0:
+            raise typer.Exit(-1)
+
+        exit_code = ui_helper.sh_call(
+            cmd=f"kapp deploy -a secretgen-controller -n kube-system -f https://github.com/vmware-tanzu/carvel-secretgen-controller/releases/latest/download/release.yml -y",
+            msg=":hourglass: Install Secretgen Controller",
+            spinner_msg="Installing",
+            error_msg=":broken_heart: Unable to Install Secretgen Controller. Use [bold]--verbose[/bold] flag for error details.",
+            state=state,
+        )
+        if exit_code != 0:
+            raise typer.Exit(-1)
+        return
+
+    @staticmethod
     def check_tanzu_cli(ui_helper, state, logger):
         proc, _, _ = ui_helper.progress(cmd=f"tanzu package version", state=state, message="Checking")
         if proc.returncode != 0:

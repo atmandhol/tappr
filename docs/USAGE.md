@@ -299,10 +299,8 @@ $ tappr init [OPTIONS]
 
 * `--tanzunet-username TEXT`: Tanzu Network Username.
 * `--tanzunet-password TEXT`: Tanzu Network Password.
-* `--pivnet-uaa-token TEXT`: Pivnet UAA Login Token used to download artifacts.
 * `--install-registry-server TEXT`: Registry where the TAP packages are
 * `--registry-server TEXT`: Default registry server to use while installing tap. e.g. gcr.io, index.docker.io etc.
-* `--registry-tap-package-repo TEXT`: Default registry repo on the registry server to use for relocating TAP packages to.
 * `--registry-tbs-repo TEXT`: Default registry repo on the registry server to use for build service. Don't include the registry server or starting /.
 * `--registry-username TEXT`: Registry username to use while installing tap
 * `--registry-password TEXT`: Registry password to use while installing tap. If using GCR set this as path to jsonkey file.
