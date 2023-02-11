@@ -32,7 +32,13 @@ To Install latest:
 pipx install git+https://github.com/atmandhol/tappr.git
 ```
 
-To Install a specific version
+If you already have `tappr` installed from latest, and want to pull in the new changes:
+```
+pipx reinstall tappr
+```
+
+
+To Install a specific version of tappr:
 ```
 pipx install git+https://github.com/atmandhol/tappr.git@version
 ```
@@ -40,10 +46,15 @@ pipx install git+https://github.com/atmandhol/tappr.git@version
 - Run `tappr` on your command line to confirm if its installed
 
 ### Setup Environment to run tappr
-- Run `tappr utils local check` command to see if all the required tools to use `tappr` are installed or not.
+- Start by running `tappr utils local check` command to see if all the required tools to use `tappr` are installed or not.
+
+![tappr utils local check](assets/local-check.png)
+
 - Run `tappr utils local setup` command and install the missing tools. 
 All prompts defaults to `No` you can keep hitting enter till you get to the tool that is missing.
-- Run `tappr init` to setup credentials once.
+- Run `tappr init` to set up credentials once.
+
+![tappr init](assets/init.png)
 
 ## Usage
 Check the [Full CLI Usage documentation](docs/USAGE.md) for everything that is possible.

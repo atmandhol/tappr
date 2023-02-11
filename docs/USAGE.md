@@ -544,7 +544,7 @@ $ tappr utils local [OPTIONS] COMMAND [ARGS]...
 
 * `check`: Run pre-checks for running tappr on the local...
 * `cleanup`: Cleans up tanzu directories and CLI for a...
-* `setup`: Set up your local with all required tools.
+* `setup`: Set up your local with all required tools...
 
 #### `tappr utils local check`
 
@@ -576,7 +576,7 @@ $ tappr utils local cleanup [OPTIONS]
 
 #### `tappr utils local setup`
 
-Set up your local with all required tools.
+Set up your local with all required tools using brew install.
 
 **Usage**:
 

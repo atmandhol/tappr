@@ -137,6 +137,8 @@ def init(
         registry_password=registry_password,
         registry_tbs_repo=registry_tbs_repo,
     )
+    typer_logger.msg("\n:runner: [cyan][bold]tappr cluster create --help[/bold][/cyan] to see help for creating k8s clusters.")
+    typer_logger.msg(":runner: [cyan][bold]tappr tap install --help[/bold][/cyan] to see help for installing TAP on your k8s clusters.\n")
 
 
 @utils_app.command()
@@ -233,13 +235,10 @@ def check():
     Run pre-checks for running tappr on the local environment.
     """
     checks_passed = True
-    checks_passed = subprocess_helpers.run_pre_req(cmd='gcloud version | grep "Google Cloud SDK"', tool="gcloud") and checks_passed
+    typer_logger.msg("\n:toolbox: Checking core tools that are needed for using [bold][green]tappr[/green][/bold] ...")
     checks_passed = subprocess_helpers.run_pre_req(cmd="docker --version", tool="Docker") and checks_passed
-    checks_passed = subprocess_helpers.run_pre_req(cmd="kind --version", tool="Kind") and checks_passed
-    checks_passed = subprocess_helpers.run_pre_req(cmd="minikube version", tool="minikube") and checks_passed
     checks_passed = subprocess_helpers.run_pre_req(cmd="kubectl version --client", tool="kubectl") and checks_passed
     checks_passed = subprocess_helpers.run_pre_req(cmd="tanzu version", tool="tanzu CLI") and checks_passed
-    checks_passed = subprocess_helpers.run_pre_req(cmd="rosa version", tool="rosa CLI") and checks_passed
     checks_passed = subprocess_helpers.run_pre_req(cmd="ytt --version", tool="ytt") and checks_passed
 
     if not checks_passed:
@@ -247,7 +246,13 @@ def check():
         raise typer.Exit(-1)
     typer_logger.success("All checks passed!")
 
-    typer_logger.msg("\nChecking other tools that are not needed for using [bold][green]tappr[/green][/bold] but nice to have ...")
+    typer_logger.msg("\n:brick: Checking Infrastructure specific k8s tools that are needed for cluster create/delete commands in [bold][green]tappr[/green][/bold] ...")
+    subprocess_helpers.run_pre_req(cmd='gcloud version | grep "Google Cloud SDK"', tool="For [yellow]GKE[/yellow] clusters: gcloud") and checks_passed
+    checks_passed = subprocess_helpers.run_pre_req(cmd="kind --version", tool="For [yellow]Kind[/yellow] clusters: Kind") and checks_passed
+    checks_passed = subprocess_helpers.run_pre_req(cmd="minikube version", tool="For [yellow]minikube[/yellow] clusters: minikube") and checks_passed
+    checks_passed = subprocess_helpers.run_pre_req(cmd="rosa version", tool="For [yellow]RedHat Openshift on AWS[/yellow] clusters: rosa CLI") and checks_passed
+
+    typer_logger.msg("\n:hammer_and_wrench: Checking other tools that are not needed for using [bold][green]tappr[/green][/bold] but nice to have ...")
     subprocess_helpers.run_pre_req(cmd="kapp --version", tool="kapp") and checks_passed
     subprocess_helpers.run_pre_req(cmd="kbld --version", tool="kbld") and checks_passed
     subprocess_helpers.run_pre_req(cmd="imgpkg --version", tool="imgpkg") and checks_passed
@@ -261,12 +266,17 @@ def check():
     subprocess_helpers.run_pre_req(cmd="jq --version", tool="jq") and checks_passed
     subprocess_helpers.run_pre_req(cmd="yq --version", tool="yq") and checks_passed
 
+    typer_logger.msg("\nChecks complete. \n:runner: [cyan][bold]tappr utils local setup[/bold][/cyan] to install missing tools (except tanzu CLI and gcloud SDK).")
+    typer_logger.msg(":runner: [cyan][bold]tappr init[/bold][/cyan] to set credentials for using tappr.")
+    typer_logger.msg(":runner: [cyan][bold]tappr cluster create --help[/bold][/cyan] to see help for creating k8s clusters.")
+    typer_logger.msg(":runner: [cyan][bold]tappr tap install --help[/bold][/cyan] to see help for installing TAP on your k8s clusters.\n")
+
 
 # noinspection PyBroadException
 @local_app.command()
 def setup(interactive: bool = True):
     """
-    Set up your local with all required tools.
+    Set up your local with all required tools using brew install.
 
     """
     _, out, err = subprocess_helpers.run_proc("brew -v")
@@ -279,11 +289,13 @@ def setup(interactive: bool = True):
             typer_logger.msg(":broken_heart: Unable to install brew. Please manually install brew and try again.")
 
     local_install(interactive=interactive, tool="docker", cmd="brew install --cask docker")
+    local_install(interactive=interactive, tool="kubectl", cmd="brew install kubectl")
+    local_install(interactive=interactive, tool="ytt", cmd="brew install ytt")
+
     local_install(interactive=interactive, tool="kind", cmd="brew install kind")
     local_install(interactive=interactive, tool="minikube", cmd="brew install minikube")
-    local_install(interactive=interactive, tool="kubectl", cmd="brew install kubectl")
     local_install(interactive=interactive, tool="rosa CLI", cmd="brew install rosa-cli")
-    local_install(interactive=interactive, tool="ytt", cmd="brew install ytt")
+
     local_install(interactive=interactive, tool="kapp", cmd="brew install kapp")
     local_install(interactive=interactive, tool="kbld", cmd="brew install kbld")
     local_install(interactive=interactive, tool="imgpkg", cmd="brew install imgpkg")
@@ -292,11 +304,12 @@ def setup(interactive: bool = True):
     local_install(interactive=interactive, tool="ko", cmd="brew install ko")
     local_install(interactive=interactive, tool="curl", cmd="brew install curl")
     local_install(interactive=interactive, tool="crane", cmd="brew install crane")
+    local_install(interactive=interactive, tool="kpack-cli", cmd="brew tap vmware-tanzu/kpack-cli && brew install kp")
+
     local_install(interactive=interactive, tool="kubectx", cmd="brew install kubectx")
     local_install(interactive=interactive, tool="fzf", cmd="brew install fzf")
     local_install(interactive=interactive, tool="jq", cmd="brew install jq")
     local_install(interactive=interactive, tool="yq", cmd="brew install yq")
-    local_install(interactive=interactive, tool="kpack-cli", cmd="brew tap vmware-tanzu/kpack-cli && brew install kp")
 
 
 @local_app.command()
@@ -357,6 +370,8 @@ def minikube(
     else:
         typer_logger.msg(":broken_heart: Unable to create minikube cluster. Use [bold]--verbose[/bold] flag for error details.")
 
+    typer_logger.msg("\n:runner: [cyan][bold]tappr tap install --help[/bold][/cyan] to see help for installing TAP on your k8s clusters.\n")
+
 
 @create_cluster_app.command()
 def kind(cluster_name, customize: bool = typer.Option(False, help="Customize the default config file")):
@@ -395,6 +410,8 @@ def kind(cluster_name, customize: bool = typer.Option(False, help="Customize the
         typer_logger.msg(":rocket: KinD cluster created [green]successfully[/green]")
     else:
         typer_logger.msg(":broken_heart: Unable to create KinD cluster. Use [bold]--verbose[/bold] flag for error details.")
+
+    typer_logger.msg("\n:runner: [cyan][bold]tappr tap install --help[/bold][/cyan] to see help for installing TAP on your k8s clusters.\n")
 
 
 def get_latest_gke_version_by_channel(region, channel):
@@ -521,6 +538,8 @@ def gke(
         typer_logger.msg(":broken_heart: Unable to create GKE cluster. Use [bold]--verbose[/bold] flag for error details.")
         raise typer.Exit(-1)
 
+    typer_logger.msg("\n:runner: [cyan][bold]tappr tap install --help[/bold][/cyan] to see help for installing TAP on your k8s clusters.\n")
+
 
 # =============================================================================================
 # tappr delete commands
@@ -624,6 +643,7 @@ def install_cluster_essentials(
 
     """
     commons.install_cluster_essentials(ui_helper=ui_helpers, state=state)
+    typer_logger.msg("\n:runner: [cyan][bold]tappr tap install --help[/bold][/cyan] to see help for installing TAP on your k8s clusters.\n")
 
 
 @tap_app.command()
@@ -641,6 +661,9 @@ def install(
 
     """
     tap_helpers.tap_install(profile=profile, version=version, host_os=host_os, tap_values_file=tap_values_file, wait=wait, namespace=namespace, skip_cluster_essentials=skip_cluster_essentials)
+    typer_logger.msg("\n:runner: [cyan][bold]tappr tap edit --show[/bold][/cyan] to edit TAP values config on the cluster.")
+    typer_logger.msg(":runner: [cyan][bold]tappr tap setup[/bold][/cyan] to setup developer namespace.")
+    typer_logger.msg(":runner: [cyan][bold]tappr tap upgrade {new-version}[/bold][/cyan] to upgrade TAP version.\n")
 
 
 @tap_app.command()

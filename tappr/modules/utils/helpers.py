@@ -26,7 +26,7 @@ class SubProcessHelpers:
                 ver = " " + ver + " "
 
         if process.returncode != 0:
-            typer_logger.msg(f":red_apple: [red]{tool}[/red] not found", bold=False)
+            typer_logger.msg(f":red_circle: [red]{tool}[/red] not found", bold=False)
             return False
-        typer_logger.msg(f":green_apple: {tool}[green]{ver}[/green]installed")
+        typer_logger.msg(f":white_check_mark: {tool}[green]{ver}[/green]installed")
         return True

@@ -303,12 +303,7 @@ class TanzuApplicationPlatform:
             spinner_msg="Waiting to reconcile",
             error_msg=None,
         )
-        if wait:
-            self.logger.msg(":rocket: TAP is installed. Use tappr tap setup to setup developer namespace.")
-        else:
-            self.logger.msg(":rocket: TAP install started on the cluster. Use tappr tap setup to setup developer namespace.")
-
-        return
+        self.logger.msg(":rocket: TAP install started on the cluster.")
 
     def developer_ns_setup(self, namespace, install_ns="tap-install"):
         k8s_context = commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
