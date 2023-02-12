@@ -14,7 +14,7 @@ from tappr.modules.tanzu.tapgui import TanzuApplicationPlatformGUI
 from tappr.modules.utils.commons import Commons
 from tappr.modules.utils.helpers import SubProcessHelpers
 from tappr.modules.utils.logger import TyperLogger
-from tappr.modules.utils.enums import PROFILE, OS, GKE_RELEASE_CHANNELS
+from tappr.modules.utils.enums import PROFILE, GKE_RELEASE_CHANNELS
 from tappr.modules.utils.creds import CredsHelper
 from tappr.modules.utils.ui import UI
 from tappr.modules.utils.k8s import K8s
@@ -370,7 +370,9 @@ def minikube(
     else:
         typer_logger.msg(":broken_heart: Unable to create minikube cluster. Use [bold]--verbose[/bold] flag for error details.")
 
-    typer_logger.msg("\n:runner: [cyan][bold]tappr tap install --help[/bold][/cyan] to see help for installing TAP on your k8s clusters.\n")
+    typer_logger.msg(f"\n:runner: [cyan][bold]minikube tunnel --profile {cluster_name}[/bold][/cyan] in a separate terminal to start a Load Balancer tunnel.")
+    typer_logger.msg(":runner: [cyan][bold]tappr tap install {profile} {version}[/bold][/cyan] to install TAP on minikube.")
+    typer_logger.msg(f":runner: [cyan][bold]tappr cluster delete minikube {cluster_name}[/bold][/cyan] to delete the cluster.\n")
 
 
 @create_cluster_app.command()
@@ -635,9 +637,7 @@ def stop():
 # TAP commands
 # =============================================================================================
 @tap_app.command()
-def install_cluster_essentials(
-    host_os: OS = OS.MAC,
-):
+def install_cluster_essentials():
     """
     Install only Cluster Essentials.
 
@@ -650,18 +650,45 @@ def install_cluster_essentials(
 def install(
     profile: PROFILE,
     version,
-    host_os: OS = OS.MAC,
     namespace: str = typer.Option("tap-install", help="Namespace where TAP should be installed"),
-    tap_values_file: str = None,
+    ingress_domain: str = typer.Option("127.0.0.1.nip.io", help="Shared Ingress Domain"),
+    ingress_issuer: str = typer.Option("", help='Shared Ingress Issuer. Can also use "tap-ingress-selfsigned" to use the OOTB self signed cert'),
+    k8s_distribution: str = typer.Option("", help="Use openshift if installing on Openshift cluster, else use default"),
+    tbs_repo_push_secret: str = typer.Option("tbs-repo-push", help="Name of the push secret that needs to be created"),
+    tbs_tanzunet_pull_secret: str = typer.Option("tbs-tanzunet-pull", help="Name of the pull secret for Tanzu Network that needs to be created for TBS"),
+    tanzunet_pull_secret: str = typer.Option("tanzunet-pull", help="Name of the pull secret for Tanzu Network that needs to be created for TAP install"),
+    repo_pull_secret: str = typer.Option("repo-pull", help="Name of the push secret that needs to be created"),
+    supply_chain: str = typer.Option("basic", help='OOTB Supply chain to install. Other values are "testing" and "testing_scanning"'),
+    contour_infra: str = typer.Option("vsphere", help="Supported values are aws, azure and vsphere"),
+    service_type: str = typer.Option("LoadBalancer", help="Accepted values are LoadBalancer, NodePort and ClusterIP"),
     skip_cluster_essentials: bool = typer.Option(False, help="Skip Cluster Essentials installation as its already installed or the user is using TKG or some flavor that already has it."),
+    tap_values_file: str = None,
     wait: bool = typer.Option(False, help="Wait for the TAP install to complete"),
 ):
     """
     Install TAP. Make sure to run tappr init before installing TAP.
 
     """
-    tap_helpers.tap_install(profile=profile, version=version, host_os=host_os, tap_values_file=tap_values_file, wait=wait, namespace=namespace, skip_cluster_essentials=skip_cluster_essentials)
-    typer_logger.msg("\n:runner: [cyan][bold]tappr tap edit --show[/bold][/cyan] to edit TAP values config on the cluster.")
+    tap_helpers.tap_install(
+        profile=profile,
+        version=version,
+        tap_values_file=tap_values_file,
+        wait=wait,
+        namespace=namespace,
+        skip_cluster_essentials=skip_cluster_essentials,
+        ingress_domain=ingress_domain,
+        ingress_issuer=ingress_issuer,
+        k8s_distribution=k8s_distribution,
+        tbs_repo_push_secret=tbs_repo_push_secret,
+        tbs_tanzunet_pull_secret=tbs_tanzunet_pull_secret,
+        tanzunet_pull_secret=tanzunet_pull_secret,
+        repo_pull_secret=repo_pull_secret,
+        supply_chain=supply_chain,
+        contour_infra=contour_infra,
+        service_type=service_type,
+    )
+    typer_logger.msg("\n:runner: [cyan][bold]tappr tap status[/bold][/cyan] to see the status of your TAP install.")
+    typer_logger.msg(":runner: [cyan][bold]tappr tap edit --show[/bold][/cyan] to edit TAP values config on the cluster.")
     typer_logger.msg(":runner: [cyan][bold]tappr tap setup[/bold][/cyan] to setup developer namespace.")
     typer_logger.msg(":runner: [cyan][bold]tappr tap upgrade {new-version}[/bold][/cyan] to upgrade TAP version.\n")
 

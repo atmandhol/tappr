@@ -1,0 +1,117 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:yaml", "yaml")
+
+#@ def in_list(key, list):
+#@   return hasattr(data.values, key) and (data.values[key] in list)
+#@ end
+
+#@ def is_profile(profile_list):
+#@   return in_list('profile', profile_list)
+#@ end
+
+#@ def is_supply_chain(sc_list):
+#@   return in_list('supply_chain', sc_list)
+#@ end
+
+shared:
+  #@ if/end hasattr(data.values, "ingress_domain"):
+  ingress_domain: #@ data.values.ingress_domain
+  #@ if/end hasattr(data.values, "ingress_issuer"):
+  ingress_issuer: #@ data.values.ingress_issuer
+  #@ if/end hasattr(data.values, "k8s_distribution"):
+  kubernetes_distribution: #@ data.values.k8s_distribution
+  #@ if/end hasattr(data.values, "k8s_version"):
+  kubernetes_version: #@ data.values.k8s_version
+  #@ if hasattr(data.values, "ca_cert_data"):
+  #@yaml/text-templated-strings
+  ca_cert_data: |
+    (@= yaml.encode(data.values.ca_cert_data) @)
+  #@ end
+ceip_policy_disclosed: true
+profile: #@ data.values.profile
+
+#@ if is_profile(['full', 'build', 'light', 'iterate']):
+buildservice:
+  kp_default_repository: #@ data.values.registry_server + "/" + data.values.registry_repo
+  kp_default_repository_secret:
+    name: #@ data.values.tbs_repo_push_secret if hasattr(data.values, "tbs_repo_push_secret") else "tbs-repo-push"
+    namespace: #@ data.values.tap_install_ns if hasattr(data.values, "tap_install_ns") else "tap-install"
+  tanzunet_secret:
+    name: #@ data.values.tbs_tanzunet_pull_secret if hasattr(data.values, "tbs_tanzunet_pull_secret") else "tbs-tanzunet-pull"
+    namespace: #@ data.values.tap_install_ns if hasattr(data.values, "tap_install_ns") else "tap-install"
+#@ end
+
+#@ if is_profile(['full', 'build', 'light']):
+supply_chain: #@ data.values.supply_chain if hasattr(data.values, "supply_chain") else "basic"
+
+#@ if data.values.supply_chain == "basic":
+ootb_supply_chain_basic:
+  registry:
+    server: #@ data.values.registry_server
+    repository: #@ data.values.registry_repo
+  gitops:
+    ssh_secret: ""
+#@ end
+
+#@ if data.values.supply_chain == "testing":
+ootb_supply_chain_testing:
+  registry:
+    server: #@ data.values.registry_server
+    repository: #@ data.values.registry_repo
+  gitops:
+    ssh_secret: ""
+#@ end
+
+#@ if data.values.supply_chain == "testing_scanning":
+ootb_supply_chain_testing_scanning:
+  registry:
+    server: #@ data.values.registry_server
+    repository: #@ data.values.registry_repo
+  gitops:
+    ssh_secret: ""
+#@ end
+#@ end
+
+#@ if is_profile(['full', 'run', 'light', 'iterate']):
+cnrs:
+  domain_name: #@ data.values.ingress_domain
+#@ end
+
+contour:
+  infrastructure_provider: #@ data.values.contour_infra if hasattr(data.values, "contour_infra") and in_list("data.values.contour_infra", ["aws", "azure", "vsphere"]) else "vsphere"
+  envoy:
+    service:
+      type: #@ data.values.service_type if hasattr(data.values, "service_type") else "NodePort"
+      #@ if hasattr(data.values, "service_type") and data.values.service_type == "NodePort":
+      nodePorts:
+        http: 31080
+        https: 31090
+      #@ end
+
+#@ if is_profile(['full', 'view']):
+tap_gui:
+  app_config:
+    catalog:
+      locations:
+      - target: https://github.com/atmandhol/tap-blank-catalog/blob/main/catalog-info.yaml
+        type: url
+  ingressEnabled: 'true'
+  service_type: ClusterIP
+#@ end
+
+#@ if is_profile(['full', 'build']):
+grype:
+  targetImagePullSecret: #@ data.values.repo_pull_secret if hasattr(data.values, "repo_pull_secret") else "repo-pull"
+
+metadata_store:
+  ns_for_export_app_cert: '*'
+  app_service_type: ClusterIP
+  ingress_enabled: #@ "true" if hasattr(data.values, "service_type") and data.values.service_type == "LoadBalancer" else "false"
+#@ end
+
+excluded_packages:
+- learningcenter.tanzu.vmware.com
+- workshops.learningcenter.tanzu.vmware.com
+
+tap_telemetry:
+   installed_for_vmware_internal_use: "true"

@@ -150,12 +150,45 @@ class TanzuApplicationPlatform:
     def sh_call(self, cmd, msg, spinner_msg, error_msg):
         return self.ui_helper.sh_call(cmd=cmd, msg=msg, spinner_msg=spinner_msg, error_msg=error_msg, state=self.state)
 
-    def tap_install(self, profile, version, host_os, tap_values_file, wait: bool, skip_cluster_essentials, namespace: str = "tap-install"):
+    def create_or_update_secret(self, list_op, secret, username, password, namespace, msg, registry_server, export_everywhere=True):
+        self.sh_call(
+            cmd=(
+                f'tanzu secret registry {"update" if secret in list_op.decode() else "add"} {secret} '
+                f"--username '{username}' --password '{password}' {'--server' if secret not in list_op.decode() else ''} "
+                f"{registry_server if secret not in list_op.decode() else ''} "
+                f'{"--export-to-all-namespaces" if export_everywhere else ""} --yes --namespace {namespace}'
+            ),
+            msg=msg,
+            spinner_msg="Setting up",
+            error_msg=None,
+        )
+
+    def tap_install(
+        self,
+        profile,
+        version,
+        tap_values_file,
+        wait: bool,
+        skip_cluster_essentials,
+        ingress_domain,
+        ingress_issuer,
+        k8s_distribution,
+        tbs_repo_push_secret,
+        tbs_tanzunet_pull_secret,
+        tanzunet_pull_secret,
+        repo_pull_secret,
+        supply_chain,
+        contour_infra,
+        service_type,
+        namespace: str = "tap-install",
+    ):
+        # Setup k8s context and which kubernetes cluster to work on
         k8s_context = commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
+
+        # Create staging dir
         hash_str = str(profile + version)
         tmp_dir = f"/tmp/{hashlib.md5(hash_str.encode()).hexdigest()}"
         self.logger.msg(f":file_folder: Staging Installation Dir is at [yellow]{tmp_dir}[/yellow]", bold=False)
-
         if not os.path.isdir(tmp_dir):
             self.sh_call(
                 cmd=f"mkdir -p {tmp_dir}",
@@ -164,31 +197,26 @@ class TanzuApplicationPlatform:
                 error_msg=":broken_heart: Unable to create staging directory. Use [bold]--verbose[/bold] flag for error details.",
             )
 
+        # Get values from tappr init
         install_registry_server = self.creds_helper.get("install_registry_server", "INSTALL_REGISTRY_SERVER")
         tanzunet_username = self.creds_helper.get("tanzunet_username", "INSTALL_REGISTRY_USERNAME")
         tanzunet_password = self.creds_helper.get("tanzunet_password", "INSTALL_REGISTRY_PASSWORD")
-
         registry_server = self.creds_helper.get("registry_server", "REGISTRY_SERVER")
         registry_username = self.creds_helper.get("registry_username", "REGISTRY_USERNAME")
         registry_password = self.creds_helper.get("registry_password", "REGISTRY_PASSWORD")
-
-        # This is where TAP packages get relocated
-        # registry_tap_package_repo = self.creds_helper.get("registry_tap_package_repo", "REGISTRY_TAP_PACKAGE_REPO")
-        # This is your TAP install and Build service repo info
         registry_tbs_repo = self.creds_helper.get("registry_tbs_repo", "REGISTRY_TBS_REPO")
-
         if os.path.isfile(registry_password):
             registry_password = open(registry_password, "r").read()
-
         os.environ["TAP_VERSION"] = version
         os.environ["INSTALL_REGISTRY_HOSTNAME"] = install_registry_server
         os.environ["INSTALL_REGISTRY_USERNAME"] = tanzunet_username
         os.environ["INSTALL_REGISTRY_PASSWORD"] = tanzunet_password
 
-        # Cluster essentials
+        # Install Cluster essentials
         if not skip_cluster_essentials:
             commons.install_cluster_essentials(ui_helper=self.ui_helper, state=self.state)
 
+        # Create TAP install namespace
         ns_list = commons.get_ns_list(k8s_helper=self.k8s_helper, client=self.k8s_helper.core_clients[k8s_context])
         if namespace not in ns_list:
             success, response = self.k8s_helper.create_namespace(namespace=namespace, client=self.k8s_helper.core_clients[k8s_context])
@@ -196,77 +224,54 @@ class TanzuApplicationPlatform:
                 self.logger.msg(f"Error response {response}") if self.state["verbose"] else None
                 self.logger.msg(":broken_heart: Unable to create TAP install namespace. Use [bold]--verbose[/bold] flag for error details.")
                 raise typer.Exit(-1)
-
         ns_list = commons.get_ns_list(k8s_helper=self.k8s_helper, client=self.k8s_helper.core_clients[k8s_context])
         if namespace not in ns_list:
             self.logger.msg(":broken_heart: Unable to find TAP install namespace. Use [bold]--verbose[/bold] flag for error details.")
             raise typer.Exit(-1)
 
-        # Setup registry secret
+        # Setup registry secrets
         cmd = f"tanzu secret registry list --namespace {namespace}"
         _, out, _ = self.sh.run_proc(cmd=cmd)
-
-        self.sh_call(
-            cmd=(
-                f"tanzu secret registry update tanzunet-registry-creds --username '{tanzunet_username}' --password '{tanzunet_password}' --server {install_registry_server} "
-                f"--export-to-all-namespaces --yes --namespace {namespace}"
-            )
-            if "tanzunet-registry-creds" in out.decode()
-            else (
-                f"tanzu secret registry add tanzunet-registry-creds --username '{tanzunet_username}' --password '{tanzunet_password}' --server {install_registry_server} "
-                f"--export-to-all-namespaces --yes --namespace {namespace}"
-            ),
-            msg=":key: Setting up TAP Install Registry secret",
-            spinner_msg="Setting up",
-            error_msg=None,
+        self.create_or_update_secret(
+            list_op=out,
+            secret=tanzunet_pull_secret,
+            username=tanzunet_username,
+            password=tanzunet_password,
+            namespace=namespace,
+            msg=f":key: Setting up Tanzu Network Image Pull Secret {tanzunet_pull_secret} and exporting to all namespaces",
+            registry_server=install_registry_server,
+        )
+        self.create_or_update_secret(
+            list_op=out,
+            secret=tbs_tanzunet_pull_secret,
+            username=tanzunet_username,
+            password=tanzunet_password,
+            namespace=namespace,
+            msg=f":key: Setting up Tanzu Network Image Pull Secret {tbs_tanzunet_pull_secret} for TBS",
+            registry_server=install_registry_server,
+            export_everywhere=False,
+        )
+        self.create_or_update_secret(
+            list_op=out,
+            secret=tbs_repo_push_secret,
+            username=registry_username,
+            password=registry_password,
+            namespace=namespace,
+            msg=f":key: Setting up User Registry Push Secret {tbs_repo_push_secret} for TBS",
+            registry_server=registry_server,
+            export_everywhere=False,
+        )
+        self.create_or_update_secret(
+            list_op=out,
+            secret=repo_pull_secret,
+            username=registry_username,
+            password=registry_password,
+            namespace=namespace,
+            msg=f":key: Setting up User Registry Image Pull Secret {repo_pull_secret} and exporting to all namespaces",
+            registry_server=registry_server,
         )
 
-        self.sh_call(
-            cmd=(
-                f"tanzu secret registry update tanzunet-registry-creds-tbs --username '{tanzunet_username}' --password '{tanzunet_password}' --server {install_registry_server} "
-                f"--export-to-all-namespaces --yes --namespace {namespace}"
-            )
-            if "tanzunet-registry-creds-tbs" in out.decode()
-            else (
-                f"tanzu secret registry add tanzunet-registry-creds-tbs --username '{tanzunet_username}' --password '{tanzunet_password}' --server {install_registry_server} "
-                f"--export-to-all-namespaces --yes --namespace {namespace}"
-            ),
-            msg=":key: Setting up TAP Install Registry secret for TBS",
-            spinner_msg="Setting up",
-            error_msg=None,
-        )
-
-        self.sh_call(
-            cmd=(
-                f"tanzu secret registry update registry-credentials-tbs --username '{registry_username}' --password '{registry_password}' --server {registry_server} "
-                f"--export-to-all-namespaces --yes --namespace {namespace}"
-            )
-            if "registry-credentials-tbs" in out.decode()
-            else (
-                f"tanzu secret registry add registry-credentials-tbs --username '{registry_username}' --password '{registry_password}' --server {registry_server} "
-                f"--export-to-all-namespaces --yes --namespace {namespace}"
-            ),
-            msg=":key: Setting up User Registry secret",
-            spinner_msg="Setting up",
-            error_msg=None,
-        )
-
-        self.sh_call(
-            cmd=(
-                f"tanzu secret registry update registry-credentials --username '{registry_username}' --password '{registry_password}' --server {registry_server} "
-                f"--export-to-all-namespaces --yes --namespace {namespace}"
-            )
-            if "registry-credentials" in out.decode()
-            else (
-                f"tanzu secret registry add registry-credentials --username '{registry_username}' --password '{registry_password}' --server {registry_server} "
-                f"--export-to-all-namespaces --yes --namespace {namespace}"
-            ),
-            msg=":key: Setting up User Registry secret for TBS",
-            spinner_msg="Setting up",
-            error_msg=None,
-        )
-
-        # Setup TAP Packages repo
+        # Setup TAP PackageRepository
         cmd = f"tanzu package repository list --namespace {namespace}"
         _, out, _ = self.sh.run_proc(cmd=cmd)
 
@@ -281,29 +286,58 @@ class TanzuApplicationPlatform:
         _, out, _ = self.sh.run_proc(cmd=f"tanzu package repository get tanzu-tap-repository --namespace {namespace}")
         self.logger.msg(out.decode(), bold=False) if self.state["verbose"] and out else None
 
+        # Create a TAP Values yaml file
         if not tap_values_file:
-            tap_values_yml = open(os.path.dirname(os.path.abspath(__file__)).replace("/tanzu", f"/artifacts/profiles/{profile}.yml"), "r").read()
-            tap_values_yml = tap_values_yml.replace("$INSTALL_REGISTRY_USERNAME", tanzunet_username)
-            tap_values_yml = tap_values_yml.replace("$INSTALL_REGISTRY_PASSWORD", tanzunet_password)
-            tap_values_yml = tap_values_yml.replace("$REGISTRY_SERVER", registry_server)
-            tap_values_yml = tap_values_yml.replace("$REGISTRY_USERNAME", registry_username)
-            tap_values_yml = tap_values_yml.replace("$REGISTRY_PASSWORD", registry_password)
-            tap_values_yml = tap_values_yml.replace("$REGISTRY_TBS_REPO", registry_tbs_repo)
-            tap_values_yml = tap_values_yml.replace("$INSTALL_NS", namespace)
             tap_values_file = f"{tmp_dir}/tap-values.yml"
-            self.logger.msg(f":memo: Creating values yml file at [yellow]{tap_values_file}[/yellow]")
-            open(f"{tap_values_file}", "w").write(tap_values_yml)
+            data_values_file = f"{tmp_dir}/values.yml"
+            # Generate data values
+            data_values = (
+                f"ingress_domain: {ingress_domain}\n"
+                f"ingress_issuer: '{ingress_issuer}'\n"
+                f"k8s_distribution: '{k8s_distribution}'\n"
+                f"profile: {profile}\n"
+                f"registry_server: {registry_server}\n"
+                f"registry_repo: {registry_tbs_repo}\n"
+                f"tbs_repo_push_secret: {tbs_repo_push_secret}\n"
+                f"tbs_tanzunet_pull_secret: {tbs_tanzunet_pull_secret}\n"
+                f"tanzunet_pull_secret: {tanzunet_pull_secret}\n"
+                f"repo_pull_secret: {repo_pull_secret}\n"
+                f"supply_chain: {supply_chain}\n"
+                f"tap_install_ns: {namespace}\n"
+                f"contour_infra: {contour_infra}\n"
+                f"service_type: {service_type}\n"
+            )
+            # Write data values data values
+            open(f"{data_values_file}", "w").write(data_values)
+            # Create TAP Values file
+            cmd = f'ytt -f {os.path.dirname(os.path.abspath(__file__)).replace("/tanzu", f"/artifacts/profiles/tap-values.yml")} ' f"--data-values-file {data_values_file} > {tap_values_file}"
+            return_code = self.sh_call(
+                cmd=cmd,
+                msg=f":memo: Creating values yml file at [yellow]{tap_values_file}[/yellow]",
+                spinner_msg="Waiting to reconcile",
+                error_msg=None,
+            )
+            if return_code != 0:
+                self.logger.msg(":broken_heart: Unable to create TAP values file. Use [bold]--verbose[/bold] flag for error details.")
+                raise typer.Exit(-1)
 
         # TAP install
         cmd = f"tanzu package install tap -p tap.tanzu.vmware.com -v {version} --values-file {tap_values_file} -n {namespace} --wait={'false' if not wait else 'true'}"
         self.logger.debug(f"Running {cmd}. Can take up to 15-20 minutes depending on your machine.") if self.state["verbose"] and out else None
-        self.sh_call(
+        return_code = self.sh_call(
             cmd=cmd,
             msg=":wine_glass: Installing [yellow]TAP[/yellow]",
             spinner_msg="Waiting to reconcile",
             error_msg=None,
         )
-        self.logger.msg(":rocket: TAP install started on the cluster.")
+        if return_code == 0:
+            if wait:
+                self.logger.msg(":rocket: TAP installation complete")
+            else:
+                self.logger.msg(":rocket: TAP install started on the cluster")
+        else:
+            self.logger.msg(":broken_heart: Unable to Install TAP. Use [bold]--verbose[/bold] flag for error details.")
+            raise typer.Exit(-1)
 
     def developer_ns_setup(self, namespace, install_ns="tap-install"):
         k8s_context = commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)

@@ -66,6 +66,26 @@ You can also install only Cluster Essentials using `tappr tap install-cluster-es
 
 Use the `--help` global flag to see the options and possible values you can provide.
 
+## Use with minikube
+
+```bash
+# Create a minikube cluster. You can use --help on this command to see more flags to customize the minikube cluster
+tappr cluster create minikube tap-local
+
+# Start a tunnel in a separate terminal using (requires sudo)
+minikube tunnel --profile tap-local
+
+# Install TAP. Only install full profile if your machine can handle it :D.
+tappr tap install full 1.4.0
+
+# After the install is complete, you can access TAP GUI on 
+# http://tap-gui.127.0.0.1.nip.io
+
+# You can also set a different ingress-domain if you like 
+# using the --ingress-domain flag as long as it routes to a 
+# proper IP in your /etc/hosts file
+```
+
 ## Utils
 
 - Mini test-framework that can be used to write `bash` based integration tests.

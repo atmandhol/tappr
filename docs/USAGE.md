@@ -374,20 +374,29 @@ Install TAP. Make sure to run tappr init before installing TAP.
 **Usage**:
 
 ```console
-$ tappr tap install [OPTIONS] PROFILE:[full|full-scan|iterate-local|iterate-slim|iterate-scan|iterate-essentials|iterate-local-essentials|iterate|build|build-slim|build-essential|run|run-local|view] VERSION
+$ tappr tap install [OPTIONS] PROFILE:[full|iterate|build|run|view] VERSION
 ```
 
 **Arguments**:
 
-* `PROFILE:[full|full-scan|iterate-local|iterate-slim|iterate-scan|iterate-essentials|iterate-local-essentials|iterate|build|build-slim|build-essential|run|run-local|view]`: [required]
+* `PROFILE:[full|iterate|build|run|view]`: [required]
 * `VERSION`: [required]
 
 **Options**:
 
-* `--host-os [darwin|linux|windows]`: [default: darwin]
 * `--namespace TEXT`: Namespace where TAP should be installed  [default: tap-install]
-* `--tap-values-file TEXT`
+* `--ingress-domain TEXT`: Shared Ingress Domain  [default: 127.0.0.1.nip.io]
+* `--ingress-issuer TEXT`: Shared Ingress Issuer. Can also use "tap-ingress-selfsigned" to use the OOTB self signed cert  [default: ]
+* `--k8s-distribution TEXT`: Use openshift if installing on Openshift cluster, else use default  [default: ]
+* `--tbs-repo-push-secret TEXT`: Name of the push secret that needs to be created  [default: tbs-repo-push]
+* `--tbs-tanzunet-pull-secret TEXT`: Name of the pull secret for Tanzu Network that needs to be created for TBS  [default: tbs-tanzunet-pull]
+* `--tanzunet-pull-secret TEXT`: Name of the pull secret for Tanzu Network that needs to be created for TAP install  [default: tanzunet-pull]
+* `--repo-pull-secret TEXT`: Name of the push secret that needs to be created  [default: repo-pull]
+* `--supply-chain TEXT`: OOTB Supply chain to install. Other values are "testing" and "testing_scanning"  [default: basic]
+* `--contour-infra TEXT`: Supported values are aws, azure and vsphere  [default: vsphere]
+* `--service-type TEXT`: Accepted values are LoadBalancer, NodePort and ClusterIP  [default: LoadBalancer]
 * `--skip-cluster-essentials / --no-skip-cluster-essentials`: Skip Cluster Essentials installation as its already installed or the user is using TKG or some flavor that already has it.  [default: False]
+* `--tap-values-file TEXT`
 * `--wait / --no-wait`: Wait for the TAP install to complete  [default: False]
 * `--help`: Show this message and exit.
 
@@ -403,7 +412,6 @@ $ tappr tap install-cluster-essentials [OPTIONS]
 
 **Options**:
 
-* `--host-os [darwin|linux|windows]`: [default: darwin]
 * `--help`: Show this message and exit.
 
 ### `tappr tap setup`
