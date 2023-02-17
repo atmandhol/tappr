@@ -41,7 +41,7 @@ buildservice:
     namespace: #@ data.values.tap_install_ns if hasattr(data.values, "tap_install_ns") else "tap-install"
 #@ end
 
-#@ if is_profile(['full', 'build', 'light']):
+#@ if is_profile(['full', 'build', 'light', 'iterate']):
 supply_chain: #@ data.values.supply_chain if hasattr(data.values, "supply_chain") else "basic"
 
 #@ if data.values.supply_chain == "basic":
