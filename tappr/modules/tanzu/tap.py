@@ -310,7 +310,7 @@ class TanzuApplicationPlatform:
             )
 
             # Read CA Cert Data file
-            if os.path.isfile(ca_cert_file):
+            if ca_cert_file and os.path.isfile(ca_cert_file):
                 ca_cert_file_data = open(ca_cert_file, "r").read().replace("\n", "\n  ")
                 data_values += f"ca_cert_data: |\n  {ca_cert_file_data}\n"
 
