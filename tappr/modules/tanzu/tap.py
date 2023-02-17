@@ -177,6 +177,7 @@ class TanzuApplicationPlatform:
         tbs_tanzunet_pull_secret,
         tanzunet_pull_secret,
         repo_pull_secret,
+        ca_cert_file,
         supply_chain,
         contour_infra,
         service_type,
@@ -307,6 +308,12 @@ class TanzuApplicationPlatform:
                 f"contour_infra: {contour_infra}\n"
                 f"service_type: {service_type}\n"
             )
+
+            # Read CA Cert Data file
+            if os.path.isfile(ca_cert_file):
+                ca_cert_file_data = open(ca_cert_file, "r").read().replace("\n", "\n  ")
+                data_values += f"ca_cert_data: |\n  {ca_cert_file_data}\n"
+
             # Write data values data values
             open(f"{data_values_file}", "w").write(data_values)
             # Create TAP Values file

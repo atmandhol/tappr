@@ -661,6 +661,7 @@ def install(
     supply_chain: str = typer.Option("basic", help='OOTB Supply chain to install. Other values are "testing" and "testing_scanning"'),
     contour_infra: str = typer.Option("vsphere", help="Supported values are aws, azure and vsphere"),
     service_type: str = typer.Option("LoadBalancer", help="Accepted values are LoadBalancer, NodePort and ClusterIP"),
+    ca_cert_file: str = typer.Option(None, help="Absolute URL to the file that contains CA Cert data that should be added to shared TAP configuration"),
     skip_cluster_essentials: bool = typer.Option(False, help="Skip Cluster Essentials installation as its already installed or the user is using TKG or some flavor that already has it."),
     tap_values_file: str = None,
     wait: bool = typer.Option(False, help="Wait for the TAP install to complete"),
@@ -684,6 +685,7 @@ def install(
         tanzunet_pull_secret=tanzunet_pull_secret,
         repo_pull_secret=repo_pull_secret,
         supply_chain=supply_chain,
+        ca_cert_file=ca_cert_file,
         contour_infra=contour_infra,
         service_type=service_type,
     )

@@ -395,6 +395,7 @@ $ tappr tap install [OPTIONS] PROFILE:[full|iterate|build|run|view] VERSION
 * `--supply-chain TEXT`: OOTB Supply chain to install. Other values are "testing" and "testing_scanning"  [default: basic]
 * `--contour-infra TEXT`: Supported values are aws, azure and vsphere  [default: vsphere]
 * `--service-type TEXT`: Accepted values are LoadBalancer, NodePort and ClusterIP  [default: LoadBalancer]
+* `--ca-cert-file TEXT`: Absolute URL to the file that contains CA Cert data that should be added to shared TAP configuration
 * `--skip-cluster-essentials / --no-skip-cluster-essentials`: Skip Cluster Essentials installation as its already installed or the user is using TKG or some flavor that already has it.  [default: False]
 * `--tap-values-file TEXT`
 * `--wait / --no-wait`: Wait for the TAP install to complete  [default: False]

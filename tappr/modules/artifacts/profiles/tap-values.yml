@@ -22,11 +22,9 @@ shared:
   kubernetes_distribution: #@ data.values.k8s_distribution
   #@ if/end hasattr(data.values, "k8s_version"):
   kubernetes_version: #@ data.values.k8s_version
-  #@ if hasattr(data.values, "ca_cert_data"):
-  #@yaml/text-templated-strings
-  ca_cert_data: |
-    (@= yaml.encode(data.values.ca_cert_data) @)
-  #@ end
+  #@ if/end hasattr(data.values, "ca_cert_data"):
+  ca_cert_data: #@ data.values.ca_cert_data
+
 ceip_policy_disclosed: true
 profile: #@ data.values.profile
 
