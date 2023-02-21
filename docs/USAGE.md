@@ -82,6 +82,8 @@ $ tappr cluster create gke [OPTIONS]
 * `--customize / --no-customize`: Customize the default values  [default: False]
 * `--region TEXT`: GKE cluster region
 * `--num-nodes-per-zone INTEGER`: Number of worker nodes in NodePool per zone
+* `--new-subnet-name TEXT`: Provide a name of new subnet to create that will be used for this GKE cluster
+* `--new-subnet-range INTEGER`: CIDR range routing prefix bits. Should be between 21-24 for a full TAP install  [default: 23]
 * `--help`: Show this message and exit.
 
 #### `tappr cluster create kind`
