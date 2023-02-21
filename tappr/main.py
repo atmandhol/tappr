@@ -444,6 +444,8 @@ def gke(
     customize: bool = typer.Option(False, help="Customize the default values"),
     region: str = typer.Option(None, help="GKE cluster region"),
     num_nodes_per_zone: int = typer.Option(None, help="Number of worker nodes in NodePool per zone"),
+    new_subnet_name: str = typer.Option(None, help="Provide a name of new subnet to create that will be used for this GKE cluster"),
+    new_subnet_range: int = typer.Option(23, help="CIDR range routing prefix bits. Should be between 21-24 for a full TAP install"),
 ):
     """
     Create a GKE cluster. Assumes gcloud is set to create clusters.
@@ -458,9 +460,9 @@ def gke(
     gcp_project = gcloud_op["config"]["project"] if not project else project
 
     # Check if gcloud beta is installed
-    if "beta" not in gcloud_op["installation"]["components"]:
-        typer_logger.msg(":broken_heart: 'beta' component for gcloud is not installed which is required. Run gcloud components install beta to fix this.")
-        raise typer.Exit(-1)
+    # if "beta" not in gcloud_op["installation"]["components"]:
+    #     typer_logger.msg(":broken_heart: 'beta' component for gcloud is not installed which is required. Run gcloud components install beta to fix this.")
+    #     raise typer.Exit(-1)
 
     if not cluster_name:
         letters = string.ascii_lowercase
@@ -509,9 +511,9 @@ def gke(
         cluster_version = get_latest_gke_version_by_channel(region=region, channel=channel)
     if channel != GKE_RELEASE_CHANNELS.NONE:
         channel = channel.lower()
-    subprocess_helpers.run_proc("gcloud components install beta -q")
+    # subprocess_helpers.run_proc("gcloud components install beta -q")
     cmd = (
-        f'gcloud beta container --project "{gcp_project}" clusters create "{cluster_name}" --region "{region}" '
+        f'gcloud container --project "{gcp_project}" clusters create "{cluster_name}" --region "{region}" '
         f'--no-enable-basic-auth --cluster-version "{cluster_version}" '
         f'--release-channel "{channel}" '
         f"--machine-type \"{ccd.get('machine_type') if 'machine_type' not in cco else cco.get('machine_type')}\" "
@@ -524,12 +526,15 @@ def gke(
         f'--num-nodes "{num_nodes_per_zone}" '
         f"--logging=SYSTEM,WORKLOAD --monitoring=SYSTEM --enable-ip-alias "
         f"--network \"{ccd.get('network') if 'network' not in cco else cco.get('network')}\" "
-        f"--subnetwork \"{ccd.get('sub_network') if 'sub_network' not in cco else cco.get('sub_network')}\" "
         f"--no-enable-intra-node-visibility --default-max-pods-per-node \"{ccd.get('max_pods_per_node') if 'max_pods_per_node' not in cco else cco.get('max_pods_per_node')}\" "
         f"--no-enable-master-authorized-networks --addons HorizontalPodAutoscaling,HttpLoadBalancing,GcePersistentDiskCsiDriver"
         f"{' --no-enable-autoupgrade' if channel not in ['rapid', 'regular', 'stable'] else ''} --no-enable-managed-prometheus --no-enable-autorepair "
         f"--max-surge-upgrade 1 --max-unavailable-upgrade 0 --enable-shielded-nodes"
     )
+    if not new_subnet_name:
+        cmd += f" --subnetwork \"{ccd.get('sub_network') if 'sub_network' not in cco else cco.get('sub_network')}\" "
+    else:
+        cmd += f" --create-subnetwork name={new_subnet_name},range=/{new_subnet_range} "
 
     cmd = cmd.replace("{project}", gcp_project).replace("{region}", region)
     typer_logger.msg(f":package: Creating a GKE cluster named [yellow]{cluster_name}[/yellow] in project [yellow]{gcp_project}[/yellow]", bold=False)
