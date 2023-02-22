@@ -187,7 +187,7 @@ class TanzuApplicationPlatform:
         k8s_context = commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
 
         # Create staging dir
-        hash_str = str(profile + version)
+        hash_str = str(profile + version) + str(time.time())
         tmp_dir = f"/tmp/{hashlib.md5(hash_str.encode()).hexdigest()}"
         self.logger.msg(f":file_folder: Staging Installation Dir is at [yellow]{tmp_dir}[/yellow]", bold=False)
         if not os.path.isdir(tmp_dir):

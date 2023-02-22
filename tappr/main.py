@@ -653,7 +653,7 @@ def install_cluster_essentials():
 
 @tap_app.command()
 def install(
-    profile: PROFILE,
+    profile: str,
     version,
     namespace: str = typer.Option("tap-install", help="Namespace where TAP should be installed"),
     ingress_domain: str = typer.Option("127.0.0.1.nip.io", help="Shared Ingress Domain"),
