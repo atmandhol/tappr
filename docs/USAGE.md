@@ -306,6 +306,7 @@ $ tappr init [OPTIONS]
 * `--registry-tbs-repo TEXT`: Default registry repo on the registry server to use for build service. Don't include the registry server or starting /.
 * `--registry-username TEXT`: Registry username to use while installing tap
 * `--registry-password TEXT`: Registry password to use while installing tap. If using GCR set this as path to jsonkey file.
+* `--pkg-relocation-repo TEXT`: Default registry repo on the registry server to use for relocating TAP packages. Don't include the registry server or starting /.
 * `--help`: Show this message and exit.
 
 ## `tappr tap`
@@ -330,6 +331,7 @@ $ tappr tap [OPTIONS] COMMAND [ARGS]...
 * `ingress-ip`: Get the Tanzu System Ingress External IP of...
 * `install`: Install TAP.
 * `install-cluster-essentials`: Install only Cluster Essentials.
+* `relocate`: Relocate packages from Tanzu Network to your...
 * `setup`: Setup Developer Namespace.
 * `status`: Get TAP installation status.
 * `uninstall`: Uninstall TAP.
@@ -376,12 +378,12 @@ Install TAP. Make sure to run tappr init before installing TAP.
 **Usage**:
 
 ```console
-$ tappr tap install [OPTIONS] PROFILE:[full|iterate|build|run|view] VERSION
+$ tappr tap install [OPTIONS] PROFILE VERSION
 ```
 
 **Arguments**:
 
-* `PROFILE:[full|iterate|build|run|view]`: [required]
+* `PROFILE`: [required]
 * `VERSION`: [required]
 
 **Options**:
@@ -415,6 +417,27 @@ $ tappr tap install-cluster-essentials [OPTIONS]
 
 **Options**:
 
+* `--help`: Show this message and exit.
+
+### `tappr tap relocate`
+
+Relocate packages from Tanzu Network to your Registry
+
+**Usage**:
+
+```console
+$ tappr tap relocate [OPTIONS]
+```
+
+**Options**:
+
+* `--version TEXT`: Select the version of TAP you want to relocate from Tanzu Network to your Registry
+* `--tanzunet-username TEXT`: Tanzu Network Username, defaults to config set by tappr init.
+* `--tanzunet-password TEXT`: Tanzu Network Password, defaults to config set by tappr init.
+* `--registry-server TEXT`: Default registry server to use while installing tap, defaults to config set by tappr init. e.g. gcr.io, index.docker.io etc.
+* `--registry-username TEXT`: Registry username to use while installing tap, defaults to config set by tappr init
+* `--registry-password TEXT`: Registry password to use while installing tap, defaults to config set by tappr init
+* `--pkg-relocation-repo TEXT`: Default registry repo on the registry server to use for relocating TAP packages, defaults to config set by tappr init.
 * `--help`: Show this message and exit.
 
 ### `tappr tap setup`

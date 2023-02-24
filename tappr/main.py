@@ -14,7 +14,7 @@ from tappr.modules.tanzu.tapgui import TanzuApplicationPlatformGUI
 from tappr.modules.utils.commons import Commons
 from tappr.modules.utils.helpers import SubProcessHelpers
 from tappr.modules.utils.logger import TyperLogger
-from tappr.modules.utils.enums import PROFILE, GKE_RELEASE_CHANNELS
+from tappr.modules.utils.enums import GKE_RELEASE_CHANNELS
 from tappr.modules.utils.creds import CredsHelper
 from tappr.modules.utils.ui import UI
 from tappr.modules.utils.k8s import K8s
@@ -124,6 +124,7 @@ def init(
     registry_tbs_repo: str = typer.Option(None, help="Default registry repo on the registry server to use for build service. Don't include the registry server or starting /."),
     registry_username: str = typer.Option(None, help="Registry username to use while installing tap"),
     registry_password: str = typer.Option(None, help="Registry password to use while installing tap. If using GCR set this as path to jsonkey file."),
+    pkg_relocation_repo: str = typer.Option(None, help="Default registry repo on the registry server to use for relocating TAP packages. Don't include the registry server or starting /."),
 ):
     """
     Initialize the tappr cli with required configuration.
@@ -136,6 +137,7 @@ def init(
         registry_username=registry_username,
         registry_password=registry_password,
         registry_tbs_repo=registry_tbs_repo,
+        pkg_relocation_repo=pkg_relocation_repo,
     )
     typer_logger.msg("\n:runner: [cyan][bold]tappr cluster create --help[/bold][/cyan] to see help for creating k8s clusters.")
     typer_logger.msg(":runner: [cyan][bold]tappr tap install --help[/bold][/cyan] to see help for installing TAP on your k8s clusters.\n")
@@ -735,6 +737,31 @@ def ingress_ip(service: str = "envoy", namespace: str = typer.Option("tanzu-syst
 
     """
     tap_helpers.ingress_ip(service=service, namespace=namespace)
+
+
+@tap_app.command()
+def relocate(
+    version: str = typer.Option(None, help="Select the version of TAP you want to relocate from Tanzu Network to your Registry"),
+    tanzunet_username: str = typer.Option(None, help="Tanzu Network Username, defaults to config set by tappr init."),
+    tanzunet_password: str = typer.Option(None, help="Tanzu Network Password, defaults to config set by tappr init."),
+    registry_server: str = typer.Option(None, help="Default registry server to use while installing tap, defaults to config set by tappr init. e.g. gcr.io, index.docker.io etc."),
+    registry_username: str = typer.Option(None, help="Registry username to use while installing tap, defaults to config set by tappr init"),
+    registry_password: str = typer.Option(None, help="Registry password to use while installing tap, defaults to config set by tappr init"),
+    pkg_relocation_repo: str = typer.Option(None, help="Default registry repo on the registry server to use for relocating TAP packages, defaults to config set by tappr init."),
+):
+    """
+    Relocate packages from Tanzu Network to your Registry
+
+    """
+    tap_helpers.relocate(
+        version=version,
+        tanzunet_username=tanzunet_username,
+        tanzunet_password=tanzunet_password,
+        registry_server=registry_server,
+        registry_username=registry_username,
+        registry_password=registry_password,
+        pkg_relocation_repo=pkg_relocation_repo,
+    )
 
 
 @tap_app.command()
