@@ -748,6 +748,7 @@ def relocate(
     registry_username: str = typer.Option(None, help="Registry username to use while installing tap, defaults to config set by tappr init"),
     registry_password: str = typer.Option(None, help="Registry password to use while installing tap, defaults to config set by tappr init"),
     pkg_relocation_repo: str = typer.Option(None, help="Default registry repo on the registry server to use for relocating TAP packages, defaults to config set by tappr init."),
+    wait: bool = typer.Option(True, help="Wait for the relocation to finish or run it in a separate thread in the background."),
 ):
     """
     Relocate packages from Tanzu Network to your Registry
@@ -761,6 +762,7 @@ def relocate(
         registry_username=registry_username,
         registry_password=registry_password,
         pkg_relocation_repo=pkg_relocation_repo,
+        wait=wait,
     )
 
 

@@ -438,6 +438,7 @@ $ tappr tap relocate [OPTIONS]
 * `--registry-username TEXT`: Registry username to use while installing tap, defaults to config set by tappr init
 * `--registry-password TEXT`: Registry password to use while installing tap, defaults to config set by tappr init
 * `--pkg-relocation-repo TEXT`: Default registry repo on the registry server to use for relocating TAP packages, defaults to config set by tappr init.
+* `--wait / --no-wait`: Wait for the relocation to finish or run it in a separate thread in the background.  [default: True]
 * `--help`: Show this message and exit.
 
 ### `tappr tap setup`

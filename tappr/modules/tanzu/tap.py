@@ -3,6 +3,7 @@ import hashlib
 import json
 import os
 import time
+import subprocess
 
 import typer
 import yaml
@@ -624,7 +625,7 @@ class TanzuApplicationPlatform:
                 if "usefulErrorMessage" in err[3]:
                     rprint(f"[bold][red]Error:[/red][/bold] {err[3]['usefulErrorMessage']}")
 
-    def relocate(self, version, tanzunet_username, tanzunet_password, registry_server, registry_username, registry_password, pkg_relocation_repo):
+    def relocate(self, version, tanzunet_username, tanzunet_password, registry_server, registry_username, registry_password, pkg_relocation_repo, wait):
         install_registry_server = self.creds_helper.get("install_registry_server", "IMGPKG_REGISTRY_HOSTNAME_0")
         if not tanzunet_username:
             tanzunet_username = self.creds_helper.get("tanzunet_username", "IMGPKG_REGISTRY_USERNAME_0")
@@ -678,12 +679,20 @@ class TanzuApplicationPlatform:
             version, _ = Picker(versions_list, "Select TAP package version to relocate:").start()
             print(version)
 
-        return_code = self.sh_call(
-            cmd=f"imgpkg copy -b registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:{version} --to-repo {registry_server}/{pkg_relocation_repo}",
-            msg=f":key: Relocating TAP package version [yellow]{version}[/yellow] from Tanzu Network to [yellow]{registry_server}/{pkg_relocation_repo}[/yellow]",
-            spinner_msg="Relocating",
-            error_msg=None,
-        )
-        if return_code != 0:
-            self.logger.msg(":broken_heart: Unable to relocate TAP packages. Use [bold]--verbose[/bold] flag for error details.")
-            raise typer.Exit(-1)
+        if wait:
+            return_code = self.sh_call(
+                cmd=f"imgpkg copy -b registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:{version} --to-repo {registry_server}/{pkg_relocation_repo}",
+                msg=f":package: Relocating TAP package version [yellow]{version}[/yellow] from Tanzu Network to [yellow]{registry_server}/{pkg_relocation_repo}[/yellow]",
+                spinner_msg="Relocating",
+                error_msg=None,
+            )
+            if return_code != 0:
+                self.logger.msg(":broken_heart: Unable to relocate TAP packages. Use [bold]--verbose[/bold] flag for error details.")
+                raise typer.Exit(-1)
+        else:
+            subprocess.Popen(
+                ["imgpkg", "copy", "-b", f"registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:{version}", "--to-repo", f"{registry_server}/{pkg_relocation_repo}"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.STDOUT,
+            )
+            self.logger.msg(":package: Started relocation in the background. Use macOS or Linux [yellow][bold]ps | grep 'imgpkg copy'[/bold][/yellow] command to see the running jobs")
