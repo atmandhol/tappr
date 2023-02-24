@@ -17,6 +17,7 @@ class CredsHelper:
         registry_username,
         registry_password,
         registry_tbs_repo,
+        pkg_relocation_repo,
         install_registry_server="registry.tanzu.vmware.com",
     ):
         configs = None
@@ -25,13 +26,13 @@ class CredsHelper:
 
         if tanzunet_username is None:
             self.logger.msg("[bold][yellow]Enter your Tanzu Network email[/yellow][/bold]")
-            tanzunet_username = str(Prompt.ask(f":person_raising_hand: Tanzu Network Username", default=configs["tanzunet_username"] if configs else None))
+            tanzunet_username = str(Prompt.ask(f":person_raising_hand: Tanzu Network Username", default=configs["tanzunet_username"] if configs and "tanzunet_username" in configs else None))
         if tanzunet_password is None:
             self.logger.msg("\n[bold][yellow]Enter your Tanzu Network password[/yellow][/bold]")
             tanzunet_password = str(
                 Prompt.ask(
                     f":see-no-evil_monkey: Tanzu Network Password [bold][cyan]({'**' + configs['tanzunet_password'][-4:] if configs else None})[/cyan]",
-                    default=configs["tanzunet_password"] if configs else None,
+                    default=configs["tanzunet_password"] if configs and "tanzunet_password" in configs else None,
                     show_default=False,
                     password=True,
                 )
@@ -95,7 +96,22 @@ class CredsHelper:
             registry_tbs_repo = str(
                 Prompt.ask(
                     f":convenience_store: Build service repo",
-                    default=configs["registry_tbs_repo"] if configs else None,
+                    default=configs["registry_tbs_repo"] if configs and "registry_tbs_repo" in configs else None,
+                )
+            )
+
+        if pkg_relocation_repo is None:
+            self.logger.msg(
+                "\n[bold][yellow]Enter the repository path in your registry where TAP packages will be relocated.\n"
+                "- For Google Container registry, it should be gcp-project-name/repo-name (e.g. my-gcp-project/tap-packages)\n"
+                "- For Harbor, it should be project/repo-name\n"
+                "- For Docker Hub, it should be username/repo-name\n"
+                "[red]NOTE: Do not put your registry server name in the prefix[/red][/yellow][/bold]"
+            )
+            pkg_relocation_repo = str(
+                Prompt.ask(
+                    f":convenience_store: TAP Packages repo",
+                    default=configs["pkg_relocation_repo"] if configs and "pkg_relocation_repo" in configs else None,
                 )
             )
 
@@ -112,6 +128,7 @@ class CredsHelper:
                         "registry_username": registry_username,
                         "registry_password": registry_password,
                         "registry_tbs_repo": registry_tbs_repo,
+                        "pkg_relocation_repo": pkg_relocation_repo,
                     }
                 )
             )
@@ -139,7 +156,7 @@ class CredsHelper:
         for env in envs:
             if env not in dict(os.environ):
                 self.logger.msg(
-                    f":crying_cat_face: Environment variable [yellow]{env}[/yellow] not found. Please set that and retry or try setting up tappr using tappr init.",
+                    f":crying_cat_face: Environment variable [yellow]{env}[/yellow] not found. Please set that and retry or try setting up tappr using [yellow]tappr init[/yellow].",
                     bold=False,
                 )
                 raise typer.Exit(-1)

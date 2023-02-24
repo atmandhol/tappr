@@ -3,6 +3,7 @@ import hashlib
 import json
 import os
 import time
+import subprocess
 
 import typer
 import yaml
@@ -10,6 +11,7 @@ from rich import print as rprint
 
 import tappr.modules.utils.k8s
 from tappr.modules.utils.commons import Commons
+from tappr.modules.utils.ui import Picker
 
 commons = Commons()
 
@@ -622,3 +624,75 @@ class TanzuApplicationPlatform:
                 rprint(f":worried: {err[0]} [cyan]{err[1]}[/cyan] [bold][red]{err[2]}[/red][/bold]")
                 if "usefulErrorMessage" in err[3]:
                     rprint(f"[bold][red]Error:[/red][/bold] {err[3]['usefulErrorMessage']}")
+
+    def relocate(self, version, tanzunet_username, tanzunet_password, registry_server, registry_username, registry_password, pkg_relocation_repo, wait):
+        install_registry_server = self.creds_helper.get("install_registry_server", "IMGPKG_REGISTRY_HOSTNAME_0")
+        if not tanzunet_username:
+            tanzunet_username = self.creds_helper.get("tanzunet_username", "IMGPKG_REGISTRY_USERNAME_0")
+        if not tanzunet_password:
+            tanzunet_password = self.creds_helper.get("tanzunet_password", "IMGPKG_REGISTRY_PASSWORD_0")
+        if not registry_server:
+            registry_server = self.creds_helper.get("registry_server", "IMGPKG_REGISTRY_HOSTNAME_1")
+        if not registry_username:
+            registry_username = self.creds_helper.get("registry_username", "IMGPKG_REGISTRY_USERNAME_1")
+        if not registry_password:
+            registry_password = self.creds_helper.get("registry_password", "IMGPKG_REGISTRY_PASSWORD_1")
+        if not pkg_relocation_repo:
+            pkg_relocation_repo = self.creds_helper.get("pkg_relocation_repo", "PKG_RELOC_REPO")
+
+        if os.path.isfile(registry_password):
+            registry_password = open(registry_password, "r").read()
+            os.environ["IMGPKG_REGISTRY_PASSWORD_1"] = registry_password
+
+        return_code = self.sh_call(
+            cmd=f"echo '{tanzunet_password}' | docker login registry.tanzu.vmware.com --username '{tanzunet_username}' --password-stdin",
+            msg=f":key: Logging into Tanzu Network with username [yellow]{tanzunet_username}[/yellow]",
+            spinner_msg="Attempting to Login",
+            error_msg=None,
+        )
+        if return_code != 0:
+            self.logger.msg(":broken_heart: Unable to login to Tanzu Network. Use [bold]--verbose[/bold] flag for error details.")
+            raise typer.Exit(-1)
+
+        return_code = self.sh_call(
+            cmd=f"echo '{registry_password}' | docker login {registry_server} --username '{registry_username}' --password-stdin",
+            msg=f":key: Logging into your registry {registry_server} with username [yellow]{registry_username}[/yellow]",
+            spinner_msg="Attempting to Login",
+            error_msg=None,
+        )
+        if return_code != 0:
+            self.logger.msg(":broken_heart: Unable to login to your user registry. Use [bold]--verbose[/bold] flag for error details.")
+            raise typer.Exit(-1)
+
+        if not version:
+            return_code = self.sh_call(
+                cmd=f"imgpkg tag list -i registry.tanzu.vmware.com/tanzu-application-platform/tap-packages | grep -v sha | sort -V > /tmp/taps",
+                msg=f":magnifying_glass_tilted_left: Looking for all available TAP versions to relocate",
+                spinner_msg="Searching",
+                error_msg=None,
+            )
+            if return_code != 0:
+                self.logger.msg(":broken_heart: Unable to list all available TAP version. Use [bold]--verbose[/bold] flag for error details.")
+                raise typer.Exit(-1)
+
+            versions_list = open("/tmp/taps", "r").read().split("\t\n")
+            version, _ = Picker(versions_list, "Select TAP package version to relocate:").start()
+            print(version)
+
+        if wait:
+            return_code = self.sh_call(
+                cmd=f"imgpkg copy -b registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:{version} --to-repo {registry_server}/{pkg_relocation_repo}",
+                msg=f":package: Relocating TAP package version [yellow]{version}[/yellow] from Tanzu Network to [yellow]{registry_server}/{pkg_relocation_repo}[/yellow]",
+                spinner_msg="Relocating",
+                error_msg=None,
+            )
+            if return_code != 0:
+                self.logger.msg(":broken_heart: Unable to relocate TAP packages. Use [bold]--verbose[/bold] flag for error details.")
+                raise typer.Exit(-1)
+        else:
+            subprocess.Popen(
+                ["imgpkg", "copy", "-b", f"registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:{version}", "--to-repo", f"{registry_server}/{pkg_relocation_repo}"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.STDOUT,
+            )
+            self.logger.msg(":package: Started relocation in the background. Use macOS or Linux [yellow][bold]ps | grep 'imgpkg copy'[/bold][/yellow] command to see the running jobs")
