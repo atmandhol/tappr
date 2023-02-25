@@ -242,6 +242,7 @@ def check():
     checks_passed = subprocess_helpers.run_pre_req(cmd="kubectl version --client", tool="kubectl") and checks_passed
     checks_passed = subprocess_helpers.run_pre_req(cmd="tanzu version", tool="tanzu CLI") and checks_passed
     checks_passed = subprocess_helpers.run_pre_req(cmd="ytt --version", tool="ytt") and checks_passed
+    checks_passed = subprocess_helpers.run_pre_req(cmd="imgpkg --version", tool="imgpkg") and checks_passed
 
     if not checks_passed:
         typer_logger.msg("Run [green]tappr utils local setup[/green] to install missing tools.")
@@ -257,7 +258,6 @@ def check():
     typer_logger.msg("\n:hammer_and_wrench: Checking other tools that are not needed for using [bold][green]tappr[/green][/bold] but nice to have ...")
     subprocess_helpers.run_pre_req(cmd="kapp --version", tool="kapp") and checks_passed
     subprocess_helpers.run_pre_req(cmd="kbld --version", tool="kbld") and checks_passed
-    subprocess_helpers.run_pre_req(cmd="imgpkg --version", tool="imgpkg") and checks_passed
     subprocess_helpers.run_pre_req(cmd="kctrl --version", tool="kctrl") and checks_passed
     subprocess_helpers.run_pre_req(cmd="vendir --version", tool="vendir") and checks_passed
     subprocess_helpers.run_pre_req(cmd="ko version", tool="ko") and checks_passed
@@ -265,6 +265,7 @@ def check():
     subprocess_helpers.run_pre_req(cmd="crane version", tool="crane") and checks_passed
     subprocess_helpers.run_pre_req(cmd="go version", tool="golang") and checks_passed
     subprocess_helpers.run_pre_req(cmd="kp version", tool="kpack CLI") and checks_passed
+    subprocess_helpers.run_pre_req(cmd="watch -v", tool="watch") and checks_passed
     subprocess_helpers.run_pre_req(cmd="jq --version", tool="jq") and checks_passed
     subprocess_helpers.run_pre_req(cmd="yq --version", tool="yq") and checks_passed
 
@@ -293,6 +294,7 @@ def setup(interactive: bool = True):
     local_install(interactive=interactive, tool="docker", cmd="brew install --cask docker")
     local_install(interactive=interactive, tool="kubectl", cmd="brew install kubectl")
     local_install(interactive=interactive, tool="ytt", cmd="brew install ytt")
+    local_install(interactive=interactive, tool="imgpkg", cmd="brew install imgpkg")
 
     local_install(interactive=interactive, tool="kind", cmd="brew install kind")
     local_install(interactive=interactive, tool="minikube", cmd="brew install minikube")
@@ -300,7 +302,6 @@ def setup(interactive: bool = True):
 
     local_install(interactive=interactive, tool="kapp", cmd="brew install kapp")
     local_install(interactive=interactive, tool="kbld", cmd="brew install kbld")
-    local_install(interactive=interactive, tool="imgpkg", cmd="brew install imgpkg")
     local_install(interactive=interactive, tool="kctrl", cmd="brew install kctrl")
     local_install(interactive=interactive, tool="vendir", cmd="brew install vendir")
     local_install(interactive=interactive, tool="ko", cmd="brew install ko")
@@ -310,6 +311,7 @@ def setup(interactive: bool = True):
 
     local_install(interactive=interactive, tool="kubectx", cmd="brew install kubectx")
     local_install(interactive=interactive, tool="fzf", cmd="brew install fzf")
+    local_install(interactive=interactive, tool="watch", cmd="brew install watch")
     local_install(interactive=interactive, tool="jq", cmd="brew install jq")
     local_install(interactive=interactive, tool="yq", cmd="brew install yq")
 
