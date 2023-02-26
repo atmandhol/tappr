@@ -309,6 +309,7 @@ class TanzuApplicationPlatform:
                 f"tap_install_ns: {namespace}\n"
                 f"contour_infra: {contour_infra}\n"
                 f"service_type: {service_type}\n"
+                f"version: {version}\n"
             )
 
             # Read CA Cert Data file
@@ -626,7 +627,7 @@ class TanzuApplicationPlatform:
                     rprint(f"[bold][red]Error:[/red][/bold] {err[3]['usefulErrorMessage']}")
 
     def relocate(self, version, tanzunet_username, tanzunet_password, registry_server, registry_username, registry_password, pkg_relocation_repo, wait):
-        install_registry_server = self.creds_helper.get("install_registry_server", "IMGPKG_REGISTRY_HOSTNAME_0")
+        self.creds_helper.get("install_registry_server", "IMGPKG_REGISTRY_HOSTNAME_0")
         if not tanzunet_username:
             tanzunet_username = self.creds_helper.get("tanzunet_username", "IMGPKG_REGISTRY_USERNAME_0")
         if not tanzunet_password:
