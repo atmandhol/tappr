@@ -533,7 +533,8 @@ def gke(
         f"--no-enable-intra-node-visibility --default-max-pods-per-node \"{ccd.get('max_pods_per_node') if 'max_pods_per_node' not in cco else cco.get('max_pods_per_node')}\" "
         f"--no-enable-master-authorized-networks --addons HorizontalPodAutoscaling,HttpLoadBalancing,GcePersistentDiskCsiDriver"
         f"{' --no-enable-autoupgrade' if channel not in ['rapid', 'regular', 'stable'] else ''} --no-enable-managed-prometheus --no-enable-autorepair "
-        f"--max-surge-upgrade 1 --max-unavailable-upgrade 0 --enable-shielded-nodes"
+        f"--max-surge-upgrade 1 --max-unavailable-upgrade 0 --enable-shielded-nodes "
+        f"--workload-pool={gcp_project}.svc.id.goog"
     )
     if not new_subnet_name:
         cmd += f" --subnetwork \"{ccd.get('sub_network') if 'sub_network' not in cco else cco.get('sub_network')}\" "
