@@ -724,7 +724,7 @@ def edit(
         help="Yaml file path containing tap values to shallow merge (first level only) with the existing tap values on the cluster. " "Inline editor is not invoked if this option is used.",
     ),
     force: bool = typer.Option(False, help="Force save the changes to the yaml file without any user prompt"),
-    show: bool = typer.Option(False, help="Show the current content of the tap values file on the cluster in the inline editor. Defaults to false for security purposes."),
+    show: bool = typer.Option(True, help="Show the current content of the tap values file on the cluster in the inline editor. Defaults to false for security purposes."),
 ):
     """
     Modify TAP Installation.
