@@ -378,13 +378,13 @@ Install TAP. Make sure to run tappr init before installing TAP.
 **Usage**:
 
 ```console
-$ tappr tap install [OPTIONS] PROFILE VERSION
+$ tappr tap install [OPTIONS] [PROFILE] [VERSION]
 ```
 
 **Arguments**:
 
-* `PROFILE`: [required]
-* `VERSION`: [required]
+* `[PROFILE]`: TAP profile. Values can be full, iterate, build, run or view  [default: full]
+* `[VERSION]`: Version of TAP. it should be of format x.x.x or x.x.x-build.x  [default: 1.4.0]
 
 **Options**:
 

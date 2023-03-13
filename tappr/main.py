@@ -49,7 +49,7 @@ tap_gui_helpers = TanzuApplicationPlatformGUI(
 )
 
 # noinspection PyTypeChecker
-app = typer.Typer(help="CLI for Tanzu Application Platform")
+app = typer.Typer(help="CLI for Tanzu Application Platform", pretty_exceptions_show_locals=False)
 
 utils_app = typer.Typer(help="Random utils for making life easier.")
 cluster_app = typer.Typer(help="Kubernetes cluster CRUD commands")
@@ -658,8 +658,8 @@ def install_cluster_essentials():
 
 @tap_app.command()
 def install(
-    profile: str,
-    version,
+    profile: str = typer.Argument("full", help="TAP profile. Values can be full, iterate, build, run or view"),
+    version: str = typer.Argument("1.4.0", help="Version of TAP. it should be of format x.x.x or x.x.x-build.x"),
     namespace: str = typer.Option("tap-install", help="Namespace where TAP should be installed"),
     ingress_domain: str = typer.Option("127.0.0.1.nip.io", help="Shared Ingress Domain"),
     ingress_issuer: str = typer.Option("", help='Shared Ingress Issuer. Can also use "tap-ingress-selfsigned" to use the OOTB self signed cert'),
@@ -680,6 +680,8 @@ def install(
     Install TAP. Make sure to run tappr init before installing TAP.
 
     """
+    if profile not in ["full", "iterate", "run", "build", "view"]:
+        raise ValueError("Invalid profile. Values can be full, iterate, build, run or view.")
     tap_helpers.tap_install(
         profile=profile,
         version=version,
