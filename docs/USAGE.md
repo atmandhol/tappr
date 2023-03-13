@@ -402,6 +402,7 @@ $ tappr tap install [OPTIONS] [PROFILE] [VERSION]
 * `--service-type TEXT`: Accepted values are LoadBalancer, NodePort and ClusterIP  [default: LoadBalancer]
 * `--ca-cert-file TEXT`: Absolute URL to the file that contains CA Cert data that should be added to shared TAP configuration
 * `--skip-cluster-essentials / --no-skip-cluster-essentials`: Skip Cluster Essentials installation as its already installed or the user is using TKG or some flavor that already has it.  [default: False]
+* `--exclude-package TEXT`
 * `--tap-values-file TEXT`
 * `--wait / --no-wait`: Wait for the TAP install to complete  [default: False]
 * `--help`: Show this message and exit.

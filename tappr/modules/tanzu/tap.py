@@ -183,6 +183,7 @@ class TanzuApplicationPlatform:
         supply_chain,
         contour_infra,
         service_type,
+        exclude_package,
         namespace: str = "tap-install",
     ):
         # Setup k8s context and which kubernetes cluster to work on
@@ -310,6 +311,7 @@ class TanzuApplicationPlatform:
                 f"contour_infra: {contour_infra}\n"
                 f"service_type: {service_type}\n"
                 f"version: {version}\n"
+                f"exclude_packages: {exclude_package}"
             )
 
             # Read CA Cert Data file

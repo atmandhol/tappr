@@ -18,6 +18,7 @@ from tappr.modules.utils.enums import GKE_RELEASE_CHANNELS
 from tappr.modules.utils.creds import CredsHelper
 from tappr.modules.utils.ui import UI
 from tappr.modules.utils.k8s import K8s
+from typing import Optional, List
 
 state = {"verbose": False, "context": None}
 
@@ -347,7 +348,6 @@ def check_if_cluster_name_valid(name: str):
         raise typer.Exit(-1)
 
 
-# TODO: Add customization options later
 @create_cluster_app.command()
 def minikube(
     cluster_name,
@@ -664,6 +664,7 @@ def install_cluster_essentials():
     typer_logger.msg("\n:runner: [cyan][bold]tappr tap install --help[/bold][/cyan] to see help for installing TAP on your k8s clusters.\n")
 
 
+# noinspection PyShadowingNames
 @tap_app.command()
 def install(
     profile: str = typer.Argument("full", help="TAP profile. Values can be full, iterate, build, run or view"),
@@ -681,6 +682,7 @@ def install(
     service_type: str = typer.Option("LoadBalancer", help="Accepted values are LoadBalancer, NodePort and ClusterIP"),
     ca_cert_file: str = typer.Option(None, help="Absolute URL to the file that contains CA Cert data that should be added to shared TAP configuration"),
     skip_cluster_essentials: bool = typer.Option(False, help="Skip Cluster Essentials installation as its already installed or the user is using TKG or some flavor that already has it."),
+    exclude_package: Optional[List[str]] = typer.Option(None),
     tap_values_file: str = None,
     wait: bool = typer.Option(False, help="Wait for the TAP install to complete"),
 ):
@@ -708,6 +710,7 @@ def install(
         ca_cert_file=ca_cert_file,
         contour_infra=contour_infra,
         service_type=service_type,
+        exclude_package=exclude_package,
     )
     typer_logger.msg("\n:runner: [cyan][bold]tappr tap status[/bold][/cyan] to see the status of your TAP install.")
     typer_logger.msg(":runner: [cyan][bold]tappr tap edit --show[/bold][/cyan] to edit TAP values config on the cluster.")
@@ -752,6 +755,7 @@ def ingress_ip(service: str = "envoy", namespace: str = typer.Option("tanzu-syst
     tap_helpers.ingress_ip(service=service, namespace=namespace)
 
 
+# noinspection PyShadowingNames
 @tap_app.command()
 def relocate(
     version: str = typer.Option(None, help="Select the version of TAP you want to relocate from Tanzu Network to your Registry"),
@@ -779,6 +783,7 @@ def relocate(
     )
 
 
+# noinspection PyShadowingNames
 @tap_app.command()
 def upgrade(
     version: str,
