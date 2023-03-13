@@ -116,6 +116,14 @@ def tap(
 
 
 @app.command()
+def version():
+    """
+    Show the version of tappr
+    """
+    subprocess_helpers.run_pre_req(cmd="pipx list --short | grep tappr", tool="tappr")
+
+
+@app.command()
 def init(
     tanzunet_username: str = typer.Option(None, help="Tanzu Network Username."),
     tanzunet_password: str = typer.Option(None, help="Tanzu Network Password."),

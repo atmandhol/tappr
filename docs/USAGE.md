@@ -23,6 +23,7 @@ $ tappr [OPTIONS] COMMAND [ARGS]...
 * `init`: Initialize the tappr cli with required...
 * `tap`: Tanzu Application Platform management.
 * `utils`: Random utils for making life easier.
+* `version`: Show the version of tappr
 
 ## `tappr cluster`
 
@@ -722,5 +723,19 @@ $ tappr utils test [OPTIONS] TEST_FILE
 **Options**:
 
 * `--output TEXT`: [default: stdout]
+* `--help`: Show this message and exit.
+
+## `tappr version`
+
+Show the version of tappr
+
+**Usage**:
+
+```console
+$ tappr version [OPTIONS]
+```
+
+**Options**:
+
 * `--help`: Show this message and exit.
 
