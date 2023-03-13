@@ -3,7 +3,7 @@ line-length = 148
 
 [tool.poetry]
 name = "tappr"
-version = "0.12.0"
+version = "0.13.0"
 description = "CLI for Tanzu Application Platform"
 authors = ["Atman Dhol <github.com/atmandhol>"]
 
