@@ -14,13 +14,13 @@
 #@ end
 
 shared:
-  #@ if/end hasattr(data.values, "ingress_domain"):
+  #@ if/end hasattr(data.values, "ingress_domain") and data.values.version >= "1.3":
   ingress_domain: #@ data.values.ingress_domain
-  #@ if/end hasattr(data.values, "ingress_issuer"):
+  #@ if/end hasattr(data.values, "ingress_issuer") and data.values.version >= "1.4":
   ingress_issuer: #@ data.values.ingress_issuer
-  #@ if/end hasattr(data.values, "k8s_distribution"):
+  #@ if/end hasattr(data.values, "k8s_distribution") and data.values.version >= "1.3":
   kubernetes_distribution: #@ data.values.k8s_distribution
-  #@ if/end hasattr(data.values, "k8s_version"):
+  #@ if/end hasattr(data.values, "k8s_version") and data.values.version >= "1.3":
   kubernetes_version: #@ data.values.k8s_version
   #@ if/end hasattr(data.values, "ca_cert_data"):
   ca_cert_data: #@ data.values.ca_cert_data
@@ -34,7 +34,7 @@ buildservice:
   kp_default_repository_secret:
     name: #@ data.values.tbs_repo_push_secret if hasattr(data.values, "tbs_repo_push_secret") else "tbs-repo-push"
     namespace: #@ data.values.tap_install_ns if hasattr(data.values, "tap_install_ns") else "tap-install"
-  #@ if not "1.5" in data.values.version:
+  #@ if data.values.version < "1.5":
   tanzunet_secret:
     name: #@ data.values.tbs_tanzunet_pull_secret if hasattr(data.values, "tbs_tanzunet_pull_secret") else "tbs-tanzunet-pull"
     namespace: #@ data.values.tap_install_ns if hasattr(data.values, "tap_install_ns") else "tap-install"
@@ -107,6 +107,8 @@ metadata_store:
   ns_for_export_app_cert: '*'
   app_service_type: ClusterIP
   ingress_enabled: #@ "true" if hasattr(data.values, "service_type") and data.values.service_type == "LoadBalancer" else "false"
+  #@ if/end data.values.version < "1.3":
+  ingress_domain: #@ data.values.ingress_domain
 #@ end
 
 excluded_packages:
@@ -118,5 +120,7 @@ excluded_packages:
 #@   end
 #@ end
 
+#@ if data.values.version > "1.4":
 tap_telemetry:
    installed_for_vmware_internal_use: "true"
+#@ end
