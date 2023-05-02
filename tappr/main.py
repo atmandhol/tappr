@@ -21,6 +21,7 @@ from tappr.modules.utils.k8s import K8s
 from typing import Optional, List
 
 state = {"verbose": False, "context": None}
+VERSION = "0.13.0"
 
 typer_logger = TyperLogger()
 commons = Commons()
@@ -121,7 +122,8 @@ def version():
     """
     Show the version of tappr
     """
-    subprocess_helpers.run_pre_req(cmd="pipx list --short | grep tappr", tool="tappr")
+    # subprocess_helpers.run_pre_req(cmd="pipx list --short | grep tappr", tool="tappr")
+    typer_logger.msg(f":white_check_mark: tappr [green]{VERSION}[/green] installed")
 
 
 @app.command()
@@ -502,6 +504,15 @@ def gke(
         "network",
         "sub_network",
     ]
+
+    tanzunet_username = None
+    # noinspection PyBroadException
+    try:
+        tanzunet_username = creds_helpers.get("tanzunet_username", "INSTALL_REGISTRY_USERNAME").split("@")[0]
+        tanzunet_username = "".join(ch for ch in tanzunet_username if ch.isalnum())
+    except Exception:
+        pass
+
     cco = dict()
     if customize:
         data = ui_helpers.yaml_prompt(
@@ -542,7 +553,7 @@ def gke(
         f"--no-enable-master-authorized-networks --addons HorizontalPodAutoscaling,HttpLoadBalancing,GcePersistentDiskCsiDriver"
         f"{' --no-enable-autoupgrade' if channel not in ['rapid', 'regular', 'stable'] else ''} --no-enable-managed-prometheus --no-enable-autorepair "
         f"--max-surge-upgrade 1 --max-unavailable-upgrade 0 --enable-shielded-nodes "
-        f"--workload-pool={gcp_project}.svc.id.goog"
+        f"--workload-pool={gcp_project}.svc.id.goog --labels=used_by={tanzunet_username if tanzunet_username else 'tappr'},created_by=tappr"
     )
     if not new_subnet_name:
         cmd += f" --subnetwork \"{ccd.get('sub_network') if 'sub_network' not in cco else cco.get('sub_network')}\" "
