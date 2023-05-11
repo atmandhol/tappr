@@ -102,6 +102,10 @@ class K8s:
             return options[0]
         return option
 
+    def list_context(self):
+        self.load_contexts_and_clients()
+        return self.contexts
+
     def pick_multiple_contexts(self, message=None):
         self.load_contexts_and_clients()
         options = self.contexts

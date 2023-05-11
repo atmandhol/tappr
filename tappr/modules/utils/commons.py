@@ -54,6 +54,10 @@ class Commons:
         return k8s_context
 
     @staticmethod
+    def list_k8s_context(k8s_helper):
+        return k8s_helper.list_context()
+
+    @staticmethod
     def print_smart_diff(old, new):
         for line in Differ().compare(yaml.safe_dump(old).split("\n"), yaml.safe_dump(new).split("\n")):
             if line.startswith("+"):
