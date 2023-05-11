@@ -452,7 +452,7 @@ def get_latest_gke_version_by_channel(region, channel):
 @create_cluster_app.command()
 def gke(
     cluster_name: str = typer.Option(None, help="Name of the GKE cluster"),
-    channel: GKE_RELEASE_CHANNELS = typer.Option(GKE_RELEASE_CHANNELS.NONE, help="GKE Release Channel"),
+    channel: GKE_RELEASE_CHANNELS = typer.Option(GKE_RELEASE_CHANNELS.STABLE, help="GKE Release Channel"),
     cluster_version: str = typer.Option("auto", help="auto takes the latest in the channel. You can specify a fixed version as well."),
     project: str = typer.Option(None, help="Name of the GCP project. If gcloud is pointing to a specific project, it will be automatically picked up"),
     customize: bool = typer.Option(False, help="Customize the default values"),
