@@ -91,6 +91,10 @@ contour:
 #@ if is_profile(['full', 'view']):
 tap_gui:
   app_config:
+    #@ if hasattr(data.values, "version") and data.values.version >= "1.6":
+    auth:
+      allowGuestAccess: true
+    #@ end
     catalog:
       locations:
       - target: https://github.com/atmandhol/tap-blank-catalog/blob/main/catalog-info.yaml
