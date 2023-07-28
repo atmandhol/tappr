@@ -466,6 +466,20 @@ def pick_cluster_and_nodepool():
     return cluster_pool
 
 
+def pick_cluster():
+    # Get all supported server configs
+    proc, out, _ = ui_helpers.progress(cmd="gcloud container clusters list --format json", state=state, message=":magnifying_glass_tilted_left: Getting list of clusters")
+    if proc.returncode != 0:
+        raise typer.Exit(-1)
+
+    picker_list = []
+    clusters = json.loads(out.decode())
+    for cluster in clusters:
+        picker_list.append(f'{cluster.get("name")}/{cluster.get("zone")}')
+    cluster, _ = Picker(picker_list, "Select a Cluster to delete:").start()
+    return cluster
+
+
 @create_cluster_app.command()
 def gke(
     cluster_name: str = typer.Option(None, help="Name of the GKE cluster"),
@@ -596,7 +610,7 @@ def gke(
 def gke(
     cluster_name: str = typer.Option(None, help="Name of the GKE cluster"),
     project: str = typer.Option(None, help="Name of the GCP project. If gcloud is pointing to a specific project, it will be automatically picked up"),
-    region: str = typer.Option(None, help="GKE cluster region"),
+    region: str = typer.Option("us-east4", help="GKE cluster region"),
     nodepool: str = typer.Option("default-pool", help="GKE cluster nodepool to scale"),
     num_nodes_per_zone: int = typer.Option(2, help="Number of worker nodes in NodePool per zone"),
 ):
@@ -667,10 +681,14 @@ def minikube(cluster_name):
 
 
 @delete_cluster_app.command()
-def gke(cluster_name, region: str = "us-east4"):
+def gke(cluster_name: str = typer.Option(None, help="Name of the GKE cluster"), region: str = "us-east4"):
     """
     Delete a GKE cluster.
     """
+    if not cluster_name:
+        cluster = pick_cluster().split("/")
+        cluster_name = cluster[0]
+        region = cluster[1]
     cmd = f"gcloud container clusters delete {cluster_name} --region {region} -q"
     typer_logger.msg(f":bomb: Deleting GKE cluster named [yellow]{cluster_name}[/yellow]", bold=False)
     proc, out, err = ui_helpers.progress(cmd=cmd, state=state, message="Deleting a GKE cluster")
