@@ -16,7 +16,7 @@ from tappr.modules.utils.helpers import SubProcessHelpers
 from tappr.modules.utils.logger import TyperLogger
 from tappr.modules.utils.enums import GKE_RELEASE_CHANNELS
 from tappr.modules.utils.creds import CredsHelper
-from tappr.modules.utils.ui import UI
+from tappr.modules.utils.ui import UI, Picker
 from tappr.modules.utils.k8s import K8s
 from typing import Optional, List
 
@@ -56,6 +56,7 @@ app = typer.Typer(help="CLI for Tanzu Application Platform", pretty_exceptions_s
 utils_app = typer.Typer(help="Random utils for making life easier.")
 cluster_app = typer.Typer(help="Kubernetes cluster CRUD commands")
 create_cluster_app = typer.Typer(help="Create Kubernetes clusters.")
+scale_cluster_app = typer.Typer(help="Scale Kubernetes clusters.")
 delete_cluster_app = typer.Typer(help="Delete Kubernetes clusters.")
 registry_app = typer.Typer(help="Manage local docker registry.")
 tap_app = typer.Typer(help="Tanzu Application Platform management.")
@@ -63,6 +64,7 @@ local_app = typer.Typer(help="Helpers to setup your local environment.")
 tap_gui_app = typer.Typer(help="Tanzu Application Platform GUI management.")
 
 cluster_app.add_typer(create_cluster_app, name="create")
+cluster_app.add_typer(scale_cluster_app, name="scale")
 cluster_app.add_typer(delete_cluster_app, name="delete")
 app.add_typer(cluster_app, name="cluster")
 app.add_typer(tap_app, name="tap")
@@ -342,7 +344,7 @@ def cleanup():
 
 
 # =============================================================================================
-# tappr create commands
+# tappr create create commands
 # =============================================================================================
 def check_if_cluster_name_valid(name: str):
     if not name.replace("-", "").isalnum():
@@ -447,6 +449,21 @@ def get_latest_gke_version_by_channel(region, channel):
     for c in channels:
         if c["channel"] == channel:
             return c["defaultVersion"]
+
+
+def pick_cluster_and_nodepool():
+    # Get all supported server configs
+    proc, out, _ = ui_helpers.progress(cmd="gcloud container clusters list --format json", state=state, message=":magnifying_glass_tilted_left: Getting list of clusters")
+    if proc.returncode != 0:
+        raise typer.Exit(-1)
+
+    picker_list = []
+    clusters = json.loads(out.decode())
+    for cluster in clusters:
+        for nodepool in cluster.get("nodePools"):
+            picker_list.append(f'{cluster.get("name")}/{cluster.get("zone")}/{nodepool.get("name")}')
+    cluster_pool, _ = Picker(picker_list, "Select a nodepool:").start()
+    return cluster_pool
 
 
 @create_cluster_app.command()
@@ -573,7 +590,51 @@ def gke(
 
 
 # =============================================================================================
-# tappr delete commands
+# tappr cluster scale commands
+# =============================================================================================
+@scale_cluster_app.command()
+def gke(
+    cluster_name: str = typer.Option(None, help="Name of the GKE cluster"),
+    project: str = typer.Option(None, help="Name of the GCP project. If gcloud is pointing to a specific project, it will be automatically picked up"),
+    region: str = typer.Option(None, help="GKE cluster region"),
+    nodepool: str = typer.Option("default-pool", help="GKE cluster nodepool to scale"),
+    num_nodes_per_zone: int = typer.Option(2, help="Number of worker nodes in NodePool per zone"),
+):
+    """
+    Scale a GKE cluster. Assumes gcloud is set to modify clusters.
+    """
+    # Check if gcloud is installed
+    proc, out, _ = ui_helpers.progress(cmd=f"gcloud info --format json", message=":magnifying_glass_tilted_left: Checking gcloud installation", state=state)
+    if proc.returncode != 0:
+        raise typer.Exit(-1)
+
+    # Get the default project
+    gcloud_op = json.loads(out.decode())
+    gcp_project = gcloud_op["config"]["project"] if not project else project
+
+    if cluster_name is None:
+        cluster_pool = pick_cluster_and_nodepool().split("/")
+        cluster_name = cluster_pool[0]
+        region = cluster_pool[1]
+        nodepool = cluster_pool[2]
+
+    cmd = f"gcloud container clusters resize {cluster_name} --region {region} --node-pool {nodepool} --num-nodes {num_nodes_per_zone} --project {gcp_project} -q"
+
+    typer_logger.msg(
+        f":package: Scaling the GKE cluster nodepool named [yellow]{nodepool}[/yellow] on cluster [yellow]{cluster_name}[/yellow] in project [yellow]{gcp_project}[/yellow]", bold=False
+    )
+    proc, out, err = ui_helpers.progress(cmd=cmd, state=state, message="Scaling up a GKE cluster")
+    if proc.returncode == 0:
+        typer_logger.msg(":rocket: GKE Cluster scaled [green]successfully[/green]")
+    else:
+        typer_logger.msg(":broken_heart: Unable to scale GKE cluster. Use [bold]--verbose[/bold] flag for error details.")
+        raise typer.Exit(-1)
+
+    typer_logger.msg("\n:runner: [cyan][bold]tappr tap install --help[/bold][/cyan] to see help for installing TAP on your k8s clusters.\n")
+
+
+# =============================================================================================
+# tappr cluster delete commands
 # =============================================================================================
 @delete_cluster_app.command()
 def kind(cluster_name):
