@@ -491,6 +491,7 @@ def gke(
     num_nodes_per_zone: int = typer.Option(None, help="Number of worker nodes in NodePool per zone"),
     new_subnet_name: str = typer.Option(None, help="Provide a name of new subnet to create that will be used for this GKE cluster"),
     new_subnet_range: int = typer.Option(23, help="CIDR range routing prefix bits. Should be between 21-24 for a full TAP install"),
+    auto_scale_down: bool = typer.Option(True, help="if False, adds a label do-not-automate to GKE cluster which can be used for auto cleanup scripts on GCP."),
 ):
     """
     Create a GKE cluster. Assumes gcloud is set to create clusters.
@@ -584,7 +585,7 @@ def gke(
         f"--no-enable-master-authorized-networks --addons HorizontalPodAutoscaling,HttpLoadBalancing,GcePersistentDiskCsiDriver"
         f"{' --no-enable-autoupgrade' if channel not in ['rapid', 'regular', 'stable'] else ''} --no-enable-managed-prometheus --no-enable-autorepair "
         f"--max-surge-upgrade 1 --max-unavailable-upgrade 0 --enable-shielded-nodes "
-        f"--workload-pool={gcp_project}.svc.id.goog --labels=used_by={tanzunet_username if tanzunet_username else 'tappr'},created_by=tappr"
+        f"--workload-pool={gcp_project}.svc.id.goog --labels=used_by={tanzunet_username if tanzunet_username else 'tappr'},created_by=tappr,{'do-not-automate=true' if not auto_scale_down else ''}"
     )
     if not new_subnet_name:
         cmd += f" --subnetwork \"{ccd.get('sub_network') if 'sub_network' not in cco else cco.get('sub_network')}\" "
