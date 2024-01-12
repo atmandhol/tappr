@@ -263,7 +263,7 @@ class TanzuApplicationPlatform:
             namespace=namespace,
             msg=f":key: Setting up User Registry Push Secret {tbs_repo_push_secret} for TBS",
             registry_server=registry_server,
-            export_everywhere=False,
+            export_everywhere=True,
         )
         self.create_or_update_secret(
             list_op=out,
