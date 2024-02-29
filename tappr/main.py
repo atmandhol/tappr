@@ -21,7 +21,7 @@ from tappr.modules.utils.k8s import K8s
 from typing import Optional, List
 
 state = {"verbose": False, "context": None}
-VERSION = "0.16.0"
+VERSION = "0.17.0"
 
 typer_logger = TyperLogger()
 commons = Commons()
@@ -758,7 +758,7 @@ def install_cluster_essentials():
 # noinspection PyShadowingNames
 @tap_app.command()
 def install(
-    profile: str = typer.Argument("full", help="TAP profile. Values can be full, iterate, build, run or view"),
+    profile: str = typer.Argument("full", help="TAP profile. Values can be full, authoring, iterate, build, run or view"),
     version: str = typer.Argument("1.4.0", help="Version of TAP. it should be of format x.x.x or x.x.x-build.x"),
     namespace: str = typer.Option("tap-install", help="Namespace where TAP should be installed"),
     ingress_domain: str = typer.Option("127.0.0.1.nip.io", help="Shared Ingress Domain"),
@@ -781,8 +781,8 @@ def install(
     Install TAP. Make sure to run tappr init before installing TAP.
 
     """
-    if profile not in ["full", "iterate", "run", "build", "view"]:
-        raise ValueError("Invalid profile. Values can be full, iterate, build, run or view.")
+    if profile not in ["full", "authoring", "iterate", "run", "build", "view"]:
+        raise ValueError("Invalid profile. Values can be full, authoring, iterate, build, run or view.")
     tap_helpers.tap_install(
         profile=profile,
         version=version,

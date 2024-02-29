@@ -28,7 +28,7 @@ shared:
 ceip_policy_disclosed: true
 profile: #@ data.values.profile
 
-#@ if is_profile(['full', 'build', 'light', 'iterate']):
+#@ if is_profile(['full', 'build', 'light', 'iterate', 'authoring']):
 buildservice:
   kp_default_repository: #@ data.values.registry_server + "/" + data.values.registry_repo
   kp_default_repository_secret:
@@ -41,7 +41,7 @@ buildservice:
   #@ end
 #@ end
 
-#@ if is_profile(['full', 'build', 'light', 'iterate']):
+#@ if is_profile(['full', 'build', 'light', 'iterate', 'authoring']):
 supply_chain: #@ data.values.supply_chain if hasattr(data.values, "supply_chain") else "basic"
 
 #@ if data.values.supply_chain == "basic":
@@ -72,7 +72,7 @@ ootb_supply_chain_testing_scanning:
 #@ end
 #@ end
 
-#@ if is_profile(['full', 'run', 'light', 'iterate']):
+#@ if is_profile(['full', 'run', 'light', 'iterate', 'authoring']):
 cnrs:
   domain_name: #@ data.values.ingress_domain
 #@ end
