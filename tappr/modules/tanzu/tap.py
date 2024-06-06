@@ -279,10 +279,14 @@ class TanzuApplicationPlatform:
         cmd = f"tanzu package repository list --namespace {namespace}"
         _, out, _ = self.sh.run_proc(cmd=cmd)
 
+        pkg_repo_url = f"{install_registry_server}/tanzu-application-platform/tap-packages:{version}"
+        if "packages.broadcom.com" in install_registry_server:
+            pkg_repo_url = f"{install_registry_server}/{version}/tanzu-application-platform/tap-packages:{version}"
+
         self.sh_call(
-            cmd=f"tanzu package repository update tanzu-tap-repository --url {install_registry_server}/tanzu-application-platform/tap-packages:{version} --namespace {namespace}"
+            cmd=f"tanzu package repository update tanzu-tap-repository --url {pkg_repo_url} --namespace {namespace}"
             if "tanzu-tap-repository" in out.decode()
-            else f"tanzu package repository add tanzu-tap-repository --url {install_registry_server}/tanzu-application-platform/tap-packages:{version} --namespace {namespace}",
+            else f"tanzu package repository add tanzu-tap-repository --url {pkg_repo_url} --namespace {namespace}",
             msg=":key: Setting up [yellow]tanzu-tap-repository[/yellow] package repo",
             spinner_msg="Setting up",
             error_msg=None,
@@ -570,8 +574,12 @@ class TanzuApplicationPlatform:
             raise typer.Exit(1)
 
         install_registry_server = self.creds_helper.get("install_registry_server", "INSTALL_REGISTRY_SERVER")
+
+        pkg_repo_url = f"{install_registry_server}/tanzu-application-platform/tap-packages:{version}"
+        if "packages.broadcom.com" in install_registry_server:
+            pkg_repo_url = f"{install_registry_server}/{version}/tanzu-application-platform/tap-packages:{version}"
         self.sh_call(
-            cmd=f"tanzu package repository update tanzu-tap-repository --url {install_registry_server}/tanzu-application-platform/tap-packages:{version} --namespace {namespace}",
+            cmd=f"tanzu package repository update tanzu-tap-repository --url {pkg_repo_url} --namespace {namespace}",
             msg=":key: Setting up [yellow]tanzu-tap-repository[/yellow] package repo",
             spinner_msg="Setting up",
             error_msg=None,
