@@ -26,7 +26,12 @@ class CredsHelper:
 
         if tanzunet_username is None:
             self.logger.msg("[bold][yellow]Enter your Tanzu Network email[/yellow][/bold]")
-            tanzunet_username = str(Prompt.ask(f":person_raising_hand: Tanzu Network Username", default=configs["tanzunet_username"] if configs and "tanzunet_username" in configs else None))
+            tanzunet_username = str(
+                Prompt.ask(
+                    f":person_raising_hand: Tanzu Network Username",
+                    default=configs["tanzunet_username"] if configs and "tanzunet_username" in configs else None,
+                )
+            )
         if tanzunet_password is None:
             self.logger.msg("\n[bold][yellow]Enter your Tanzu Network password[/yellow][/bold]")
             tanzunet_password = str(
@@ -39,11 +44,15 @@ class CredsHelper:
             )
 
         if install_registry_server is None:
-            self.logger.msg("\n[bold][yellow]Enter your Registry URL without http/https where your TAP packages are located. If not sure, use registry.tanzu.vmware.com[/yellow][/bold]")
+            self.logger.msg(
+                "\n[bold][yellow]Enter your Registry URL without http/https where your TAP packages are located. If not sure, use registry.tanzu.vmware.com[/yellow][/bold]"
+            )
             install_registry_server = str(
                 Prompt.ask(
                     f":convenience_store: Install Registry Server (e.g. registry.tanzu.vmware.com)",
-                    default=configs.get("install_registry_server") if configs and "install_registry_server" in configs else "registry.tanzu.vmware.com",
+                    default=configs.get("install_registry_server")
+                    if configs and "install_registry_server" in configs
+                    else "registry.tanzu.vmware.com",
                 )
             )
 
@@ -63,7 +72,10 @@ class CredsHelper:
                 )
             )
         if registry_username is None:
-            self.logger.msg("\n[bold][yellow]Enter your Default registry username.\n" '- Use "_json_key" if you are using Service account key for Google Container Registry[/yellow][/bold]')
+            self.logger.msg(
+                "\n[bold][yellow]Enter your Default registry username.\n"
+                '- Use "_json_key" if you are using Service account key for Google Container Registry[/yellow][/bold]'
+            )
             registry_username = str(
                 Prompt.ask(
                     f":convenience_store: Registry Username",

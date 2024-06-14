@@ -28,7 +28,9 @@ class K8s:
                 for ctx in contexts_obj:
                     try:
                         self.core_clients[ctx["name"]] = self.client.CoreV1Api(api_client=self.config.new_client_from_config(context=ctx["name"]))
-                        self.custom_clients[ctx["name"]] = self.client.CustomObjectsApi(api_client=self.config.new_client_from_config(context=ctx["name"]))
+                        self.custom_clients[ctx["name"]] = self.client.CustomObjectsApi(
+                            api_client=self.config.new_client_from_config(context=ctx["name"])
+                        )
                         self.contexts.append(ctx["name"])
                     except Exception:
                         pass

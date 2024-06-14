@@ -122,7 +122,9 @@ class Commons:
         # tap_version_installed = response["spec"]["packageRef"]["versionSelection"]["constraints"]
         tap_values_secret_name = response["spec"]["values"][0]["secretRef"]["name"]
 
-        success, response = k8s_helper.get_namespaced_secret(secret=tap_values_secret_name, namespace=namespace, client=k8s_helper.core_clients[k8s_context])
+        success, response = k8s_helper.get_namespaced_secret(
+            secret=tap_values_secret_name, namespace=namespace, client=k8s_helper.core_clients[k8s_context]
+        )
 
         if not success:
             logger.msg(f":cry: Unable to get {tap_values_secret_name} from namespace {namespace}")

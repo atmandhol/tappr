@@ -186,7 +186,9 @@ class TanzuApplicationPlatform:
         namespace: str = "tap-install",
     ):
         # Setup k8s context and which kubernetes cluster to work on
-        k8s_context = commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
+        k8s_context = commons.check_and_pick_k8s_context(
+            k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
+        )
 
         # Create staging dir
         hash_str = str(profile + version) + str(time.time())
@@ -314,7 +316,10 @@ class TanzuApplicationPlatform:
             # Write data values data values
             open(f"{data_values_file}", "w").write(data_values)
             # Create TAP Values file
-            cmd = f'ytt -f {os.path.dirname(os.path.abspath(__file__)).replace("/tanzu", f"/artifacts/profiles/tap-values.yml")} ' f"--data-values-file {data_values_file} > {tap_values_file}"
+            cmd = (
+                f'ytt -f {os.path.dirname(os.path.abspath(__file__)).replace("/tanzu", f"/artifacts/profiles/tap-values.yml")} '
+                f"--data-values-file {data_values_file} > {tap_values_file}"
+            )
             return_code = self.sh_call(
                 cmd=cmd,
                 msg=f":memo: Creating values yml file at [yellow]{tap_values_file}[/yellow]",
@@ -344,14 +349,18 @@ class TanzuApplicationPlatform:
             raise typer.Exit(-1)
 
     def developer_ns_setup(self, namespace, install_ns="tap-install"):
-        k8s_context = commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
+        k8s_context = commons.check_and_pick_k8s_context(
+            k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
+        )
         ns_list = commons.get_ns_list(k8s_helper=self.k8s_helper, client=self.k8s_helper.core_clients[k8s_context])
         if namespace not in ns_list:
             self.logger.msg(f":construction: Creating [yellow]{namespace}[/yellow] as it does not exist.")
             success, response = self.k8s_helper.create_namespace(namespace=namespace, client=self.k8s_helper.core_clients[k8s_context])
             if not success:
                 self.logger.msg(f"Error response {response}") if self.state["verbose"] else None
-                self.logger.msg(":broken_heart: Unable to create namespace [yellow]{namespace}[/yellow]. Use [bold]--verbose[/bold] flag for error details.")
+                self.logger.msg(
+                    ":broken_heart: Unable to create namespace [yellow]{namespace}[/yellow]. Use [bold]--verbose[/bold] flag for error details."
+                )
                 raise typer.Exit(-1)
             ns_list = commons.get_ns_list(k8s_helper=self.k8s_helper, client=self.k8s_helper.core_clients[k8s_context])
             if namespace not in ns_list:
@@ -384,14 +393,23 @@ class TanzuApplicationPlatform:
         if_add_test_template = self.logger.confirm(":test_tube: Do you want to add a test pipeline?", default=False)
         if if_add_test_template:
             # {$$testTaskImage}
-            test_image = self.logger.question(":test_tube: What base image do you want to use for test task? (e.g. gradle, golang, python etc.)", default="gradle")
+            test_image = self.logger.question(
+                ":test_tube: What base image do you want to use for test task? (e.g. gradle, golang, python etc.)", default="gradle"
+            )
             # {$$testTaskCmd}
-            test_cmd = self.logger.question(":test_tube: Enter test command for running your tests (e.g. [cyan]./mvnw test[/cyan], [cyan]go test -v ./...[/cyan] etc.)", default="./mvnw test")
+            test_cmd = self.logger.question(
+                ":test_tube: Enter test command for running your tests (e.g. [cyan]./mvnw test[/cyan], [cyan]go test -v ./...[/cyan] etc.)",
+                default="./mvnw test",
+            )
 
-            template_base_path = os.path.dirname(os.path.abspath(__file__)).replace("/modules/tanzu", "") + f"/modules/artifacts/templates/test-pipeline.yml"
+            template_base_path = (
+                os.path.dirname(os.path.abspath(__file__)).replace("/modules/tanzu", "") + f"/modules/artifacts/templates/test-pipeline.yml"
+            )
             hash_str = str(time.time())
             tmp_dir = f"/tmp/{hashlib.md5(hash_str.encode()).hexdigest()}"
-            open(tmp_dir, "w").write(open(template_base_path, "r").read().replace("{$$testTaskImage}", test_image).replace("{$$testTaskCmd}", test_cmd))
+            open(tmp_dir, "w").write(
+                open(template_base_path, "r").read().replace("{$$testTaskImage}", test_image).replace("{$$testTaskCmd}", test_cmd)
+            )
             exit_code = self.sh_call(
                 cmd=f"kubectl -n {namespace} apply -f {tmp_dir}",
                 msg=f":sunglasses: Setting up test pipeline in namespace {namespace}",
@@ -405,7 +423,8 @@ class TanzuApplicationPlatform:
         if if_add_scan_template:
             # {$$notAllowedSeverities}
             not_allowed_levels = self.logger.question(
-                ':magnifying_glass_tilted_left: What vuln levels are not allowed? (Comma separated list e.g. [cyan]["Critical", "High"][/cyan] etc.)', default="[]"
+                ':magnifying_glass_tilted_left: What vuln levels are not allowed? (Comma separated list e.g. [cyan]["Critical", "High"][/cyan] etc.)',
+                default="[]",
             )
             try:
                 json.loads(not_allowed_levels)
@@ -413,10 +432,14 @@ class TanzuApplicationPlatform:
                 self.logger.msg(f":broken_heart: Unable to parse the input. Make sure it's a comma separated list.")
                 raise typer.Exit(-1)
 
-            template_base_path = os.path.dirname(os.path.abspath(__file__)).replace("/modules/tanzu", "") + f"/modules/artifacts/templates/scan-policy.yml"
+            template_base_path = (
+                os.path.dirname(os.path.abspath(__file__)).replace("/modules/tanzu", "") + f"/modules/artifacts/templates/scan-policy.yml"
+            )
             hash_str = str(time.time())
             tmp_dir = f"/tmp/{hashlib.md5(hash_str.encode()).hexdigest()}"
-            open(tmp_dir, "w").write(open(template_base_path, "r").read().replace("{$$notAllowedSeverities}", f" notAllowedSeverities := {not_allowed_levels}"))
+            open(tmp_dir, "w").write(
+                open(template_base_path, "r").read().replace("{$$notAllowedSeverities}", f" notAllowedSeverities := {not_allowed_levels}")
+            )
             exit_code = self.sh_call(
                 cmd=f"kubectl -n {namespace} apply -f {tmp_dir}",
                 msg=f":sunglasses: Setting up scan policy in namespace {namespace}",
@@ -427,7 +450,9 @@ class TanzuApplicationPlatform:
                 raise typer.Exit(-1)
 
             # Check if grype is installed
-            k8s_context = commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
+            k8s_context = commons.check_and_pick_k8s_context(
+                k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
+            )
             success, response = self.k8s_helper.list_namespaced_custom_objects(
                 group="packaging.carvel.dev",
                 version="v1alpha1",
@@ -456,8 +481,12 @@ class TanzuApplicationPlatform:
                             raise typer.Exit(-1)
 
     def ingress_ip(self, service: str, namespace: str):
-        k8s_context = commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
-        success, response = self.k8s_helper.get_namespaced_service(service=service, namespace=namespace, client=self.k8s_helper.core_clients[k8s_context])
+        k8s_context = commons.check_and_pick_k8s_context(
+            k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
+        )
+        success, response = self.k8s_helper.get_namespaced_service(
+            service=service, namespace=namespace, client=self.k8s_helper.core_clients[k8s_context]
+        )
         if success:
             try:
                 # This fails when you try to get a public ip when contour is not installed as load balancer,
@@ -471,7 +500,9 @@ class TanzuApplicationPlatform:
             self.logger.msg(f"\n{response}", bold=False) if self.state["verbose"] else None
 
     def edit_tap_values(self, namespace: str, from_file: str, force: bool, show_current: bool):
-        k8s_context = commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
+        k8s_context = commons.check_and_pick_k8s_context(
+            k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
+        )
 
         success, response = commons.get_custom_object_data(
             k8s_helper=self.k8s_helper,
@@ -489,7 +520,9 @@ class TanzuApplicationPlatform:
         # tap_version_installed = response["spec"]["packageRef"]["versionSelection"]["constraints"]
         tap_values_secret_name = response["spec"]["values"][0]["secretRef"]["name"]
 
-        success, response = self.k8s_helper.get_namespaced_secret(secret=tap_values_secret_name, namespace=namespace, client=self.k8s_helper.core_clients[k8s_context])
+        success, response = self.k8s_helper.get_namespaced_secret(
+            secret=tap_values_secret_name, namespace=namespace, client=self.k8s_helper.core_clients[k8s_context]
+        )
 
         if success:
             new_cluster_tap_values = str()
@@ -543,7 +576,9 @@ class TanzuApplicationPlatform:
             # hack: TODO: if the data object structure changes, it will have to be adjusted here. currently I assume there is only 1 key
             data_key = list(response.data.keys())[0]
             body = {"data": {data_key: base64.b64encode(yaml.safe_dump(new_cluster_tap_values).encode()).decode()}}
-            success, response = self.k8s_helper.patch_namespaced_secret(client=self.k8s_helper.core_clients[k8s_context], secret=tap_values_secret_name, namespace=namespace, body=body)
+            success, response = self.k8s_helper.patch_namespaced_secret(
+                client=self.k8s_helper.core_clients[k8s_context], secret=tap_values_secret_name, namespace=namespace, body=body
+            )
             if not success:
                 self.logger.msg(":broken_heart: Unable to edit the configuration secret on TAP cluster. Try again later.")
                 self.logger.msg(f"\n{response}", bold=False) if self.state["verbose"] else None
@@ -554,7 +589,9 @@ class TanzuApplicationPlatform:
             self.logger.msg(f"\n{response}", bold=False) if self.state["verbose"] else None
 
     def upgrade(self, version: str, wait: bool, namespace: str = "tap-install"):
-        commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
+        commons.check_and_pick_k8s_context(
+            k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
+        )
         cmd = f"tanzu package installed list --namespace {namespace}"
         _, out, _ = self.sh.run_proc(cmd=cmd)
         if "tap.tanzu.vmware.com" not in out.decode():
@@ -587,7 +624,9 @@ class TanzuApplicationPlatform:
             self.logger.msg(":rocket: TAP upgrade started on the cluster")
 
     def uninstall(self, package: str, namespace: str = "tap-install"):
-        commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
+        commons.check_and_pick_k8s_context(
+            k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
+        )
         self.sh_call(
             cmd=f"tanzu package installed delete {package} --namespace {namespace} --yes",
             msg=f":wine_glass: Uninstalling [yellow]TAP[/yellow]",
@@ -597,7 +636,9 @@ class TanzuApplicationPlatform:
         self.logger.msg(":rocket: TAP is uninstalled")
 
     def status(self, namespace: str = "tap-install"):
-        k8s_context = commons.check_and_pick_k8s_context(k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state)
+        k8s_context = commons.check_and_pick_k8s_context(
+            k8s_context=None, k8s_helper=self.k8s_helper, logger=self.logger, ui_helper=self.ui_helper, state=self.state
+        )
         success, response = self.k8s_helper.list_namespaced_custom_objects(
             group="packaging.carvel.dev",
             version="v1alpha1",
@@ -610,11 +651,17 @@ class TanzuApplicationPlatform:
             for item in response["items"]:
                 if "status" in item:
                     if item["status"]["conditions"][0]["type"] == "ReconcileSucceeded":
-                        rprint(f":package: {item['metadata']['name']} [cyan]{item['status']['version']}[/cyan] has [bold][green]Reconciled[/green][/bold]")
+                        rprint(
+                            f":package: {item['metadata']['name']} [cyan]{item['status']['version']}[/cyan] has [bold][green]Reconciled[/green][/bold]"
+                        )
                     elif item["status"]["conditions"][0]["type"] == "Reconciling":
-                        rprint(f":package: {item['metadata']['name']} [cyan]{item['status']['version']}[/cyan] is [bold][yellow]Reconciling[/yellow][/bold]")
+                        rprint(
+                            f":package: {item['metadata']['name']} [cyan]{item['status']['version']}[/cyan] is [bold][yellow]Reconciling[/yellow][/bold]"
+                        )
                     elif item["status"]["conditions"][0]["type"] == "Deleting":
-                        rprint(f":package: {item['metadata']['name']} [cyan]{item['status']['version']}[/cyan] is [bold][yellow]Reconciling[/yellow][/bold]")
+                        rprint(
+                            f":package: {item['metadata']['name']} [cyan]{item['status']['version']}[/cyan] is [bold][yellow]Reconciling[/yellow][/bold]"
+                        )
                     else:
                         errs.append([item["metadata"]["name"], item["status"]["version"], item["status"]["conditions"][0]["type"], item["status"]])
             if len(errs) > 0:
@@ -624,7 +671,9 @@ class TanzuApplicationPlatform:
                 if "usefulErrorMessage" in err[3]:
                     rprint(f"[bold][red]Error:[/red][/bold] {err[3]['usefulErrorMessage']}")
 
-    def relocate(self, version, tanzunet_username, tanzunet_password, registry_server, registry_username, registry_password, pkg_relocation_repo, wait):
+    def relocate(
+        self, version, tanzunet_username, tanzunet_password, registry_server, registry_username, registry_password, pkg_relocation_repo, wait
+    ):
         self.creds_helper.get("install_registry_server", "IMGPKG_REGISTRY_HOSTNAME_0")
         if not tanzunet_username:
             tanzunet_username = self.creds_helper.get("tanzunet_username", "IMGPKG_REGISTRY_USERNAME_0")
@@ -690,8 +739,17 @@ class TanzuApplicationPlatform:
                 raise typer.Exit(-1)
         else:
             subprocess.Popen(
-                ["imgpkg", "copy", "-b", f"registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:{version}", "--to-repo", f"{registry_server}/{pkg_relocation_repo}"],
+                [
+                    "imgpkg",
+                    "copy",
+                    "-b",
+                    f"registry.tanzu.vmware.com/tanzu-application-platform/tap-packages:{version}",
+                    "--to-repo",
+                    f"{registry_server}/{pkg_relocation_repo}",
+                ],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.STDOUT,
             )
-            self.logger.msg(":package: Started relocation in the background. Use macOS or Linux [yellow][bold]ps | grep 'imgpkg copy'[/bold][/yellow] command to see the running jobs")
+            self.logger.msg(
+                ":package: Started relocation in the background. Use macOS or Linux [yellow][bold]ps | grep 'imgpkg copy'[/bold][/yellow] command to see the running jobs"
+            )

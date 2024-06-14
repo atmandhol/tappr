@@ -21,7 +21,7 @@ from tappr.modules.utils.k8s import K8s
 from typing import Optional, List
 
 state = {"verbose": False, "context": None}
-VERSION = "0.19.0"
+VERSION = "0.20.0"
 
 typer_logger = TyperLogger()
 commons = Commons()
@@ -134,10 +134,17 @@ def init(
     tanzunet_password: str = typer.Option(None, help="Tanzu Network Password."),
     install_registry_server: str = typer.Option(None, help="Registry where the TAP packages are"),
     registry_server: str = typer.Option(None, help="Default registry server to use while installing tap. e.g. gcr.io, index.docker.io etc."),
-    registry_tbs_repo: str = typer.Option(None, help="Default registry repo on the registry server to use for build service. Don't include the registry server or starting /."),
+    registry_tbs_repo: str = typer.Option(
+        None, help="Default registry repo on the registry server to use for build service. Don't include the registry server or starting /."
+    ),
     registry_username: str = typer.Option(None, help="Registry username to use while installing tap"),
-    registry_password: str = typer.Option(None, help="Registry password to use while installing tap. If using GCR set this as path to jsonkey file."),
-    pkg_relocation_repo: str = typer.Option(None, help="Default registry repo on the registry server to use for relocating TAP packages. Don't include the registry server or starting /."),
+    registry_password: str = typer.Option(
+        None, help="Registry password to use while installing tap. If using GCR set this as path to jsonkey file."
+    ),
+    pkg_relocation_repo: str = typer.Option(
+        None,
+        help="Default registry repo on the registry server to use for relocating TAP packages. Don't include the registry server or starting /.",
+    ),
 ):
     """
     Initialize the tappr cli with required configuration.
@@ -158,7 +165,9 @@ def init(
 
 @utils_app.command()
 def changelog(
-    log_range: str = typer.Option("all", help="Determine which commits gets included for changelog. The log will be grouped by tags regardless of the range."),
+    log_range: str = typer.Option(
+        "all", help="Determine which commits gets included for changelog. The log will be grouped by tags regardless of the range."
+    ),
     ignore_dependabot_commits: bool = typer.Option(True, help="Dependabot commits will be ignored from the changelog"),
     ignore_docs_commits: bool = typer.Option(True, help="Docs commits will be ignored from the changelog"),
     output: str = typer.Option("stdout", help="Filename where the changelog output will be stored"),
@@ -262,13 +271,23 @@ def check():
         raise typer.Exit(-1)
     typer_logger.success("All checks passed!")
 
-    typer_logger.msg("\n:brick: Checking Infrastructure specific k8s tools that are needed for cluster create/delete commands in [bold][green]tappr[/green][/bold] ...")
-    subprocess_helpers.run_pre_req(cmd='gcloud version | grep "Google Cloud SDK"', tool="For [yellow]GKE[/yellow] clusters: gcloud") and checks_passed
+    typer_logger.msg(
+        "\n:brick: Checking Infrastructure specific k8s tools that are needed for cluster create/delete commands in [bold][green]tappr[/green][/bold] ..."
+    )
+    subprocess_helpers.run_pre_req(
+        cmd='gcloud version | grep "Google Cloud SDK"', tool="For [yellow]GKE[/yellow] clusters: gcloud"
+    ) and checks_passed
     checks_passed = subprocess_helpers.run_pre_req(cmd="kind --version", tool="For [yellow]Kind[/yellow] clusters: Kind") and checks_passed
-    checks_passed = subprocess_helpers.run_pre_req(cmd="minikube version", tool="For [yellow]minikube[/yellow] clusters: minikube") and checks_passed
-    checks_passed = subprocess_helpers.run_pre_req(cmd="rosa version", tool="For [yellow]RedHat Openshift on AWS[/yellow] clusters: rosa CLI") and checks_passed
+    checks_passed = (
+        subprocess_helpers.run_pre_req(cmd="minikube version", tool="For [yellow]minikube[/yellow] clusters: minikube") and checks_passed
+    )
+    checks_passed = (
+        subprocess_helpers.run_pre_req(cmd="rosa version", tool="For [yellow]RedHat Openshift on AWS[/yellow] clusters: rosa CLI") and checks_passed
+    )
 
-    typer_logger.msg("\n:hammer_and_wrench: Checking other tools that are not needed for using [bold][green]tappr[/green][/bold] but nice to have ...")
+    typer_logger.msg(
+        "\n:hammer_and_wrench: Checking other tools that are not needed for using [bold][green]tappr[/green][/bold] but nice to have ..."
+    )
     subprocess_helpers.run_pre_req(cmd="kapp --version", tool="kapp") and checks_passed
     subprocess_helpers.run_pre_req(cmd="kbld --version", tool="kbld") and checks_passed
     subprocess_helpers.run_pre_req(cmd="kctrl --version", tool="kctrl") and checks_passed
@@ -282,7 +301,9 @@ def check():
     subprocess_helpers.run_pre_req(cmd="jq --version", tool="jq") and checks_passed
     subprocess_helpers.run_pre_req(cmd="yq --version", tool="yq") and checks_passed
 
-    typer_logger.msg("\nChecks complete. \n:runner: [cyan][bold]tappr utils local setup[/bold][/cyan] to install missing tools (except tanzu CLI and gcloud SDK).")
+    typer_logger.msg(
+        "\nChecks complete. \n:runner: [cyan][bold]tappr utils local setup[/bold][/cyan] to install missing tools (except tanzu CLI and gcloud SDK)."
+    )
     typer_logger.msg(":runner: [cyan][bold]tappr init[/bold][/cyan] to set credentials for using tappr.")
     typer_logger.msg(":runner: [cyan][bold]tappr cluster create --help[/bold][/cyan] to see help for creating k8s clusters.")
     typer_logger.msg(":runner: [cyan][bold]tappr tap install --help[/bold][/cyan] to see help for installing TAP on your k8s clusters.\n")
@@ -357,7 +378,9 @@ def minikube(
     cluster_name,
     cpus: str = typer.Option("max", help="Number of CPUs to allot for cluster"),
     memory: str = typer.Option("max", help="Amount of memory to allot for cluster"),
-    driver: str = typer.Option("docker", help="minikube driver to use to create clusters. Other options are virtualbox, parallels, vmwarefusion, hyperkit, vmware, docker"),
+    driver: str = typer.Option(
+        "docker", help="minikube driver to use to create clusters. Other options are virtualbox, parallels, vmwarefusion, hyperkit, vmware, docker"
+    ),
     embed_certs: bool = typer.Option(False, help="if true, will embed the certs present at $HOME/.minikube/certs/ in kubeconfig"),
     k8s_version: str = typer.Option("stable", help="Kubernetes version"),
     dns_domain: str = typer.Option("cluster.local", help="The cluster dns domain name used in the Kubernetes cluster"),
@@ -376,9 +399,7 @@ def minikube(
         raise typer.Exit(-1)
 
     check_if_cluster_name_valid(cluster_name)
-    cmd = (
-        f'minikube start --cpus="{cpus}" --memory="{memory}" --kubernetes-version={k8s_version} --profile={cluster_name} --driver={driver} --embed-certs={embed_certs} --dns-domain={dns_domain}'
-    )
+    cmd = f'minikube start --cpus="{cpus}" --memory="{memory}" --kubernetes-version={k8s_version} --profile={cluster_name} --driver={driver} --embed-certs={embed_certs} --dns-domain={dns_domain}'
     typer_logger.msg(f":package: Creating a minikube cluster with profile named [yellow]{cluster_name}[/yellow].", bold=False)
     proc, out, err = ui_helpers.progress(cmd=cmd, state=state, message="Spinning up a minikube cluster")
     if proc.returncode == 0:
@@ -386,7 +407,9 @@ def minikube(
     else:
         typer_logger.msg(":broken_heart: Unable to create minikube cluster. Use [bold]--verbose[/bold] flag for error details.")
 
-    typer_logger.msg(f"\n:runner: [cyan][bold]minikube tunnel --profile {cluster_name}[/bold][/cyan] in a separate terminal to start a Load Balancer tunnel.")
+    typer_logger.msg(
+        f"\n:runner: [cyan][bold]minikube tunnel --profile {cluster_name}[/bold][/cyan] in a separate terminal to start a Load Balancer tunnel."
+    )
     typer_logger.msg(":runner: [cyan][bold]tappr tap install {profile} {version}[/bold][/cyan] to install TAP on minikube.")
     typer_logger.msg(f":runner: [cyan][bold]tappr cluster delete minikube {cluster_name}[/bold][/cyan] to delete the cluster.\n")
 
@@ -435,7 +458,9 @@ def kind(cluster_name, customize: bool = typer.Option(False, help="Customize the
 def get_latest_gke_version_by_channel(region, channel):
     # Get all supported server configs
     proc, out, _ = ui_helpers.progress(
-        cmd=f"gcloud container get-server-config --region={region} --format=json", message=":magnifying_glass_tilted_left: Checking gcloud installation", state=state
+        cmd=f"gcloud container get-server-config --region={region} --format=json",
+        message=":magnifying_glass_tilted_left: Checking gcloud installation",
+        state=state,
     )
     if proc.returncode != 0:
         raise typer.Exit(-1)
@@ -453,7 +478,9 @@ def get_latest_gke_version_by_channel(region, channel):
 
 def pick_cluster_and_nodepool():
     # Get all supported server configs
-    proc, out, _ = ui_helpers.progress(cmd="gcloud container clusters list --format json", state=state, message=":magnifying_glass_tilted_left: Getting list of clusters")
+    proc, out, _ = ui_helpers.progress(
+        cmd="gcloud container clusters list --format json", state=state, message=":magnifying_glass_tilted_left: Getting list of clusters"
+    )
     if proc.returncode != 0:
         raise typer.Exit(-1)
 
@@ -468,7 +495,9 @@ def pick_cluster_and_nodepool():
 
 def pick_cluster():
     # Get all supported server configs
-    proc, out, _ = ui_helpers.progress(cmd="gcloud container clusters list --format json", state=state, message=":magnifying_glass_tilted_left: Getting list of clusters")
+    proc, out, _ = ui_helpers.progress(
+        cmd="gcloud container clusters list --format json", state=state, message=":magnifying_glass_tilted_left: Getting list of clusters"
+    )
     if proc.returncode != 0:
         raise typer.Exit(-1)
 
@@ -485,19 +514,25 @@ def gke(
     cluster_name: str = typer.Option(None, help="Name of the GKE cluster"),
     channel: GKE_RELEASE_CHANNELS = typer.Option(GKE_RELEASE_CHANNELS.STABLE, help="GKE Release Channel"),
     cluster_version: str = typer.Option("auto", help="auto takes the latest in the channel. You can specify a fixed version as well."),
-    project: str = typer.Option(None, help="Name of the GCP project. If gcloud is pointing to a specific project, it will be automatically picked up"),
+    project: str = typer.Option(
+        None, help="Name of the GCP project. If gcloud is pointing to a specific project, it will be automatically picked up"
+    ),
     customize: bool = typer.Option(False, help="Customize the default values"),
     region: str = typer.Option(None, help="GKE cluster region"),
     num_nodes_per_zone: int = typer.Option(None, help="Number of worker nodes in NodePool per zone"),
     new_subnet_name: str = typer.Option(None, help="Provide a name of new subnet to create that will be used for this GKE cluster"),
     new_subnet_range: int = typer.Option(23, help="CIDR range routing prefix bits. Should be between 21-24 for a full TAP install"),
-    auto_scale_down: bool = typer.Option(True, help="if False, adds a label do-not-automate to GKE cluster which can be used for auto cleanup scripts on GCP."),
+    auto_scale_down: bool = typer.Option(
+        True, help="if False, adds a label do-not-automate to GKE cluster which can be used for auto cleanup scripts on GCP."
+    ),
 ):
     """
     Create a GKE cluster. Assumes gcloud is set to create clusters.
     """
     # Check if gcloud is installed
-    proc, out, _ = ui_helpers.progress(cmd=f"gcloud info --format json", message=":magnifying_glass_tilted_left: Checking gcloud installation", state=state)
+    proc, out, _ = ui_helpers.progress(
+        cmd=f"gcloud info --format json", message=":magnifying_glass_tilted_left: Checking gcloud installation", state=state
+    )
     if proc.returncode != 0:
         raise typer.Exit(-1)
 
@@ -593,7 +628,9 @@ def gke(
         cmd += f" --create-subnetwork name={new_subnet_name},range=/{new_subnet_range} "
 
     cmd = cmd.replace("{project}", gcp_project).replace("{region}", region)
-    typer_logger.msg(f":package: Creating a GKE cluster named [yellow]{cluster_name}[/yellow] in project [yellow]{gcp_project}[/yellow]", bold=False)
+    typer_logger.msg(
+        f":package: Creating a GKE cluster named [yellow]{cluster_name}[/yellow] in project [yellow]{gcp_project}[/yellow]", bold=False
+    )
     proc, out, err = ui_helpers.progress(cmd=cmd, state=state, message="Spinning up a GKE cluster")
     if proc.returncode == 0:
         typer_logger.msg(":rocket: GKE Cluster created [green]successfully[/green]")
@@ -610,7 +647,9 @@ def gke(
 @scale_cluster_app.command()
 def gke(
     cluster_name: str = typer.Option(None, help="Name of the GKE cluster"),
-    project: str = typer.Option(None, help="Name of the GCP project. If gcloud is pointing to a specific project, it will be automatically picked up"),
+    project: str = typer.Option(
+        None, help="Name of the GCP project. If gcloud is pointing to a specific project, it will be automatically picked up"
+    ),
     region: str = typer.Option("us-east4", help="GKE cluster region"),
     nodepool: str = typer.Option("default-pool", help="GKE cluster nodepool to scale"),
     num_nodes_per_zone: int = typer.Option(2, help="Number of worker nodes in NodePool per zone"),
@@ -619,7 +658,9 @@ def gke(
     Scale a GKE cluster. Assumes gcloud is set to modify clusters.
     """
     # Check if gcloud is installed
-    proc, out, _ = ui_helpers.progress(cmd=f"gcloud info --format json", message=":magnifying_glass_tilted_left: Checking gcloud installation", state=state)
+    proc, out, _ = ui_helpers.progress(
+        cmd=f"gcloud info --format json", message=":magnifying_glass_tilted_left: Checking gcloud installation", state=state
+    )
     if proc.returncode != 0:
         raise typer.Exit(-1)
 
@@ -636,7 +677,8 @@ def gke(
     cmd = f"gcloud container clusters resize {cluster_name} --region {region} --node-pool {nodepool} --num-nodes {num_nodes_per_zone} --project {gcp_project} -q"
 
     typer_logger.msg(
-        f":package: Scaling the GKE cluster nodepool named [yellow]{nodepool}[/yellow] on cluster [yellow]{cluster_name}[/yellow] in project [yellow]{gcp_project}[/yellow]", bold=False
+        f":package: Scaling the GKE cluster nodepool named [yellow]{nodepool}[/yellow] on cluster [yellow]{cluster_name}[/yellow] in project [yellow]{gcp_project}[/yellow]",
+        bold=False,
     )
     proc, out, err = ui_helpers.progress(cmd=cmd, state=state, message="Scaling up a GKE cluster")
     if proc.returncode == 0:
@@ -765,13 +807,19 @@ def install(
     ingress_issuer: str = typer.Option("", help='Shared Ingress Issuer. Can also use "tap-ingress-selfsigned" to use the OOTB self signed cert'),
     k8s_distribution: str = typer.Option("", help="Use openshift if installing on Openshift cluster, else use default"),
     tbs_repo_push_secret: str = typer.Option("tbs-repo-push", help="Name of the push secret that needs to be created"),
-    tanzunet_pull_secret: str = typer.Option("tanzunet-pull", help="Name of the pull secret for Tanzu Network that needs to be created for TAP install"),
+    tanzunet_pull_secret: str = typer.Option(
+        "tanzunet-pull", help="Name of the pull secret for Tanzu Network that needs to be created for TAP install"
+    ),
     repo_pull_secret: str = typer.Option("repo-pull", help="Name of the push secret that needs to be created"),
     supply_chain: str = typer.Option("basic", help='OOTB Supply chain to install. Other values are "testing" and "testing_scanning"'),
     contour_infra: str = typer.Option("vsphere", help="Supported values are aws, azure and vsphere"),
     service_type: str = typer.Option("LoadBalancer", help="Accepted values are LoadBalancer, NodePort and ClusterIP"),
-    ca_cert_file: str = typer.Option(None, help="Absolute URL to the file that contains CA Cert data that should be added to shared TAP configuration"),
-    skip_cluster_essentials: bool = typer.Option(False, help="Skip Cluster Essentials installation as its already installed or the user is using TKG or some flavor that already has it."),
+    ca_cert_file: str = typer.Option(
+        None, help="Absolute URL to the file that contains CA Cert data that should be added to shared TAP configuration"
+    ),
+    skip_cluster_essentials: bool = typer.Option(
+        False, help="Skip Cluster Essentials installation as its already installed or the user is using TKG or some flavor that already has it."
+    ),
     exclude_package: Optional[List[str]] = typer.Option(None),
     tap_values_file: str = None,
     wait: bool = typer.Option(False, help="Wait for the TAP install to complete"),
@@ -823,10 +871,13 @@ def edit(
     namespace: str = typer.Option("tap-install", help="TAP installation namespace"),
     from_file: str = typer.Option(
         None,
-        help="Yaml file path containing tap values to shallow merge (first level only) with the existing tap values on the cluster. " "Inline editor is not invoked if this option is used.",
+        help="Yaml file path containing tap values to shallow merge (first level only) with the existing tap values on the cluster. "
+        "Inline editor is not invoked if this option is used.",
     ),
     force: bool = typer.Option(False, help="Force save the changes to the yaml file without any user prompt"),
-    show: bool = typer.Option(True, help="Show the current content of the tap values file on the cluster in the inline editor. Defaults to false for security purposes."),
+    show: bool = typer.Option(
+        True, help="Show the current content of the tap values file on the cluster in the inline editor. Defaults to false for security purposes."
+    ),
 ):
     """
     Modify TAP Installation.
@@ -850,10 +901,14 @@ def relocate(
     version: str = typer.Option(None, help="Select the version of TAP you want to relocate from Tanzu Network to your Registry"),
     tanzunet_username: str = typer.Option(None, help="Tanzu Network Username, defaults to config set by tappr init."),
     tanzunet_password: str = typer.Option(None, help="Tanzu Network Password, defaults to config set by tappr init."),
-    registry_server: str = typer.Option(None, help="Default registry server to use while installing tap, defaults to config set by tappr init. e.g. gcr.io, index.docker.io etc."),
+    registry_server: str = typer.Option(
+        None, help="Default registry server to use while installing tap, defaults to config set by tappr init. e.g. gcr.io, index.docker.io etc."
+    ),
     registry_username: str = typer.Option(None, help="Registry username to use while installing tap, defaults to config set by tappr init"),
     registry_password: str = typer.Option(None, help="Registry password to use while installing tap, defaults to config set by tappr init"),
-    pkg_relocation_repo: str = typer.Option(None, help="Default registry repo on the registry server to use for relocating TAP packages, defaults to config set by tappr init."),
+    pkg_relocation_repo: str = typer.Option(
+        None, help="Default registry repo on the registry server to use for relocating TAP packages, defaults to config set by tappr init."
+    ),
     wait: bool = typer.Option(True, help="Wait for the relocation to finish or run it in a separate thread in the background."),
 ):
     """
