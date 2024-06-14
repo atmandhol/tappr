@@ -34,11 +34,9 @@ buildservice:
   kp_default_repository_secret:
     name: #@ data.values.tbs_repo_push_secret if hasattr(data.values, "tbs_repo_push_secret") else "tbs-repo-push"
     namespace: #@ data.values.tap_install_ns if hasattr(data.values, "tap_install_ns") else "tap-install"
-  #@ if data.values.version < "1.5":
-  tanzunet_secret:
-    name: #@ data.values.tbs_tanzunet_pull_secret if hasattr(data.values, "tbs_tanzunet_pull_secret") else "tbs-tanzunet-pull"
-    namespace: #@ data.values.tap_install_ns if hasattr(data.values, "tap_install_ns") else "tap-install"
-  #@ end
+#@ if data.values.version > "1.11":
+  enable_synced_secrets: true
+#@ end
 #@ end
 
 #@ if is_profile(['full', 'build', 'light', 'iterate', 'authoring']):

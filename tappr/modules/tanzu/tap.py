@@ -176,7 +176,6 @@ class TanzuApplicationPlatform:
         ingress_issuer,
         k8s_distribution,
         tbs_repo_push_secret,
-        tbs_tanzunet_pull_secret,
         tanzunet_pull_secret,
         repo_pull_secret,
         ca_cert_file,
@@ -247,16 +246,6 @@ class TanzuApplicationPlatform:
         )
         self.create_or_update_secret(
             list_op=out,
-            secret=tbs_tanzunet_pull_secret,
-            username=tanzunet_username,
-            password=tanzunet_password,
-            namespace=namespace,
-            msg=f":key: Setting up Tanzu Network Image Pull Secret {tbs_tanzunet_pull_secret} for TBS",
-            registry_server=install_registry_server,
-            export_everywhere=False,
-        )
-        self.create_or_update_secret(
-            list_op=out,
             secret=tbs_repo_push_secret,
             username=registry_username,
             password=registry_password,
@@ -307,7 +296,6 @@ class TanzuApplicationPlatform:
                 f"registry_server: {registry_server}\n"
                 f"registry_repo: {registry_tbs_repo}\n"
                 f"tbs_repo_push_secret: {tbs_repo_push_secret}\n"
-                f"tbs_tanzunet_pull_secret: {tbs_tanzunet_pull_secret}\n"
                 f"tanzunet_pull_secret: {tanzunet_pull_secret}\n"
                 f"repo_pull_secret: {repo_pull_secret}\n"
                 f"supply_chain: {supply_chain}\n"
