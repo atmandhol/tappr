@@ -122,3 +122,10 @@ excluded_packages:
 
 tap_telemetry:
    installed_for_vmware_internal_use: "true"
+
+#@ if is_profile(['full', 'build', 'light', 'iterate', 'authoring']) and data.values.version >= "1.11":
+tekton_pipelines:
+  feature_flags:
+    enable_step_actions: "true"
+    enable_api_fields: alpha
+#@ end
