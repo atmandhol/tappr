@@ -21,7 +21,7 @@ from tappr.modules.utils.k8s import K8s
 from typing import Optional, List
 
 state = {"verbose": False, "context": None}
-VERSION = "0.21.0"
+VERSION = "0.22.0"
 
 typer_logger = TyperLogger()
 commons = Commons()
