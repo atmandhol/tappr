@@ -78,6 +78,8 @@ cnrs:
 contour:
   infrastructure_provider: #@ data.values.contour_infra if hasattr(data.values, "contour_infra") and in_list("data.values.contour_infra", ["aws", "azure", "vsphere"]) else "vsphere"
   envoy:
+    workload:
+      replicas: 1
     service:
       type: #@ data.values.service_type if hasattr(data.values, "service_type") else "NodePort"
       #@ if hasattr(data.values, "service_type") and data.values.service_type == "NodePort":
