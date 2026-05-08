@@ -78,6 +78,7 @@ cnrs:
 contour:
   infrastructure_provider: #@ data.values.contour_infra if hasattr(data.values, "contour_infra") and in_list("data.values.contour_infra", ["aws", "azure", "vsphere"]) else "vsphere"
   envoy:
+    listenIPFamily: IPv4
     workload:
       replicas: 1
     service:
