@@ -126,6 +126,8 @@ excluded_packages:
 #@ if is_profile(['full', 'build', 'light', 'iterate', 'authoring']) and data.values.version >= "1.11":
 tekton_pipelines:
   feature_flags:
+    #! this is a temp fix to fix upgrades from <1.12.6 to 1.12.6 and later
+    coschedule: workspaces
     enable_step_actions: "true"
     enable_api_fields: alpha
 #@ end
